@@ -1,0 +1,330 @@
+import React from "react";
+import { Table, Tag, Space, Button, Dropdown } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import type { MenuProps } from "antd";
+import {
+  DesktopOutlined,
+  WindowsOutlined,
+  AppleOutlined,
+  DownOutlined,
+  PlayCircleFilled,
+  PauseCircleFilled,
+  QuestionCircleFilled,
+  ClockCircleFilled,
+} from "@ant-design/icons";
+
+interface HostDataType {
+  key: string;
+  name: string;
+  status:
+  | "running"
+  | "stopped"
+  | "backup"
+  | "starting"
+  | "restarting"
+  | "migrating"
+  | "unknown";
+  console: boolean;
+  tags: string[];
+  platform: string;
+  location: string;
+  os: "Windows" | "Linux" | "Debian";
+  ip: string;
+}
+
+const statusMap = {
+  running: {
+    icon: <PlayCircleFilled style={{ color: "#52c41a" }} />,
+    text: "运行中",
+  },
+  stopped: {
+    icon: <PauseCircleFilled style={{ color: "#d9d9d9" }} />,
+    text: "已关机",
+  },
+  backup: {
+    icon: <ClockCircleFilled style={{ color: "#faad14" }} />,
+    text: "备份中",
+  },
+  starting: {
+    icon: <ClockCircleFilled style={{ color: "#1890ff" }} />,
+    text: "开机中",
+  },
+  restarting: {
+    icon: <ClockCircleFilled style={{ color: "#1890ff" }} />,
+    text: "重启中",
+  },
+  migrating: {
+    icon: <ClockCircleFilled style={{ color: "#1890ff" }} />,
+    text: "克隆中",
+  },
+  unknown: {
+    icon: <QuestionCircleFilled style={{ color: "#faad14" }} />,
+    text: "未知",
+  },
+};
+
+const columns: ColumnsType<HostDataType> = [
+  {
+    title: "名称",
+    dataIndex: "name",
+    key: "name",
+    width: 150,
+    render: text => <a>{text}</a>,
+  },
+  {
+    title: "状态",
+    dataIndex: "status",
+    key: "status",
+    render: (status: keyof typeof statusMap) => {
+      const { icon, text } = statusMap[status] || statusMap.unknown;
+      return (
+        <Space>
+          {icon}
+          <span>{text}</span>
+        </Space>
+      );
+    },
+  },
+  {
+    title: "控制台",
+    dataIndex: "console",
+    key: "console",
+    render: () => (
+      <DesktopOutlined style={{ color: "#1890ff", fontSize: "16px" }} />
+    ),
+  },
+  {
+    title: "标签",
+    dataIndex: "tags",
+    key: "tags",
+    render: (tags: string[]) => (
+      <>
+        {tags.map(tag => {
+          let color = "blue";
+          if (tag === "MeshFlowServer") color = "gold";
+          if (tag === "CC生产节点") color = "cyan";
+          if (tag === "云桌面") color = "geekblue";
+
+          return (
+            <Tag color={color} key={tag}>
+              {tag}
+            </Tag>
+          );
+        })}
+      </>
+    ),
+  },
+  {
+    title: "所属平台",
+    dataIndex: "platform",
+    key: "platform",
+    render: text => <span>{text}</span>,
+  },
+  {
+    title: "所在位置",
+    dataIndex: "location",
+    key: "location",
+    render: text => <span style={{ color: "#666" }}>{text}</span>,
+  },
+  {
+    title: "操作系统",
+    dataIndex: "os",
+    key: "os",
+    render: os => (
+      <Space>
+        {os === "Windows" && <WindowsOutlined style={{ color: "#1890ff" }} />}
+        {os === "Debian" && (
+          <span style={{ color: "#f5222d", fontWeight: "bold" }}>Debian</span>
+        )}
+        {/* Fallback or other OS icons can be added here */}
+        {os !== "Windows" && os !== "Debian" && <AppleOutlined />}
+        {os}
+      </Space>
+    ),
+  },
+  {
+    title: "IP",
+    dataIndex: "ip",
+    key: "ip",
+  },
+  {
+    title: "操作",
+    key: "action",
+    width: 220,
+    render: () => {
+      const items: MenuProps["items"] = [
+        { key: "1", label: "重启" },
+        { key: "2", label: "克隆" },
+        { key: "3", label: "标签设置" },
+        { key: "4", label: "转换模板" },
+        { key: "5", label: "删除", danger: true },
+      ];
+
+      return (
+        <Space size="small">
+          <Button type="link" size="small">
+            开机
+          </Button>
+          <Button type="link" size="small" danger>
+            关机
+          </Button>
+          <Dropdown menu={{ items }}>
+            <Button type="link" size="small">
+              更多 <DownOutlined />
+            </Button>
+          </Dropdown>
+        </Space>
+      );
+    },
+  },
+];
+
+const data: HostDataType[] = [
+  {
+    key: "1",
+    name: "desktop-101",
+    status: "running",
+    console: true,
+    tags: ["MeshFlowServer"],
+    platform: "KRCloud",
+    location: "cluster237/host180",
+    os: "Debian",
+    ip: "192.168.1.101",
+  },
+  {
+    key: "2",
+    name: "desktop-102",
+    status: "running",
+    console: true,
+    tags: ["CC生产节点"],
+    platform: "KRCloud",
+    location: "cluster237/host180",
+    os: "Windows",
+    ip: "192.168.1.102",
+  },
+  {
+    key: "3",
+    name: "desktop-103",
+    status: "backup",
+    console: true,
+    tags: ["云桌面"],
+    platform: "KRCloud",
+    location: "cluster237/host180",
+    os: "Windows",
+    ip: "192.168.1.103",
+  },
+  {
+    key: "4",
+    name: "desktop-104",
+    status: "starting",
+    console: true,
+    tags: ["云桌面"],
+    platform: "KRCloud",
+    location: "cluster237/host180",
+    os: "Windows",
+    ip: "192.168.1.104",
+  },
+  {
+    key: "5",
+    name: "desktop-105",
+    status: "unknown",
+    console: true,
+    tags: ["云桌面"],
+    platform: "KRCloud",
+    location: "cluster237/host180",
+    os: "Windows",
+    ip: "192.168.1.105",
+  },
+];
+
+import type { ColumnConfig } from "./ColumnSettingsDrawer";
+
+interface HostTableProps {
+  columnsConfig?: ColumnConfig[];
+  onHostClick?: (record: HostDataType) => void;
+}
+
+const HostTable: React.FC<HostTableProps> = ({
+  columnsConfig,
+  onHostClick,
+}) => {
+  // Filter and sort columns based on config
+  const tableColumns = React.useMemo(() => {
+    if (!columnsConfig) return columns; // Fallback to default
+
+    const visibleKeys = new Set(
+      columnsConfig.filter(c => c.visible).map(c => c.key)
+    );
+
+    // Create a map of key -> column definition for easy lookup
+    // We need to modify the 'name' column render function to use onHostClick
+    const colMap = new Map(
+      columns.map(col => {
+        if (col.key === "name") {
+          return [
+            col.key,
+            {
+              ...col,
+              render: (text: string, record: HostDataType) => (
+                <a
+                  onClick={e => {
+                    e.preventDefault();
+                    onHostClick?.(record);
+                  }}
+                >
+                  {text}
+                </a>
+              ),
+            },
+          ];
+        }
+        return [col.key as string, col];
+      })
+    );
+
+    // Map config order to actual table columns
+    return columnsConfig
+      .filter(c => visibleKeys.has(c.key))
+      .map(c => {
+        const colDef = colMap.get(c.key);
+        if (!colDef) return null;
+
+        // Apply fixed property based on key
+        // 'name' is fixed to left, 'action' is fixed to right
+        if (c.key === "name") {
+          return { ...colDef, fixed: "left" };
+        }
+        if (c.key === "action") {
+          return { ...colDef, fixed: "right" };
+        }
+        return colDef;
+      })
+      .filter(Boolean) as ColumnsType<HostDataType>;
+  }, [columnsConfig]);
+
+  return (
+    <Table
+      columns={tableColumns}
+      dataSource={data}
+      rowSelection={{
+        type: "checkbox",
+        fixed: true, // Ensure checkbox column is also fixed
+      }}
+      pagination={{
+        total: 100,
+        showTotal: total => `共计 ${total} 条数据`,
+        defaultPageSize: 10,
+        showSizeChanger: true,
+      }}
+      expandable={{
+        expandedRowRender: record => (
+          <p style={{ margin: 0 }}>{record.name} 详细信息...</p>
+        ),
+        fixed: "left", // Ensure expand icon is fixed if present (though usually it's with the first column or separate)
+      }}
+      scroll={{ x: 1300 }}
+    />
+  );
+};
+
+export default HostTable;

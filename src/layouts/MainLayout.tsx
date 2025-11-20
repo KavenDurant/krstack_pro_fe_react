@@ -1,0 +1,245 @@
+import React from "react";
+import { Layout, Menu, theme, Avatar, Space, Typography, Alert } from "antd";
+import {
+  DesktopOutlined,
+  CloudServerOutlined,
+  AppstoreOutlined,
+  SettingOutlined,
+  UserOutlined,
+  FileTextOutlined,
+  TagsOutlined,
+  CloseCircleFilled,
+  ExclamationCircleFilled,
+} from "@ant-design/icons";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+
+const { Header, Sider, Content } = Layout;
+
+const MainLayout: React.FC = () => {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Top Navigation Items
+  const topNavItems = [
+    { key: "overview", label: "数据概览", icon: <AppstoreOutlined /> },
+    { key: "vm-manage", label: "虚拟机管理", icon: <DesktopOutlined /> },
+    {
+      key: "desktop-manage",
+      label: "云桌面管理",
+      icon: <CloudServerOutlined />,
+    },
+    { key: "resource-manage", label: "资源管理", icon: <FileTextOutlined /> },
+    { key: "ops-manage", label: "运维管理", icon: <SettingOutlined /> },
+    { key: "platform-manage", label: "平台管理", icon: <SettingOutlined /> },
+  ];
+
+  // Side Navigation Items - dynamically change based on top nav selection
+  const getSideNavItems = () => {
+    const path = location.pathname;
+
+    // Cloud Desktop Management submenu
+    if (path.startsWith("/cloud-desktop")) {
+      return [
+        {
+          key: "/cloud-desktop",
+          label: "云桌面管理",
+          icon: <DesktopOutlined />,
+        },
+      ];
+    }
+
+    // Resource Management submenu
+    if (path.startsWith("/resource-management")) {
+      return [
+        {
+          key: "/resource-management",
+          label: "资源概览",
+          icon: <CloudServerOutlined />,
+        },
+      ];
+    }
+
+    // Platform Management submenu
+    if (path.startsWith("/platform-management")) {
+      return [
+        {
+          key: "/platform-management",
+          label: "系统设置",
+          icon: <SettingOutlined />,
+        },
+      ];
+    }
+
+    // Operations Management submenu
+    if (path.startsWith("/operations-management")) {
+      return [
+        {
+          key: "/operations-management",
+          label: "操作日志",
+          icon: <FileTextOutlined />,
+        },
+      ];
+    }
+
+    // Default: VM Management submenu
+    return [
+      { key: "/hosts", label: "虚拟机管理", icon: <DesktopOutlined /> },
+      {
+        key: "/templates",
+        label: "虚拟机规格模板",
+        icon: <FileTextOutlined />,
+      },
+      {
+        key: "/settings/form",
+        label: "虚拟机表单设置",
+        icon: <SettingOutlined />,
+      },
+      { key: "/backups", label: "虚拟机备份管理", icon: <FileTextOutlined /> },
+      { key: "/hosts/tags", icon: <TagsOutlined />, label: "虚拟机标签管理" },
+    ];
+  };
+
+  const sideNavItems = getSideNavItems();
+
+  // Handle top navigation clicks
+  const handleTopNavClick = (key: string) => {
+    switch (key) {
+      case "vm-manage":
+        navigate("/hosts");
+        break;
+      case "desktop-manage":
+        navigate("/cloud-desktop");
+        break;
+      case "resource-manage":
+        navigate("/resource-management");
+        break;
+      case "ops-manage":
+        navigate("/operations-management");
+        break;
+      case "platform-manage":
+        navigate("/platform-management");
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <Layout style={{ height: "100vh" }}>
+      <Header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "#fff",
+          padding: "0 24px",
+          borderBottom: "1px solid #f0f0f0",
+          height: 64,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          className="logo"
+          style={{ display: "flex", alignItems: "center", marginRight: 48 }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              background: "#1890ff",
+              borderRadius: 4,
+              marginRight: 8,
+            }}
+          ></div>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            云管理平台
+          </Typography.Title>
+        </div>
+        <Menu
+          theme="light"
+          mode="horizontal"
+          defaultSelectedKeys={["vm-manage"]}
+          items={topNavItems}
+          style={{ flex: 1, borderBottom: "none" }}
+          onClick={({ key }) => handleTopNavClick(key)}
+        />
+        <Space>
+          <Avatar icon={<UserOutlined />} />
+          <span>admin</span>
+        </Space>
+      </Header>
+      {location.pathname === "/hosts" && (
+        <div style={{ width: "100%" }}>
+          <Alert
+            description={
+              <span style={{ fontSize: 12 }}>
+                集群cluster237下的物理机host181已离线！
+              </span>
+            }
+            type="error"
+            icon={<CloseCircleFilled style={{ fontSize: 14 }} />}
+            showIcon
+            closable
+            style={{
+              borderRadius: 0,
+              border: "none",
+              borderBottom: "1px solid #ffccc7",
+              padding: "4px 15px", // Reduced padding
+              alignItems: "center",
+            }}
+          />
+          <Alert
+            description={
+              <span style={{ fontSize: 12 }}>
+                集群cluster237下的local-lvm存储可用容量&lt;10%
+              </span>
+            }
+            type="warning"
+            icon={<ExclamationCircleFilled style={{ fontSize: 14 }} />}
+            showIcon
+            closable
+            style={{
+              borderRadius: 0,
+              border: "none",
+              borderBottom: "1px solid #ffe58f",
+              padding: "4px 15px", // Reduced padding
+              alignItems: "center",
+            }}
+          />
+        </div>
+      )}
+      <Layout style={{ overflow: "hidden" }}>
+        <Sider width={176} style={{ background: colorBgContainer }}>
+          <Menu
+            mode="inline"
+            defaultSelectedKeys={["/hosts"]}
+            selectedKeys={[location.pathname]}
+            style={{ height: "100%", borderRight: 0 }}
+            items={sideNavItems}
+            onClick={({ key }) => navigate(key)}
+          />
+        </Sider>
+        <Layout style={{ padding: 0, overflow: "hidden" }}>
+          <Content
+            style={{
+              background: colorBgContainer,
+              padding: 0,
+              margin: 0,
+              height: "100%",
+              overflow: "hidden",
+              borderRadius: 0,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Outlet />
+          </Content>
+        </Layout>
+      </Layout>
+    </Layout>
+  );
+};
+
+export default MainLayout;
