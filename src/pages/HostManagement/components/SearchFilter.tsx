@@ -17,7 +17,12 @@ interface SearchFilterProps {
 
 const SearchFilter: React.FC<SearchFilterProps> = ({ onSettingsClick }) => {
   return (
-    <div style={{ padding: "16px" }}>
+    <div
+      style={{
+        padding: "10px 16px",
+        margin: "8px 0",
+      }}
+    >
       <Row justify="space-between" align="middle">
         <Col>
           <Space>
