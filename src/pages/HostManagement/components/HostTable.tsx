@@ -13,7 +13,7 @@ import {
   ClockCircleFilled,
 } from "@ant-design/icons";
 
-interface HostDataType {
+export interface HostDataType {
   key: string;
   name: string;
   status:
@@ -23,13 +23,17 @@ interface HostDataType {
   | "starting"
   | "restarting"
   | "migrating"
+  | "offline"
   | "unknown";
   console: boolean;
   tags: string[];
   platform: string;
   location: string;
-  os: "Windows" | "Linux" | "Debian";
+  os?: "Windows" | "Linux" | "Debian" | string;
   ip: string;
+  clusterId?: number;
+  clusterName?: string;
+  nodeName?: string;
 }
 
 const statusMap = {
@@ -56,6 +60,10 @@ const statusMap = {
   migrating: {
     icon: <ClockCircleFilled style={{ color: "#1890ff" }} />,
     text: "克隆中",
+  },
+  offline: {
+    icon: <PauseCircleFilled style={{ color: "#bfbfbf" }} />,
+    text: "离线",
   },
   unknown: {
     icon: <QuestionCircleFilled style={{ color: "#faad14" }} />,
@@ -130,17 +138,20 @@ const columns: ColumnsType<HostDataType> = [
     title: "操作系统",
     dataIndex: "os",
     key: "os",
-    render: os => (
-      <Space>
-        {os === "Windows" && <WindowsOutlined style={{ color: "#1890ff" }} />}
-        {os === "Debian" && (
-          <span style={{ color: "#f5222d", fontWeight: "bold" }}>Debian</span>
-        )}
-        {/* Fallback or other OS icons can be added here */}
-        {os !== "Windows" && os !== "Debian" && <AppleOutlined />}
-        {os}
-      </Space>
-    ),
+    render: os => {
+      if (!os) return <span style={{ color: "#999" }}>-</span>;
+      return (
+        <Space>
+          {os === "Windows" && <WindowsOutlined style={{ color: "#1890ff" }} />}
+          {os === "Debian" && (
+            <span style={{ color: "#f5222d", fontWeight: "bold" }}>Debian</span>
+          )}
+          {/* Fallback or other OS icons can be added here */}
+          {os !== "Windows" && os !== "Debian" && <AppleOutlined />}
+          {os}
+        </Space>
+      );
+    },
   },
   {
     title: "IP",
@@ -179,75 +190,41 @@ const columns: ColumnsType<HostDataType> = [
   },
 ];
 
-const data: HostDataType[] = [
-  {
-    key: "1",
-    name: "desktop-101",
-    status: "running",
-    console: true,
-    tags: ["MeshFlowServer"],
-    platform: "KRCloud",
-    location: "cluster237/host180",
-    os: "Debian",
-    ip: "192.168.1.101",
-  },
-  {
-    key: "2",
-    name: "desktop-102",
-    status: "running",
-    console: true,
-    tags: ["CC生产节点"],
-    platform: "KRCloud",
-    location: "cluster237/host180",
-    os: "Windows",
-    ip: "192.168.1.102",
-  },
-  {
-    key: "3",
-    name: "desktop-103",
-    status: "backup",
-    console: true,
-    tags: ["云桌面"],
-    platform: "KRCloud",
-    location: "cluster237/host180",
-    os: "Windows",
-    ip: "192.168.1.103",
-  },
-  {
-    key: "4",
-    name: "desktop-104",
-    status: "starting",
-    console: true,
-    tags: ["云桌面"],
-    platform: "KRCloud",
-    location: "cluster237/host180",
-    os: "Windows",
-    ip: "192.168.1.104",
-  },
-  {
-    key: "5",
-    name: "desktop-105",
-    status: "unknown",
-    console: true,
-    tags: ["云桌面"],
-    platform: "KRCloud",
-    location: "cluster237/host180",
-    os: "Windows",
-    ip: "192.168.1.105",
-  },
-];
-
 import type { ColumnConfig } from "./ColumnSettingsDrawer";
 
 interface HostTableProps {
   columnsConfig?: ColumnConfig[];
   onHostClick?: (record: HostDataType) => void;
+  data: HostDataType[];
 }
 
 const HostTable: React.FC<HostTableProps> = ({
   columnsConfig,
   onHostClick,
+  data,
 }) => {
+  const tableWrapperRef = React.useRef<HTMLDivElement | null>(null);
+  const [tableHeight, setTableHeight] = React.useState<number>(400);
+  const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([]);
+
+  React.useEffect(() => {
+    const recalc = () => {
+      const wrap = tableWrapperRef.current;
+      if (!wrap) return;
+      const available = wrap.clientHeight;
+      // Leave room for table header + pagination to avoid clipping
+      const bodyHeight = Math.max(240, available - 120);
+      setTableHeight(bodyHeight);
+    };
+    recalc();
+    window.addEventListener("resize", recalc);
+    return () => window.removeEventListener("resize", recalc);
+  }, []);
+
+  React.useEffect(() => {
+    setSelectedRowKeys([]);
+  }, [data]);
+
   // Filter and sort columns based on config
   const tableColumns = React.useMemo(() => {
     if (!columnsConfig) return columns; // Fallback to default
@@ -303,27 +280,45 @@ const HostTable: React.FC<HostTableProps> = ({
   }, [columnsConfig]);
 
   return (
-    <Table
-      columns={tableColumns}
-      dataSource={data}
-      rowSelection={{
-        type: "checkbox",
-        fixed: true, // Ensure checkbox column is also fixed
-      }}
-      pagination={{
-        total: 100,
-        showTotal: total => `共计 ${total} 条数据`,
-        defaultPageSize: 10,
-        showSizeChanger: true,
-      }}
-      expandable={{
-        expandedRowRender: record => (
-          <p style={{ margin: 0 }}>{record.name} 详细信息...</p>
-        ),
-        fixed: "left", // Ensure expand icon is fixed if present (though usually it's with the first column or separate)
-      }}
-      scroll={{ x: 1300 }}
-    />
+    <div
+      ref={tableWrapperRef}
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
+      <div
+        style={{
+          fontSize: 12,
+          color: "#666",
+          margin: "0 0 8px 0",
+          lineHeight: 1.4,
+        }}
+      >
+        共计 {data.length} 条数据 已选 {selectedRowKeys.length} 条
+      </div>
+      <Table
+        columns={tableColumns}
+        dataSource={data}
+        rowSelection={{
+          type: "checkbox",
+          fixed: true,
+          selectedRowKeys,
+          onChange: keys => setSelectedRowKeys(keys),
+        }}
+        pagination={{
+          total: data.length,
+          showTotal: total => `共计 ${total} 条数据`,
+          defaultPageSize: 10,
+          showSizeChanger: true,
+        }}
+        expandable={{
+          expandedRowRender: record => (
+            <p style={{ margin: 0 }}>{record.name} 详细信息...</p>
+          ),
+          fixed: "left",
+        }}
+        scroll={{ x: "max-content", y: tableHeight }}
+        style={{ flex: 1 }}
+      />
+    </div>
   );
 };
 

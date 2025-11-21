@@ -8,24 +8,29 @@ const StatisticsCards: React.FC = () => {
         background:
           "linear-gradient(172deg, #FAFFE8 -13%, rgba(221, 242, 255, 0) 140%)",
         border: "none",
-        margin: "16px 16px 16px 16px",
+        margin: "10px 16px 0 16px",
       }}
-      styles={{ body: { padding: "16px 24px" } }}
+      styles={{ body: { padding: "12px 24px" } }}
     >
-      <Row gutter={24} align="middle">
+      <Row gutter={24} align="middle" wrap={false}>
         {/* 虚拟机总数 */}
-        <Col span={6} style={{ borderRight: "1px solid #f0f0f0" }}>
+        <Col
+          flex="0 0 40%"
+          style={{
+            borderRight: "1px solid #f0f0f0",
+            paddingRight: 24,
+          }}
+        >
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
+              gap: 16,
+              whiteSpace: "nowrap",
             }}
           >
-            <div>
-              <div style={{ fontSize: 14, color: "#666" }}>
-                虚拟机总数 &nbsp;<strong>100 台</strong>
-              </div>
+            <div style={{ fontSize: 14, color: "#666" }}>
+              虚拟机总数 &nbsp;<strong>100 台</strong>
             </div>
             <div
               style={{
@@ -76,59 +81,90 @@ const StatisticsCards: React.FC = () => {
           </div>
         </Col>
 
-        {/* CPU */}
-        <Col span={6} style={{ borderRight: "1px solid #f0f0f0" }}>
-          <Row align="middle" gutter={16}>
-            <Col>
-              <Progress
-                type="circle"
-                percent={70}
-                size={50}
-                strokeColor="#52c41a"
-                strokeWidth={12}
-              />
+        <Col flex="1">
+          <Row gutter={24} align="middle" wrap={false}>
+            {/* CPU */}
+            <Col flex="1" style={{ borderRight: "1px solid #f0f0f0" }}>
+              <Row
+                align="middle"
+                gutter={16}
+                justify="space-between"
+                wrap={false}
+              >
+                <Col>
+                  <Progress
+                    type="circle"
+                    percent={70}
+                    size={50}
+                    strokeColor="#52c41a"
+                    strokeWidth={12}
+                  />
+                </Col>
+                <Col flex="auto">
+                  <div style={{ fontSize: 14, color: "#666" }}>
+                    CPU总数: 128核
+                  </div>
+                  <div style={{ fontSize: 12, color: "#999" }}>
+                    剩余可用: 100核
+                  </div>
+                </Col>
+              </Row>
             </Col>
-            <Col>
-              <div style={{ fontSize: 14, color: "#666" }}>CPU总数: 128核</div>
-              <div style={{ fontSize: 12, color: "#999" }}>剩余可用: 100核</div>
-            </Col>
-          </Row>
-        </Col>
 
-        {/* 内存 */}
-        <Col span={6} style={{ borderRight: "1px solid #f0f0f0" }}>
-          <Row align="middle" gutter={16}>
-            <Col>
-              <Progress
-                type="circle"
-                percent={30}
-                size={50}
-                strokeColor="#ff4d4f"
-                strokeWidth={12}
-              />
+            {/* 内存 */}
+            <Col flex="1" style={{ borderRight: "1px solid #f0f0f0" }}>
+              <Row
+                align="middle"
+                gutter={16}
+                justify="space-between"
+                wrap={false}
+              >
+                <Col>
+                  <Progress
+                    type="circle"
+                    percent={30}
+                    size={50}
+                    strokeColor="#ff4d4f"
+                    strokeWidth={12}
+                  />
+                </Col>
+                <Col flex="auto">
+                  <div style={{ fontSize: 14, color: "#666" }}>
+                    内存总数: 256GB
+                  </div>
+                  <div style={{ fontSize: 12, color: "#999" }}>
+                    剩余可用: 27GB
+                  </div>
+                </Col>
+              </Row>
             </Col>
-            <Col>
-              <div style={{ fontSize: 14, color: "#666" }}>内存总数: 256GB</div>
-              <div style={{ fontSize: 12, color: "#999" }}>剩余可用: 27GB</div>
-            </Col>
-          </Row>
-        </Col>
 
-        {/* GPU */}
-        <Col span={6}>
-          <Row align="middle" gutter={16}>
-            <Col>
-              <Progress
-                type="circle"
-                percent={10}
-                size={50}
-                strokeColor="#52c41a"
-                strokeWidth={12}
-              />
-            </Col>
-            <Col>
-              <div style={{ fontSize: 14, color: "#666" }}>GPU总数: 30张</div>
-              <div style={{ fontSize: 12, color: "#999" }}>剩余可用: 10张</div>
+            {/* GPU */}
+            <Col flex="1">
+              <Row
+                align="middle"
+                gutter={16}
+                justify="space-between"
+                wrap={false}
+              >
+                <Col>
+                  <Progress
+                    type="circle"
+                    percent={10}
+                    size={50}
+                    strokeColor="#52c41a"
+                    strokeWidth={12}
+                  />
+                </Col>
+                <Col flex="auto">
+                  <div style={{ fontSize: 14, color: "#666" }}>
+                    GPU总数: 30张
+                  </div>
+                  <div style={{ fontSize: 12, color: "#999" }}>
+                    剩余可用: 10张
+                  </div>
+                </Col>
+              </Row>
             </Col>
           </Row>
         </Col>
