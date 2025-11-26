@@ -1,23 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Drawer, Button, Space, Switch, Checkbox } from "antd";
 import { HolderOutlined } from "@ant-design/icons";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 export interface ColumnConfig {
   key: string;
@@ -33,66 +16,14 @@ interface ColumnSettingsDrawerProps {
   onColumnsChange: (newColumns: ColumnConfig[]) => void;
 }
 
-interface SortableItemProps {
-  id: string;
-  column: ColumnConfig;
-  onToggleVisibility: (key: string, visible: boolean) => void;
-}
-
-const SortableItem = ({
-  id,
-  column,
-  onToggleVisibility,
-}: SortableItemProps) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "12px 0",
-    background: "#fff",
-    borderBottom: "1px solid #f0f0f0",
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <HolderOutlined
-          style={{ cursor: "grab", marginRight: 12, color: "#999" }}
-          {...listeners}
-        />
-        <Checkbox
-          checked={column.visible}
-          onChange={e => onToggleVisibility(column.key, e.target.checked)}
-          style={{ marginRight: 12 }}
-        />
-        <span>{column.title}</span>
-      </div>
-      <Switch
-        size="small"
-        checked={column.visible}
-        onChange={checked => onToggleVisibility(column.key, checked)}
-      />
-    </div>
-  );
-};
-
 const ColumnSettingsDrawer: React.FC<ColumnSettingsDrawerProps> = ({
   open,
   onClose,
   columns,
   onColumnsChange,
 }) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Separate fixed and draggable columns
   const topFixed = columns.find(c => c.key === "name");
@@ -100,26 +31,6 @@ const ColumnSettingsDrawer: React.FC<ColumnSettingsDrawerProps> = ({
   const middleColumns = columns.filter(
     c => c.key !== "name" && c.key !== "action"
   );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = middleColumns.findIndex(item => item.key === active.id);
-      const newIndex = middleColumns.findIndex(item => item.key === over.id);
-
-      const newMiddle = arrayMove(middleColumns, oldIndex, newIndex);
-
-      // Reconstruct full list
-      const newColumns = [
-        ...(topFixed ? [topFixed] : []),
-        ...newMiddle,
-        ...(bottomFixed ? [bottomFixed] : []),
-      ];
-
-      onColumnsChange(newColumns);
-    }
-  };
 
   const handleToggleVisibility = (key: string, visible: boolean) => {
     const newColumns = columns.map(col =>
@@ -129,10 +40,52 @@ const ColumnSettingsDrawer: React.FC<ColumnSettingsDrawerProps> = ({
   };
 
   const handleReset = () => {
-    // Reset logic would be handled by parent or we can just set all visible
     const resetColumns = columns.map(c => ({ ...c, visible: true }));
-    // Order reset is harder without initial state, but visibility reset is easy
     onColumnsChange(resetColumns);
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    // Reorder middle columns
+    const newMiddleColumns = [...middleColumns];
+    const [draggedItem] = newMiddleColumns.splice(draggedIndex, 1);
+    newMiddleColumns.splice(dropIndex, 0, draggedItem);
+
+    // Reconstruct full columns array
+    const newColumns = [
+      ...(topFixed ? [topFixed] : []),
+      ...newMiddleColumns,
+      ...(bottomFixed ? [bottomFixed] : []),
+    ];
+
+    onColumnsChange(newColumns);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -196,25 +149,55 @@ const ColumnSettingsDrawer: React.FC<ColumnSettingsDrawerProps> = ({
         )}
 
         {/* Draggable Middle Columns */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={middleColumns.map(c => c.key)}
-            strategy={verticalListSortingStrategy}
+        {middleColumns.map((col, index) => (
+          <div
+            key={col.key}
+            draggable
+            onDragStart={() => handleDragStart(index)}
+            onDragOver={e => handleDragOver(e, index)}
+            onDragLeave={handleDragLeave}
+            onDrop={e => handleDrop(e, index)}
+            onDragEnd={handleDragEnd}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 0",
+              background: draggedIndex === index ? "#f0f5ff" : "#fff",
+              borderBottom: "1px solid #f0f0f0",
+              borderTop:
+                dragOverIndex === index && draggedIndex !== index
+                  ? "2px solid #1890ff"
+                  : "none",
+              opacity: draggedIndex === index ? 0.5 : 1,
+              cursor: "move",
+              transition: "all 0.2s ease",
+            }}
           >
-            {middleColumns.map(col => (
-              <SortableItem
-                key={col.key}
-                id={col.key}
-                column={col}
-                onToggleVisibility={handleToggleVisibility}
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <HolderOutlined
+                style={{
+                  cursor: "grab",
+                  marginRight: 12,
+                  color: "#8c8c8c",
+                }}
               />
-            ))}
-          </SortableContext>
-        </DndContext>
+              <Checkbox
+                checked={col.visible}
+                onChange={e =>
+                  handleToggleVisibility(col.key, e.target.checked)
+                }
+                style={{ marginRight: 12 }}
+              />
+              <span>{col.title}</span>
+            </div>
+            <Switch
+              size="small"
+              checked={col.visible}
+              onChange={checked => handleToggleVisibility(col.key, checked)}
+            />
+          </div>
+        ))}
 
         {/* Bottom Fixed Column */}
         {bottomFixed && (

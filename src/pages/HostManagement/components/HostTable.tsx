@@ -17,14 +17,14 @@ export interface HostDataType {
   key: string;
   name: string;
   status:
-  | "running"
-  | "stopped"
-  | "backup"
-  | "starting"
-  | "restarting"
-  | "migrating"
-  | "offline"
-  | "unknown";
+    | "running"
+    | "stopped"
+    | "backup"
+    | "starting"
+    | "restarting"
+    | "migrating"
+    | "offline"
+    | "unknown";
   console: boolean;
   tags: string[];
   platform: string;
@@ -83,6 +83,7 @@ const columns: ColumnsType<HostDataType> = [
     title: "状态",
     dataIndex: "status",
     key: "status",
+    width: 120,
     render: (status: keyof typeof statusMap) => {
       const { icon, text } = statusMap[status] || statusMap.unknown;
       return (
@@ -97,6 +98,7 @@ const columns: ColumnsType<HostDataType> = [
     title: "控制台",
     dataIndex: "console",
     key: "console",
+    width: 80,
     render: () => (
       <DesktopOutlined style={{ color: "#1890ff", fontSize: "16px" }} />
     ),
@@ -105,6 +107,7 @@ const columns: ColumnsType<HostDataType> = [
     title: "标签",
     dataIndex: "tags",
     key: "tags",
+    width: 200,
     render: (tags: string[]) => (
       <>
         {tags.map(tag => {
@@ -126,18 +129,21 @@ const columns: ColumnsType<HostDataType> = [
     title: "所属平台",
     dataIndex: "platform",
     key: "platform",
+    width: 150,
     render: text => <span>{text}</span>,
   },
   {
     title: "所在位置",
     dataIndex: "location",
     key: "location",
+    width: 150,
     render: text => <span style={{ color: "#666" }}>{text}</span>,
   },
   {
     title: "操作系统",
     dataIndex: "os",
     key: "os",
+    width: 120,
     render: os => {
       if (!os) return <span style={{ color: "#999" }}>-</span>;
       return (
@@ -157,6 +163,7 @@ const columns: ColumnsType<HostDataType> = [
     title: "IP",
     dataIndex: "ip",
     key: "ip",
+    width: 140,
   },
   {
     title: "操作",
