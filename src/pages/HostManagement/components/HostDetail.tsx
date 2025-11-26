@@ -5,12 +5,9 @@ import {
   Tag,
   Tabs,
   Card,
-  Row,
-  Col,
   Descriptions,
   Switch,
   Space,
-  Divider,
   Typography,
 } from "antd";
 import {
@@ -26,6 +23,7 @@ import {
   PlusOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
+import ConsoleView from "./ConsoleView";
 
 const { Title, Text } = Typography;
 
@@ -43,15 +41,24 @@ const HostDetail: React.FC<HostDetailProps> = ({
       key: "1",
       label: "基本信息",
       children: (
-        <Row gutter={24}>
-          {/* Left Column: Basic Info */}
-          <Col span={8}>
-            <Card bordered={false} className="detail-card">
+        <div style={{ height: "100%", display: "flex", gap: 10 }}>
+          {/* Left Column: Split into two cards */}
+          <div
+            style={{
+              width: "33.33%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {/* Top Card: Icon and Tags */}
+            <Card bordered={true} className="detail-card">
               <div style={{ textAlign: "center", marginBottom: 24 }}>
                 <DesktopOutlined style={{ fontSize: 64, color: "#1890ff" }} />
               </div>
 
-              <div style={{ marginBottom: 24 }}>
+              <div style={{ marginBottom: 0 }}>
                 <Text type="secondary">标签</Text>
                 <div style={{ marginTop: 8 }}>
                   <Tag closable color="gold">
@@ -69,9 +76,14 @@ const HostDetail: React.FC<HostDetailProps> = ({
                   </Tag>
                 </div>
               </div>
+            </Card>
 
-              <Divider />
-
+            {/* Bottom Card: Basic Info */}
+            <Card
+              bordered={true}
+              className="detail-card"
+              style={{ flex: 1, display: "flex", flexDirection: "column" }}
+            >
               <Descriptions
                 title="基本信息"
                 column={1}
@@ -95,61 +107,52 @@ const HostDetail: React.FC<HostDetailProps> = ({
                   2025-06-29 10:22:43
                 </Descriptions.Item>
               </Descriptions>
-
-              <div
-                style={{
-                  marginTop: 16,
-                  background: "#fffbe6",
-                  padding: 12,
-                  borderRadius: 4,
-                  border: "1px solid #ffe58f",
-                }}
-              >
-                <Text type="warning" style={{ fontSize: 12 }}>
-                  #11
-                  <br />
-                  卡片内容更新为基本信息和配置信息
-                  <br />
-                  1、可配置的面向技术运维管理的操作统一放到配置信息卡片
-                  <br />
-                  2、信息查阅的放到基本信息
-                </Text>
-              </div>
             </Card>
-          </Col>
+          </div>
 
           {/* Right Column: Config Info */}
-          <Col span={16}>
-            <Card title="配置信息" bordered={false} className="detail-card">
+          <div style={{ flex: 1, height: "100%" }}>
+            <Card
+              bordered={true}
+              className="detail-card"
+              style={{ height: "100%" }}
+            >
               <Descriptions
+                title="配置信息"
                 column={1}
                 size="middle"
                 labelStyle={{ width: 120, color: "#666" }}
-                contentStyle={{ alignItems: "center" }}
+                contentStyle={{ display: "flex", alignItems: "center" }}
               >
                 <Descriptions.Item label="CPU">
-                  <Space>
-                    16 核
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>16 核</span>
                     <EditOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="内存">
-                  <Space>
-                    32.00GB
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>32.00GB</span>
                     <EditOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="系统盘">
-                  <Space>
-                    100.00GB
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>100.00GB</span>
                     <PlusOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="MAC">
                   46:7D:B4:39:62:30
@@ -165,12 +168,14 @@ const HostDetail: React.FC<HostDetailProps> = ({
                   可用
                 </Descriptions.Item>
                 <Descriptions.Item label="IP 地址">
-                  <Space>
-                    192.168.1.229
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>192.168.1.229</span>
                     <EditOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="开机自启动">
                   <Switch defaultChecked />
@@ -183,12 +188,16 @@ const HostDetail: React.FC<HostDetailProps> = ({
                     </span>
                   }
                 >
-                  <Space>
-                    SCSI1;net0;ide2;usb...
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>
+                      SCSI1;net0;ide2;usb...
+                    </span>
                     <EditOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item
                   label={
@@ -198,20 +207,24 @@ const HostDetail: React.FC<HostDetailProps> = ({
                     </span>
                   }
                 >
-                  <Space>
-                    UEFI
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>UEFI</span>
                     <EditOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="显示模式">
-                  <Space>
-                    SPICE
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <span style={{ minWidth: 200 }}>SPICE</span>
                     <EditOutlined
                       style={{ color: "#1890ff", cursor: "pointer" }}
                     />
-                  </Space>
+                  </div>
                 </Descriptions.Item>
                 <Descriptions.Item
                   label={
@@ -225,14 +238,18 @@ const HostDetail: React.FC<HostDetailProps> = ({
                 </Descriptions.Item>
               </Descriptions>
             </Card>
-          </Col>
-        </Row>
+          </div>
+        </div>
       ),
     },
     {
       key: "2",
       label: "控制台",
-      children: <div style={{ padding: 24 }}>控制台内容...</div>,
+      children: (
+        <div style={{ padding: 24 }}>
+          <ConsoleView />
+        </div>
+      ),
     },
     {
       key: "3",
@@ -264,6 +281,10 @@ const HostDetail: React.FC<HostDetailProps> = ({
           background: "#fff",
           padding: "16px 24px",
           borderBottom: "1px solid #f0f0f0",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         <Breadcrumb
@@ -309,7 +330,39 @@ const HostDetail: React.FC<HostDetailProps> = ({
           </Space>
         </div>
 
-        <Tabs items={items} style={{ marginTop: 16 }} />
+        <style>
+          {`
+            .detail-card {
+              background: rgba(245, 245, 245, 0.3);
+            }
+            .full-height-tabs {
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+              overflow: hidden;
+            }
+            .full-height-tabs > .ant-tabs-nav {
+              margin: 0;
+            }
+            .full-height-tabs > .ant-tabs-content-holder {
+              flex: 1;
+              overflow: auto;
+              padding: 16px 0;
+            }
+            .full-height-tabs .ant-tabs-content {
+              height: 100%;
+            }
+            .full-height-tabs .ant-tabs-tabpane {
+              height: 100%;
+            }
+          `}
+        </style>
+        <Tabs
+          type="card"
+          items={items}
+          className="full-height-tabs"
+          style={{ marginTop: 16 }}
+        />
       </div>
 
       {/* Content Section - Tabs content is rendered here but Tabs component handles it */}

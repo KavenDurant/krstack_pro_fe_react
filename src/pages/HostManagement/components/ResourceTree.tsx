@@ -1,6 +1,11 @@
 import React, { useMemo } from "react";
 import { Tree } from "antd";
-import { DownOutlined, FolderOutlined, HddOutlined } from "@ant-design/icons";
+import {
+  PlusSquareOutlined,
+  MinusSquareOutlined,
+  FolderOutlined,
+  HddOutlined,
+} from "@ant-design/icons";
 import type { DataNode, EventDataNode } from "antd/es/tree";
 import { mockVMData } from "../../../api/mockData";
 
@@ -119,9 +124,9 @@ const ResourceTree: React.FC<ResourceTreeProps> = ({
   }, []);
 
   const handleSelect = (
-    keys: React.Key[],
+    _: React.Key[],
     info: {
-      node: EventDataNode & any;
+      node: EventDataNode<DataNode> & any;
     }
   ) => {
     const node = info.node as any;
@@ -158,6 +163,7 @@ const ResourceTree: React.FC<ResourceTreeProps> = ({
 
   return (
     <div
+      className="resource-tree-custom"
       style={{
         background: "#fff",
         padding: 12,
@@ -165,10 +171,29 @@ const ResourceTree: React.FC<ResourceTreeProps> = ({
         borderRight: "1px solid #f0f0f0",
       }}
     >
+      <style>
+        {`
+          .resource-tree-custom .ant-tree-switcher {
+            width: 18px !important;
+          }
+          .resource-tree-custom .ant-tree-switcher .anticon {
+            font-size: 10px !important;
+          }
+          .resource-tree-custom .ant-tree-node-content-wrapper {
+            padding-left: 0 !important;
+          }
+        `}
+      </style>
       <Tree
         showIcon
+        showLine
         defaultExpandAll
-        switcherIcon={<DownOutlined />}
+        switcherIcon={(props: any) => {
+          if (props.expanded) {
+            return <MinusSquareOutlined />;
+          }
+          return <PlusSquareOutlined />;
+        }}
         treeData={treeData}
         onSelect={handleSelect}
         selectedKeys={selectedKey ? [selectedKey] : []}

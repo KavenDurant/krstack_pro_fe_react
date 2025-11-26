@@ -1,8 +1,12 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { Breadcrumb } from "antd";
-import ResourceTree, {
-  type SelectionInfo,
-} from "./components/ResourceTree";
+import ResourceTree, { type SelectionInfo } from "./components/ResourceTree";
 import StatisticsCards from "./components/StatisticsCards";
 import SearchFilter from "./components/SearchFilter";
 import HostTable from "./components/HostTable";
@@ -30,12 +34,10 @@ const HostManagement: React.FC = () => {
   const [columnDrawerVisible, setColumnDrawerVisible] = useState(false);
   const [columns, setColumns] = useState<ColumnConfig[]>(defaultColumns);
   const [selection, setSelection] = useState<Selection>({ type: "all" });
-  const [sideWidth, setSideWidth] = useState(240);
-  const dragState = useRef<{ startX: number; startWidth: number } | null>(
-    null
-  );
-  const MIN_SIDE = 200;
-  const MAX_SIDE = 300;
+  const [sideWidth, setSideWidth] = useState(280);
+  const dragState = useRef<{ startX: number; startWidth: number } | null>(null);
+  const MIN_SIDE = 280;
+  const MAX_SIDE = 350;
   const [dragging, setDragging] = useState(false);
   const allVMs = useMemo<HostDataType[]>(
     () =>
@@ -45,7 +47,7 @@ const HostManagement: React.FC = () => {
         status:
           (vm.status as HostDataType["status"]) === "offline"
             ? "offline"
-            : ((vm.status as HostDataType["status"]) || "unknown"),
+            : (vm.status as HostDataType["status"]) || "unknown",
         console: true,
         tags: vm.tags,
         platform: vm.platform_type || "-",
@@ -72,14 +74,14 @@ const HostManagement: React.FC = () => {
   }, []);
 
   const handleHostClick = useCallback((record: HostDataType) => {
-    setSelection(prev => ({
+    setSelection({
       type: "vm",
       clusterId: record.clusterId ?? 0,
       clusterName: record.clusterName ?? "",
       hostName: record.nodeName ?? "",
       vmId: String(record.key),
       vmName: record.name,
-    }));
+    });
   }, []);
 
   const handleBackToTable = useCallback(() => {
