@@ -24,6 +24,10 @@ import {
   QuestionCircleOutlined,
 } from "@ant-design/icons";
 import ConsoleView from "./ConsoleView";
+import DeviceManagement from "./DeviceManagement";
+import VirtualDiskTab from "./VirtualDisk/VirtualDiskTab";
+import BackupTab from "./BackupSnapshot/BackupTab";
+import PerformanceTab from "./Performance/PerformanceTab";
 
 const { Title, Text } = Typography;
 
@@ -246,7 +250,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
       key: "2",
       label: "控制台",
       children: (
-        <div style={{ padding: 24 }}>
+        <div>
           <ConsoleView />
         </div>
       ),
@@ -254,22 +258,22 @@ const HostDetail: React.FC<HostDetailProps> = ({
     {
       key: "3",
       label: "设备管理",
-      children: <div style={{ padding: 24 }}>设备管理内容...</div>,
+      children: <DeviceManagement />,
     },
     {
       key: "4",
       label: "虚拟磁盘",
-      children: <div style={{ padding: 24 }}>虚拟磁盘内容...</div>,
+      children: <VirtualDiskTab />,
     },
     {
       key: "5",
       label: "备份与快照",
-      children: <div style={{ padding: 24 }}>备份与快照内容...</div>,
+      children: <BackupTab />,
     },
     {
       key: "6",
       label: "性能监控",
-      children: <div style={{ padding: 24 }}>性能监控内容...</div>,
+      children: <PerformanceTab />,
     },
   ];
 
