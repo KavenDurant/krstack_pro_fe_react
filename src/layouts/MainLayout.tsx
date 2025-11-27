@@ -134,26 +134,30 @@ const MainLayout: React.FC = () => {
           display: "flex",
           alignItems: "center",
           background: "#fff",
-          padding: "0 24px",
+          padding: "0 16px",
           borderBottom: "1px solid #f0f0f0",
-          height: 64,
+          height: 50,
           flexShrink: 0,
+          overflow: "hidden",
         }}
       >
         <div
           className="logo"
-          style={{ display: "flex", alignItems: "center", marginRight: 48 }}
+          style={{ display: "flex", alignItems: "center", marginRight: 32 }}
         >
           <div
             style={{
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               background: "#1890ff",
               borderRadius: 4,
               marginRight: 8,
             }}
           ></div>
-          <Typography.Title level={4} style={{ margin: 0 }}>
+          <Typography.Title
+            level={4}
+            style={{ margin: 0, fontSize: 18, lineHeight: "28px" }}
+          >
             云管理平台
           </Typography.Title>
         </div>
@@ -162,12 +166,18 @@ const MainLayout: React.FC = () => {
           mode="horizontal"
           defaultSelectedKeys={["vm-manage"]}
           items={topNavItems}
-          style={{ flex: 1, borderBottom: "none" }}
+          style={{
+            flex: 1,
+            borderBottom: "none",
+            minWidth: 0,
+            lineHeight: "50px",
+          }}
+          overflowedIndicator={<span style={{ padding: "0 8px" }}>…</span>}
           onClick={({ key }) => handleTopNavClick(key)}
         />
-        <Space>
-          <Avatar icon={<UserOutlined />} />
-          <span>admin</span>
+        <Space size={8} style={{ whiteSpace: "nowrap" }}>
+          <Avatar icon={<UserOutlined />} size={32} />
+          <span style={{ fontSize: 14 }}>admin</span>
         </Space>
       </Header>
       {location.pathname === "/hosts" && (

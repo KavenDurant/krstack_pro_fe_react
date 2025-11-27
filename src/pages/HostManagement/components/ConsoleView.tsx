@@ -1,9 +1,7 @@
 import React from "react";
-import { Button, Input, Typography } from "antd";
-import { LockOutlined } from "@ant-design/icons";
+import { Button, Input } from "antd";
+import { InfoCircleFilled } from "@ant-design/icons";
 import "./ConsoleView.css";
-
-const { Text } = Typography;
 
 const KeyboardIcon = () => (
   <svg
@@ -12,8 +10,6 @@ const KeyboardIcon = () => (
     viewBox="0 0 24 24"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-    focusable="false"
   >
     <rect
       x="2.5"
@@ -48,34 +44,33 @@ const KeyboardIcon = () => (
 const ConsoleView: React.FC = () => {
   return (
     <div className="console-view">
-      <button
-        type="button"
-        aria-label="打开虚拟键盘"
-        className="console-view__keyboard"
-      >
-        <KeyboardIcon />
-      </button>
-
-      <div className="console-view__alert" role="status">
-        虚拟机性能CPU运行在不支持虚拟机扩展的主机上
+      <div className="console-view__alert">
+        <InfoCircleFilled style={{ marginRight: 8, fontSize: 16 }} />
+        虚拟机挂载GPU运行后不支持查看虚拟机画面。
       </div>
 
-      <div className="console-view__modal" role="dialog" aria-modal="true">
-        <div className="console-view__modal-header">
-          <LockOutlined />
-          <span>访问密码</span>
+      <div className="console-view__content">
+        <button
+          type="button"
+          aria-label="打开虚拟键盘"
+          className="console-view__keyboard"
+        >
+          <KeyboardIcon />
+        </button>
+
+        <div className="console-view__modal">
+          <div className="console-view__modal-title">访问密码</div>
+          <div className="console-view__form-item">
+            <label className="console-view__label">
+              <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>
+              密码 :
+            </label>
+            <Input.Password placeholder="请输入控制台访问密码" size="large" />
+          </div>
+          <div className="console-view__footer">
+            <Button type="primary">确定</Button>
+          </div>
         </div>
-        <Text type="secondary" className="console-view__modal-desc">
-          请输入访问密码以唤醒该虚拟机控制台
-        </Text>
-        <Input.Password
-          placeholder="请输入访问密码"
-          size="large"
-          className="console-view__password"
-        />
-        <Button type="primary" size="large" block>
-          确定
-        </Button>
       </div>
     </div>
   );

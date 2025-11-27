@@ -21,6 +21,7 @@ description: KRStack Pro Frontend React - AI 协助规则
 - 使用双引号,分号结尾
 - 缩进 2 空格
 - 最大行宽 80 字符
+- 禁止使用 any 类型,必须使用明确的类型或 unknown
 
 ## 组件规范
 
