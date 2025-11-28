@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI tool configuration (local only)
+CLAUDE.md
+AGENTS.md
+.agent/
+.claude/

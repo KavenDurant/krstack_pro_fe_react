@@ -182,6 +182,9 @@ const ResourceTree: React.FC<ResourceTreeProps> = ({
           .resource-tree-custom .ant-tree-node-content-wrapper {
             padding-left: 0 !important;
           }
+          .resource-tree-custom .ant-tree-indent-unit {
+            width: 16px !important;
+          }
         `}
       </style>
       <Tree
