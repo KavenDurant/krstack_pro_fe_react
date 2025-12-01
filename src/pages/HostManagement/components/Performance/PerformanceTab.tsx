@@ -29,7 +29,15 @@ const PerformanceTab: React.FC = () => {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 0, overflow: "auto" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        padding: 0,
+        overflow: "auto",
+      }}
+    >
       <PerformanceChart
         title="CPU 使用率"
         unit="%"

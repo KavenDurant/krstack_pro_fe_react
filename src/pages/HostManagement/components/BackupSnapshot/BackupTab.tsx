@@ -27,7 +27,12 @@ const BackupTab: React.FC = () => {
 
   return (
     <div>
-      <BackupTable data={data} onCreate={() => {}} onRefresh={() => {}} onSettings={() => {}} />
+      <BackupTable
+        data={data}
+        onCreate={() => {}}
+        onRefresh={() => {}}
+        onSettings={() => {}}
+      />
     </div>
   );
 };

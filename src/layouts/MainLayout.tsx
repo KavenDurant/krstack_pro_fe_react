@@ -221,16 +221,18 @@ const MainLayout: React.FC = () => {
         </div>
       )}
       <Layout style={{ overflow: "hidden" }}>
-        <Sider width={176} style={{ background: colorBgContainer }}>
-          <Menu
-            mode="inline"
-            defaultSelectedKeys={["/hosts"]}
-            selectedKeys={[location.pathname]}
-            style={{ height: "100%", borderRight: 0 }}
-            items={sideNavItems}
-            onClick={({ key }) => navigate(key)}
-          />
-        </Sider>
+        {!location.pathname.startsWith("/resource-management") && (
+          <Sider width={176} style={{ background: colorBgContainer }}>
+            <Menu
+              mode="inline"
+              defaultSelectedKeys={["/hosts"]}
+              selectedKeys={[location.pathname]}
+              style={{ height: "100%", borderRight: 0 }}
+              items={sideNavItems}
+              onClick={({ key }) => navigate(key)}
+            />
+          </Sider>
+        )}
         <Layout style={{ padding: 0, overflow: "hidden" }}>
           <Content
             style={{

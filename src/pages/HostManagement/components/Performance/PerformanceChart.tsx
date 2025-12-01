@@ -13,14 +13,21 @@ interface PerformanceChartProps {
   times?: string[];
 }
 
-const PerformanceChart: React.FC<PerformanceChartProps> = ({ title, unit, series, times, height = 140 }) => {
+const PerformanceChart: React.FC<PerformanceChartProps> = ({
+  title,
+  unit,
+  series,
+  times,
+  height = 140,
+}) => {
   const chartRef = useRef<HTMLDivElement | null>(null);
   const stats = useMemo(() => {
     const merged = series.flatMap(s => s.data);
     const points = merged.length ? merged : [0];
     const maxValue = Math.max(...points);
     const avgValue =
-      Math.round((points.reduce((a, b) => a + b, 0) / points.length) * 100) / 100;
+      Math.round((points.reduce((a, b) => a + b, 0) / points.length) * 100) /
+      100;
     const latestValue = series[0]?.data[series[0].data.length - 1] ?? 0;
     return { max: maxValue, avg: avgValue, latest: latestValue };
   }, [series]);
@@ -33,7 +40,10 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ title, unit, series
       xAxis: {
         type: "category",
         boundaryGap: false,
-        data: times && times.length ? times : series[0]?.data.map((_, idx) => idx) ?? [],
+        data:
+          times && times.length
+            ? times
+            : (series[0]?.data.map((_, idx) => idx) ?? []),
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: { color: "#999" },
@@ -46,7 +56,13 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ title, unit, series
         axisLabel: { color: "#999" },
       },
       tooltip: { trigger: "axis" },
-      legend: { top: 0, right: 10, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 12 } },
+      legend: {
+        top: 0,
+        right: 10,
+        itemWidth: 12,
+        itemHeight: 8,
+        textStyle: { fontSize: 12 },
+      },
       series: series.map(s => ({
         name: s.name,
         type: "line",
@@ -88,12 +104,27 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ title, unit, series
         gap: 8,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div style={{ fontWeight: 600, color: "#000" }}>{title}</div>
         <div style={{ display: "flex", gap: 12, color: "#666", fontSize: 12 }}>
-          <span>当前: {stats.latest}{unit}</span>
-          <span>平均: {stats.avg}{unit}</span>
-          <span>峰值: {stats.max}{unit}</span>
+          <span>
+            当前: {stats.latest}
+            {unit}
+          </span>
+          <span>
+            平均: {stats.avg}
+            {unit}
+          </span>
+          <span>
+            峰值: {stats.max}
+            {unit}
+          </span>
         </div>
       </div>
       <div style={{ background: "#fafafa", borderRadius: 6, padding: 8 }}>
