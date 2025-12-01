@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Breadcrumb,
   Button,
   Tag,
   Tabs,
@@ -10,6 +9,7 @@ import {
   Space,
   Typography,
 } from "antd";
+import PageBreadcrumb from "../../../components/PageBreadcrumb";
 import {
   ArrowLeftOutlined,
   DesktopOutlined,
@@ -279,6 +279,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <PageBreadcrumb />
       {/* Header Section */}
       <div
         style={{
@@ -291,17 +292,6 @@ const HostDetail: React.FC<HostDetailProps> = ({
           overflow: "hidden",
         }}
       >
-        <Breadcrumb
-          items={[
-            { title: "虚拟机管理" },
-            { title: "全部虚拟机" },
-            { title: "cluster237" },
-            { title: "host237" },
-            { title: hostName },
-          ]}
-          style={{ marginBottom: 16 }}
-        />
-
         <div
           style={{
             display: "flex",

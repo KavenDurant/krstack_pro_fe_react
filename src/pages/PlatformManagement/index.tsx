@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Layout,
-  Breadcrumb,
   Card,
   Form,
   Input,
@@ -10,6 +9,7 @@ import {
   Space,
   Divider,
 } from "antd";
+import PageBreadcrumb from "../../components/PageBreadcrumb";
 
 const { Content } = Layout;
 
@@ -23,14 +23,10 @@ const PlatformManagement: React.FC = () => {
         background: "#f0f2f5",
       }}
     >
+      <PageBreadcrumb fullWidth />
       <Content
         style={{ padding: "16px 16px 16px 24px", overflow: "auto", flex: 1 }}
       >
-        <Breadcrumb
-          items={[{ title: "平台管理" }, { title: "系统设置" }]}
-          style={{ marginBottom: 16 }}
-        />
-
         <Card title="基本设置">
           <Form layout="vertical" style={{ maxWidth: 600 }}>
             <Form.Item label="平台名称" name="platformName">

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { Breadcrumb } from "antd";
+import PageBreadcrumb from "../../components/PageBreadcrumb";
 import ResourceTree, { type SelectionInfo } from "./components/ResourceTree";
 import StatisticsCards from "./components/StatisticsCards";
 import SearchFilter from "./components/SearchFilter";
@@ -206,18 +206,7 @@ const HostManagement: React.FC = () => {
           <HostDetail hostName={selection.vmName} onBack={handleBackToTable} />
         ) : (
           <>
-            {/* Breadcrumb */}
-            <div style={{ padding: "16px 16px 0 16px" }}>
-              <Breadcrumb
-                items={[
-                  { title: "虚拟机管理" },
-                  { title: "全部虚拟机" },
-                  { title: "cluster237" },
-                  { title: "host180" },
-                ]}
-              />
-            </div>
-
+            <PageBreadcrumb />
             {/* Main Content */}
             <div
               style={{
