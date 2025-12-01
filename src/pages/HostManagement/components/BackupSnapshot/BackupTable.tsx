@@ -1,7 +1,13 @@
 import React, { useMemo } from "react";
 import { Button, Dropdown, Input, Space, Table } from "antd";
 import type { MenuProps } from "antd";
-import { MoreOutlined, PlusOutlined, ReloadOutlined, SettingOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  MoreOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { BackupItem } from "./BackupTypes";
 
@@ -19,10 +25,21 @@ const actionMenu: MenuProps = {
   ],
 };
 
-const BackupTable: React.FC<BackupTableProps> = ({ data, onCreate, onRefresh, onSettings }) => {
+const BackupTable: React.FC<BackupTableProps> = ({
+  data,
+  onCreate,
+  onRefresh,
+  onSettings,
+}) => {
   const columns: ColumnsType<BackupItem> = useMemo(
     () => [
-      { title: "名称", dataIndex: "name", key: "name", width: 320, fixed: "left" },
+      {
+        title: "名称",
+        dataIndex: "name",
+        key: "name",
+        width: 320,
+        fixed: "left",
+      },
       { title: "格式", dataIndex: "format", key: "format", width: 100 },
       {
         title: "存储位置",
@@ -31,7 +48,12 @@ const BackupTable: React.FC<BackupTableProps> = ({ data, onCreate, onRefresh, on
         width: 200,
         render: value => <span title={value}>{value}</span>,
       },
-      { title: "备份日期", dataIndex: "backupTime", key: "backupTime", width: 200 },
+      {
+        title: "备份日期",
+        dataIndex: "backupTime",
+        key: "backupTime",
+        width: 200,
+      },
       { title: "备注", dataIndex: "note", key: "note", width: 200 },
       {
         title: "操作",
@@ -46,7 +68,11 @@ const BackupTable: React.FC<BackupTableProps> = ({ data, onCreate, onRefresh, on
             <Button type="link" style={{ padding: 0 }}>
               恢复
             </Button>
-            <Dropdown menu={actionMenu} trigger={["click"]} placement="bottomRight">
+            <Dropdown
+              menu={actionMenu}
+              trigger={["click"]}
+              placement="bottomRight"
+            >
               <Button type="link" style={{ padding: 0 }}>
                 更多 <MoreOutlined />
               </Button>
@@ -59,7 +85,14 @@ const BackupTable: React.FC<BackupTableProps> = ({ data, onCreate, onRefresh, on
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0, height: "100%" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
+        height: "100%",
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -83,7 +116,9 @@ const BackupTable: React.FC<BackupTableProps> = ({ data, onCreate, onRefresh, on
         </Space>
       </div>
 
-      <div style={{ color: "#666", marginBottom: 8 }}>共计 {data.length} 条数据</div>
+      <div style={{ color: "#666", marginBottom: 8 }}>
+        共计 {data.length} 条数据
+      </div>
 
       <Table
         columns={columns}
