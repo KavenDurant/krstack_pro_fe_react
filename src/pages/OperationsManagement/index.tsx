@@ -1,6 +1,7 @@
 import React from "react";
-import { Layout, Breadcrumb, Card, Table, Tag, Badge } from "antd";
+import { Layout, Card, Table, Tag, Badge } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import PageBreadcrumb from "../../components/PageBreadcrumb";
 
 const { Content } = Layout;
 
@@ -108,14 +109,10 @@ const OperationsManagement: React.FC = () => {
         background: "#f0f2f5",
       }}
     >
+      <PageBreadcrumb fullWidth />
       <Content
         style={{ padding: "16px 16px 16px 24px", overflow: "auto", flex: 1 }}
       >
-        <Breadcrumb
-          items={[{ title: "运维管理" }, { title: "操作日志" }]}
-          style={{ marginBottom: 16 }}
-        />
-
         <Card
           title="系统日志"
           extra={<Badge status="processing" text="实时监控中" />}
