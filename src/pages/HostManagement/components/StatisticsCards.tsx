@@ -8,7 +8,6 @@ const StatisticsCards: React.FC = () => {
         background:
           "linear-gradient(172deg, #FAFFE8 -13%, rgba(221, 242, 255, 0) 140%)",
         border: "none",
-        margin: "10px 16px 0 16px",
       }}
       styles={{ body: { padding: "12px 24px" } }}
     >

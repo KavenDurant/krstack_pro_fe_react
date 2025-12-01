@@ -66,6 +66,11 @@ const MainLayout: React.FC = () => {
     if (path.startsWith("/platform-management")) {
       return [
         {
+          key: "/platform-management/users",
+          label: "用户管理",
+          icon: <UserOutlined />,
+        },
+        {
           key: "/platform-management",
           label: "系统设置",
           icon: <SettingOutlined />,
