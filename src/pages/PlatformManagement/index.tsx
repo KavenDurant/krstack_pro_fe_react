@@ -24,9 +24,7 @@ const PlatformManagement: React.FC = () => {
       }}
     >
       <PageBreadcrumb fullWidth />
-      <Content
-        style={{ padding: "16px 16px 16px 24px", overflow: "auto", flex: 1 }}
-      >
+      <Content style={{ padding: 12, overflow: "auto", flex: 1 }}>
         <Card title="基本设置">
           <Form layout="vertical" style={{ maxWidth: 600 }}>
             <Form.Item label="平台名称" name="platformName">

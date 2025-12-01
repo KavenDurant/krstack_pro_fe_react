@@ -110,9 +110,7 @@ const OperationsManagement: React.FC = () => {
       }}
     >
       <PageBreadcrumb fullWidth />
-      <Content
-        style={{ padding: "16px 16px 16px 24px", overflow: "auto", flex: 1 }}
-      >
+      <Content style={{ padding: 12, overflow: "auto", flex: 1 }}>
         <Card
           title="系统日志"
           extra={<Badge status="processing" text="实时监控中" />}

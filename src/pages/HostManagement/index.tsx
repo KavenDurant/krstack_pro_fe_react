@@ -214,6 +214,7 @@ const HostManagement: React.FC = () => {
                 display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
+                padding: 12,
               }}
             >
               <StatisticsCards />
@@ -223,7 +224,6 @@ const HostManagement: React.FC = () => {
               <div
                 style={{
                   flex: 1,
-                  padding: "0 16px 16px 16px",
                   overflow: "hidden",
                 }}
               >

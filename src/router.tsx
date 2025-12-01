@@ -8,6 +8,7 @@ import CloudDesktop from "./pages/CloudDesktop";
 import ResourceManagement from "./pages/ResourceManagement";
 import PlatformManagement from "./pages/PlatformManagement";
 import OperationsManagement from "./pages/OperationsManagement";
+import UserManagement from "./pages/PlatformManagement/UserManagement";
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,10 @@ export const router = createBrowserRouter([
       {
         path: "platform-management",
         element: <PlatformManagement />,
+      },
+      {
+        path: "platform-management/users",
+        element: <UserManagement />,
       },
       {
         path: "operations-management",

@@ -17,9 +17,7 @@ const CloudDesktop: React.FC = () => {
       }}
     >
       <PageBreadcrumb fullWidth />
-      <Content
-        style={{ padding: "16px 16px 16px 24px", overflow: "auto", flex: 1 }}
-      >
+      <Content style={{ padding: 12, overflow: "auto", flex: 1 }}>
         <DesktopFilter />
         <DesktopTable />
       </Content>

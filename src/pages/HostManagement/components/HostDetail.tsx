@@ -284,7 +284,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
       <div
         style={{
           background: "#fff",
-          padding: "16px 24px",
+          padding: 12,
           borderBottom: "1px solid #f0f0f0",
           flex: 1,
           display: "flex",
@@ -341,7 +341,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
             .full-height-tabs > .ant-tabs-content-holder {
               flex: 1;
               overflow: auto;
-              padding: 16px 0;
+              padding: 0;
             }
             .full-height-tabs .ant-tabs-content {
               height: 100%;
