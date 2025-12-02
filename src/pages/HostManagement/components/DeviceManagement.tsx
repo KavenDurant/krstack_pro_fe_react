@@ -769,7 +769,6 @@ const DeviceManagement: React.FC = () => {
       <Tabs
         items={items}
         style={{ height: "100%" }}
-        tabBarStyle={{ width: 120 }}
         activeKey={activeTab}
         onChange={key => setActiveTab(key as TabKey)}
         className="device-tabs"
