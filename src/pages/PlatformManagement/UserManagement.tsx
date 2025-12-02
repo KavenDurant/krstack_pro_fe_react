@@ -24,19 +24,77 @@ interface UserDataType {
 }
 
 const mockData: UserDataType[] = [
-  { key: "1", username: "admin", name: "admin", role: "超级管理员", group: "云管理平台", groupId: "0" },
-  { key: "2", username: "duobao", name: "多宝", role: "资源组管理员", group: "用户组1", groupId: "1" },
-  { key: "3", username: "user1", name: "用户1", role: "云桌面用户", group: "用户组1", groupId: "1" },
-  { key: "4", username: "user2", name: "用户2", role: "云桌面用户", group: "用户组1", groupId: "1" },
-  { key: "5", username: "user3", name: "用户3", role: "云桌面用户", group: "用户组1", groupId: "1" },
-  { key: "6", username: "user4", name: "用户4", role: "云桌面用户", group: "用户组1", groupId: "1" },
-  { key: "7", username: "user5", name: "用户5", role: "云桌面用户", group: "用户组1", groupId: "1" },
-  { key: "8", username: "fah", name: "范范", role: "超级管理员", group: "云管理平台", groupId: "0" },
+  {
+    key: "1",
+    username: "admin",
+    name: "admin",
+    role: "超级管理员",
+    group: "云管理平台",
+    groupId: "0",
+  },
+  {
+    key: "2",
+    username: "duobao",
+    name: "多宝",
+    role: "资源组管理员",
+    group: "用户组1",
+    groupId: "1",
+  },
+  {
+    key: "3",
+    username: "user1",
+    name: "用户1",
+    role: "云桌面用户",
+    group: "用户组1",
+    groupId: "1",
+  },
+  {
+    key: "4",
+    username: "user2",
+    name: "用户2",
+    role: "云桌面用户",
+    group: "用户组1",
+    groupId: "1",
+  },
+  {
+    key: "5",
+    username: "user3",
+    name: "用户3",
+    role: "云桌面用户",
+    group: "用户组1",
+    groupId: "1",
+  },
+  {
+    key: "6",
+    username: "user4",
+    name: "用户4",
+    role: "云桌面用户",
+    group: "用户组1",
+    groupId: "1",
+  },
+  {
+    key: "7",
+    username: "user5",
+    name: "用户5",
+    role: "云桌面用户",
+    group: "用户组1",
+    groupId: "1",
+  },
+  {
+    key: "8",
+    username: "fah",
+    name: "范范",
+    role: "超级管理员",
+    group: "云管理平台",
+    groupId: "0",
+  },
 ];
 
 const UserManagement: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [selection, setSelection] = useState<UserGroupSelection>({ type: "all" });
+  const [selection, setSelection] = useState<UserGroupSelection>({
+    type: "all",
+  });
 
   const handleTreeSelect = useCallback((info: UserGroupSelection) => {
     setSelection(info);
@@ -76,9 +134,15 @@ const UserManagement: React.FC = () => {
       key: "action",
       render: () => (
         <Space>
-          <Button type="link" size="small">编辑</Button>
-          <Button type="link" size="small">重置密码</Button>
-          <Button type="link" size="small" danger>删除</Button>
+          <Button type="link" size="small">
+            编辑
+          </Button>
+          <Button type="link" size="small">
+            重置密码
+          </Button>
+          <Button type="link" size="small" danger>
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -104,13 +168,40 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "#fff" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          background: "#fff",
+        }}
+      >
         <PageBreadcrumb />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", padding: 12 }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            padding: 12,
+          }}
+        >
           <div style={{ marginBottom: 12 }}>
-            <Input placeholder="名称" prefix={<SearchOutlined />} style={{ width: 240 }} />
+            <Input
+              placeholder="名称"
+              prefix={<SearchOutlined />}
+              style={{ width: 240 }}
+            />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
             <div style={{ fontSize: 14, color: "#666" }}>
               共计 N 条数据 已选 {selectedRowKeys.length} 条
             </div>
@@ -118,7 +209,9 @@ const UserManagement: React.FC = () => {
               <Button icon={<SyncOutlined />}>同步头像</Button>
               <Button icon={<DownloadOutlined />}>导出用户</Button>
               <Button icon={<UserAddOutlined />}>导入用户</Button>
-              <Button type="primary" icon={<PlusOutlined />}>添加用户</Button>
+              <Button type="primary" icon={<PlusOutlined />}>
+                添加用户
+              </Button>
               <Button icon={<SyncOutlined />} />
               <Button icon={<SettingOutlined />} />
             </Space>
@@ -128,7 +221,12 @@ const UserManagement: React.FC = () => {
               rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
               columns={columns}
               dataSource={filteredData}
-              pagination={{ total: filteredData.length, showTotal: total => `共计 ${total} 条数据`, defaultPageSize: 10, showSizeChanger: true }}
+              pagination={{
+                total: filteredData.length,
+                showTotal: total => `共计 ${total} 条数据`,
+                defaultPageSize: 10,
+                showSizeChanger: true,
+              }}
             />
           </div>
         </div>

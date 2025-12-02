@@ -157,6 +157,23 @@ const HostManagement: React.FC = () => {
     return "all";
   }, [selection]);
 
+  const breadcrumbItems = useMemo(() => {
+    const items = [{ title: "虚拟机管理" }, { title: "全部虚拟机" }];
+
+    if (selection.type === "cluster") {
+      items.push({ title: selection.clusterName });
+    } else if (selection.type === "host") {
+      items.push({ title: selection.clusterName });
+      items.push({ title: selection.hostName });
+    } else if (selection.type === "vm") {
+      items.push({ title: selection.clusterName });
+      items.push({ title: selection.hostName });
+      items.push({ title: selection.vmName });
+    }
+
+    return items;
+  }, [selection]);
+
   return (
     <div style={{ display: "flex", height: "100%" }}>
       <div
@@ -203,10 +220,14 @@ const HostManagement: React.FC = () => {
         }}
       >
         {selection.type === "vm" ? (
-          <HostDetail hostName={selection.vmName} onBack={handleBackToTable} />
+          <HostDetail
+            hostName={selection.vmName}
+            onBack={handleBackToTable}
+            breadcrumbItems={breadcrumbItems}
+          />
         ) : (
           <>
-            <PageBreadcrumb />
+            <PageBreadcrumb customItems={breadcrumbItems} />
             {/* Main Content */}
             <div
               style={{

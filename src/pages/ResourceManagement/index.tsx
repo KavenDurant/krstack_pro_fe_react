@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Layout, Tabs, Input, Button, Space } from "antd";
+import { Layout, Input, Button, Space } from "antd";
 import {
   PlusOutlined,
   ReloadOutlined,
   SettingOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import PageBreadcrumb from "../../components/PageBreadcrumb";
 import ResourceSidebar from "./components/ResourceSidebar";
 import ClusterTable from "./components/ClusterTable";
 import type { ClusterDataType } from "./components/ClusterTable";
@@ -56,49 +57,24 @@ const mockClusterData: ClusterDataType[] = [
 ];
 
 const ResourceManagement: React.FC = () => {
-  const [selectedMenu, setSelectedMenu] = useState("cluster");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
-
-  const handleMenuSelect = (key: string) => {
-    setSelectedMenu(key);
-  };
 
   const handleRowSelectChange = (keys: React.Key[]) => {
     setSelectedRowKeys(keys);
   };
 
-  const tabItems = [
-    {
-      key: "hardware",
-      label: "硬件管理",
-    },
-    {
-      key: "cluster",
-      label: "集群管理",
-    },
-  ];
-
   return (
     <Layout style={{ height: "100%", background: "#fff" }}>
       <Sider width={176} style={{ background: "#fff" }}>
-        <ResourceSidebar
-          onSelect={handleMenuSelect}
-          selectedKey={selectedMenu}
-        />
+        <ResourceSidebar />
       </Sider>
       <Layout style={{ background: "#fff" }}>
         <Content style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ borderBottom: "1px solid #f0f0f0" }}>
-            <Tabs
-              items={tabItems}
-              style={{ marginBottom: 0, paddingLeft: 16 }}
-            />
-          </div>
-
+          <PageBreadcrumb />
           <div
             style={{
-              padding: "16px",
+              padding: 12,
               flex: 1,
               overflow: "auto",
               display: "flex",

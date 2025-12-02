@@ -34,7 +34,13 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
 
   useEffect(() => {
     if (!chartRef.current) return;
-    const chart = echarts.init(chartRef.current);
+
+    const container = chartRef.current;
+    if (container.clientWidth === 0 || container.clientHeight === 0) {
+      return;
+    }
+
+    const chart = echarts.init(container);
     chart.setOption({
       grid: { left: 20, right: 20, top: 10, bottom: 20 },
       xAxis: {
@@ -90,7 +96,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [series]);
+  }, [series, times]);
 
   return (
     <div

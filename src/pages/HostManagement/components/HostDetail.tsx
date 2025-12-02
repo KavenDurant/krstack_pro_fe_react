@@ -8,8 +8,9 @@ import {
   Switch,
   Space,
   Typography,
+  Breadcrumb,
+  Divider,
 } from "antd";
-import PageBreadcrumb from "../../../components/PageBreadcrumb";
 import {
   ArrowLeftOutlined,
   DesktopOutlined,
@@ -34,11 +35,13 @@ const { Title, Text } = Typography;
 interface HostDetailProps {
   onBack: () => void;
   hostName?: string;
+  breadcrumbItems?: { title: string }[];
 }
 
 const HostDetail: React.FC<HostDetailProps> = ({
   onBack,
   hostName = "desktop-101",
+  breadcrumbItems,
 }) => {
   const items = [
     {
@@ -57,7 +60,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
             }}
           >
             {/* Top Card: Icon and Tags */}
-            <Card bordered={true} className="detail-card">
+            <Card variant="outlined" className="detail-card">
               <div style={{ textAlign: "center", marginBottom: 24 }}>
                 <DesktopOutlined style={{ fontSize: 64, color: "#1890ff" }} />
               </div>
@@ -84,7 +87,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
 
             {/* Bottom Card: Basic Info */}
             <Card
-              bordered={true}
+              variant="outlined"
               className="detail-card"
               style={{ flex: 1, display: "flex", flexDirection: "column" }}
             >
@@ -92,7 +95,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
                 title="基本信息"
                 column={1}
                 size="small"
-                labelStyle={{ width: 100, color: "#666" }}
+                styles={{ label: { width: 100, color: "#666" } }}
               >
                 <Descriptions.Item label="操作系统">Windows</Descriptions.Item>
                 <Descriptions.Item label="关联云桌面">
@@ -117,7 +120,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
           {/* Right Column: Config Info */}
           <div style={{ flex: 1, height: "100%" }}>
             <Card
-              bordered={true}
+              variant="outlined"
               className="detail-card"
               style={{ height: "100%" }}
             >
@@ -125,8 +128,10 @@ const HostDetail: React.FC<HostDetailProps> = ({
                 title="配置信息"
                 column={1}
                 size="middle"
-                labelStyle={{ width: 120, color: "#666" }}
-                contentStyle={{ display: "flex", alignItems: "center" }}
+                styles={{
+                  label: { width: 120, color: "#666" },
+                  content: { display: "flex", alignItems: "center" },
+                }}
               >
                 <Descriptions.Item label="CPU">
                   <div
@@ -279,7 +284,21 @@ const HostDetail: React.FC<HostDetailProps> = ({
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <PageBreadcrumb />
+      {breadcrumbItems && (
+        <div style={{ background: "#fff" }}>
+          <div
+            style={{
+              height: 48,
+              padding: "0 0 0 12px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Breadcrumb items={breadcrumbItems} />
+          </div>
+          <Divider style={{ margin: 0 }} />
+        </div>
+      )}
       {/* Header Section */}
       <div
         style={{
@@ -341,7 +360,7 @@ const HostDetail: React.FC<HostDetailProps> = ({
             .full-height-tabs > .ant-tabs-content-holder {
               flex: 1;
               overflow: auto;
-              padding: 0;
+              padding: 12px 0 0 0;
             }
             .full-height-tabs .ant-tabs-content {
               height: 100%;
