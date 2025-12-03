@@ -81,7 +81,7 @@ const ResourceManagement: React.FC = () => {
               flexDirection: "column",
             }}
           >
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 12 }}>
               <Input
                 placeholder="名称"
                 prefix={<SearchOutlined />}
