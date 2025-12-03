@@ -1,7 +1,7 @@
 // Table component for Cloud Desktop
 import React from "react";
 import { Table, Tag, Space, Button, Dropdown, Badge } from "antd";
-import type { ColumnsType } from "antd/es/table";
+import type { ColumnsType, BadgeProps } from "antd/es/table";
 import type { MenuProps } from "antd";
 import {
   DesktopOutlined,
@@ -41,7 +41,7 @@ const columns: ColumnsType<DesktopDataType> = [
     render: (status: keyof typeof statusMap) => {
       const { status: badgeStatus, text } =
         statusMap[status] || statusMap.stopped;
-      return <Badge status={badgeStatus as any} text={text} />;
+      return <Badge status={badgeStatus as BadgeProps["status"]} text={text} />;
     },
   },
   {
