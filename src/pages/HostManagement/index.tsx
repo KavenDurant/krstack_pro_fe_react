@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import PageBreadcrumb from "../../components/PageBreadcrumb";
 import ResourceTree, { type SelectionInfo } from "./components/ResourceTree";
 import StatisticsCards from "./components/StatisticsCards";
@@ -15,6 +9,8 @@ import type { ColumnConfig } from "./components/ColumnSettingsDrawer";
 import HostDetail from "./components/HostDetail";
 import { mockVMData } from "../../api/mockData";
 import type { HostDataType } from "./components/HostTable";
+import Splitter from "../../components/Splitter";
+import LayoutBox from "../../components/LayoutBox";
 
 const defaultColumns: ColumnConfig[] = [
   { key: "name", title: "名称", visible: true, fixed: true },
@@ -34,11 +30,6 @@ const HostManagement: React.FC = () => {
   const [columnDrawerVisible, setColumnDrawerVisible] = useState(false);
   const [columns, setColumns] = useState<ColumnConfig[]>(defaultColumns);
   const [selection, setSelection] = useState<Selection>({ type: "all" });
-  const [sideWidth, setSideWidth] = useState(280);
-  const dragState = useRef<{ startX: number; startWidth: number } | null>(null);
-  const MIN_SIDE = 280;
-  const MAX_SIDE = 350;
-  const [dragging, setDragging] = useState(false);
   const allVMs = useMemo<HostDataType[]>(
     () =>
       mockVMData.vms.map(vm => ({
@@ -97,41 +88,6 @@ const HostManagement: React.FC = () => {
     );
   }, []);
 
-  const handleDragStart = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      dragState.current = { startX: e.clientX, startWidth: sideWidth };
-      setDragging(true);
-      e.preventDefault();
-    },
-    [sideWidth]
-  );
-
-  useEffect(() => {
-    if (!dragging) return;
-
-    const onMove = (e: MouseEvent) => {
-      if (!dragState.current) return;
-      const delta = e.clientX - dragState.current.startX;
-      const next = Math.min(
-        MAX_SIDE,
-        Math.max(MIN_SIDE, dragState.current.startWidth + delta)
-      );
-      setSideWidth(next);
-    };
-
-    const onUp = () => {
-      setDragging(false);
-      dragState.current = null;
-    };
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-  }, [dragging]);
-
   const visibleVMs = useMemo(() => {
     switch (selection.type) {
       case "cluster":
@@ -174,98 +130,57 @@ const HostManagement: React.FC = () => {
     return items;
   }, [selection]);
 
-  return (
-    <div style={{ display: "flex", height: "100%" }}>
-      <div
-        style={{
-          width: sideWidth,
-          borderRight: "1px solid #f0f0f0",
-          borderLeft: "1px solid #e0e0e0",
-          background: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-          userSelect: dragging ? "none" : "auto",
-        }}
-      >
-        <div style={{ flex: 1, overflow: "hidden" }}>
-          <ResourceTree
-            onSelectNode={handleTreeSelect}
-            selectedKey={selectedTreeKey}
-          />
-        </div>
-        <div
-          onMouseDown={handleDragStart}
-          style={{
-            position: "absolute",
-            top: 0,
-            right: -4,
-            width: 8,
-            height: "100%",
-            cursor: "col-resize",
-            zIndex: 2,
-            background: dragging ? "rgba(24, 144, 255, 0.1)" : "transparent",
-          }}
+  const splitterPanels = [
+    {
+      key: "left",
+      size: 280,
+      min: 280,
+      max: 350,
+      children: (
+        <ResourceTree
+          onSelectNode={handleTreeSelect}
+          selectedKey={selectedTreeKey}
         />
-      </div>
-
-      {/* Right Content Area */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          background: "#fff",
-        }}
-      >
-        {selection.type === "vm" ? (
+      ),
+    },
+    {
+      key: "right",
+      children:
+        selection.type === "vm" ? (
           <HostDetail
             hostName={selection.vmName}
             onBack={handleBackToTable}
             breadcrumbItems={breadcrumbItems}
           />
         ) : (
-          <>
+          <LayoutBox>
             <PageBreadcrumb customItems={breadcrumbItems} />
-            {/* Main Content */}
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                padding: 12,
-              }}
-            >
+            <LayoutBox padding={12}>
               <StatisticsCards />
               <SearchFilter onSettingsClick={handleSettingsClick} />
-
-              {/* Table Area */}
-              <div
-                style={{
-                  flex: 1,
-                  overflow: "hidden",
-                }}
-              >
+              <div style={{ flex: 1, overflow: "hidden" }}>
                 <HostTable
                   columnsConfig={columns}
                   onHostClick={handleHostClick}
                   data={visibleVMs}
                 />
               </div>
-            </div>
-          </>
-        )}
-      </div>
+            </LayoutBox>
+          </LayoutBox>
+        ),
+    },
+  ];
 
+  return (
+    <>
+      <Splitter panels={splitterPanels} />
       <ColumnSettingsDrawer
         open={columnDrawerVisible}
         onClose={() => setColumnDrawerVisible(false)}
         columns={columns}
         onColumnsChange={handleColumnChange}
       />
-    </div>
+    </>
   );
 };
 
