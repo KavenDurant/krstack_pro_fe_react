@@ -9,6 +9,7 @@ import ResourceManagement from "./pages/ResourceManagement";
 import PlatformManagement from "./pages/PlatformManagement";
 import OperationsManagement from "./pages/OperationsManagement";
 import UserManagement from "./pages/PlatformManagement/UserManagement";
+import LicenseManagement from "./pages/PlatformManagement/LicenseManagement";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: "platform-management/users",
         element: <UserManagement />,
+      },
+      {
+        path: "platform-management/license",
+        element: <LicenseManagement />,
       },
       {
         path: "operations-management",

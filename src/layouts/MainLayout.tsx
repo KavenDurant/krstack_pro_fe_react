@@ -71,6 +71,11 @@ const MainLayout: React.FC = () => {
           icon: <UserOutlined />,
         },
         {
+          key: "/platform-management/license",
+          label: "许可管理",
+          icon: <FileTextOutlined />,
+        },
+        {
           key: "/platform-management",
           label: "系统设置",
           icon: <SettingOutlined />,
@@ -227,7 +232,13 @@ const MainLayout: React.FC = () => {
       )}
       <Layout style={{ overflow: "hidden" }}>
         {!location.pathname.startsWith("/resource-management") && (
-          <Sider width={176} style={{ background: colorBgContainer }}>
+          <Sider
+            width={176}
+            style={{
+              background: colorBgContainer,
+              borderRight: "1px solid #f0f0f0",
+            }}
+          >
             <Menu
               mode="inline"
               defaultSelectedKeys={["/hosts"]}

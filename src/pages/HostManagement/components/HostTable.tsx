@@ -220,7 +220,7 @@ const HostTable: React.FC<HostTableProps> = ({
       if (!wrap) return;
       const available = wrap.clientHeight;
       // Leave room for table header + pagination to avoid clipping
-      const bodyHeight = Math.max(240, available - 120);
+      const bodyHeight = Math.max(240, available - 160);
       setTableHeight(bodyHeight);
     };
     recalc();
