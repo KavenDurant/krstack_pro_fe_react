@@ -129,6 +129,16 @@ const MainLayout: React.FC = () => {
 
   const sideNavItems = getSideNavItems();
 
+  // Get current top navigation key based on pathname
+  const getCurrentTopNavKey = () => {
+    const path = location.pathname;
+    if (path.startsWith("/cloud-desktop")) return "desktop-manage";
+    if (path.startsWith("/resource-management")) return "resource-manage";
+    if (path.startsWith("/platform-management")) return "platform-manage";
+    if (path.startsWith("/operations-management")) return "ops-manage";
+    return "vm-manage"; // Default to VM management
+  };
+
   // Handle top navigation clicks
   const handleTopNavClick = (key: string) => {
     switch (key) {
@@ -189,7 +199,7 @@ const MainLayout: React.FC = () => {
         <Menu
           theme="light"
           mode="horizontal"
-          defaultSelectedKeys={["vm-manage"]}
+          selectedKeys={[getCurrentTopNavKey()]}
           items={topNavItems}
           style={{
             flex: 1,
