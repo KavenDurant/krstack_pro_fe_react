@@ -7,12 +7,14 @@ import {
   UserAddOutlined,
   PlusOutlined,
   SettingOutlined,
+  CarryOutOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type { TreeDataNode } from "antd";
 import PageBreadcrumb from "../../components/PageBreadcrumb";
-import UserGroupTree, {
-  type UserGroupSelection,
-} from "./components/UserGroupTree";
+import UserGroupTree from "./components/UserGroupTree";
+import Splitter from "../../components/Splitter";
+import LayoutBox from "../../components/LayoutBox";
 
 interface UserDataType {
   key: string;
@@ -92,25 +94,43 @@ const mockData: UserDataType[] = [
 
 const UserManagement: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [selection, setSelection] = useState<UserGroupSelection>({
-    type: "all",
-  });
+  const [selectedTreeKey, setSelectedTreeKey] = useState<string>("all");
 
-  const handleTreeSelect = useCallback((info: UserGroupSelection) => {
-    setSelection(info);
+  const handleTreeSelect = useCallback((selectedKeys: React.Key[]) => {
+    const key = selectedKeys[0] as string;
+    setSelectedTreeKey(key);
   }, []);
 
-  const selectedTreeKey = useMemo(() => {
-    if (selection.type === "group") return `group-${selection.groupId}`;
-    return "all";
-  }, [selection]);
-
   const filteredData = useMemo(() => {
-    if (selection.type === "group") {
-      return mockData.filter(user => user.groupId === selection.groupId);
+    if (selectedTreeKey.startsWith("group-")) {
+      const groupId = selectedTreeKey.replace("group-", "");
+      return mockData.filter((user) => user.groupId === groupId);
     }
     return mockData;
-  }, [selection]);
+  }, [selectedTreeKey]);
+
+  const treeData: TreeDataNode[] = useMemo(
+    () => [
+      {
+        title: "全部用户",
+        key: "all",
+        icon: <CarryOutOutlined />,
+        children: [
+          {
+            title: "用户组1",
+            key: "group-1",
+            icon: <CarryOutOutlined />,
+          },
+          {
+            title: "用户组2",
+            key: "group-2",
+            icon: <CarryOutOutlined />,
+          },
+        ],
+      },
+    ],
+    []
+  );
 
   const columns: ColumnsType<UserDataType> = [
     { title: "用户名", dataIndex: "username", key: "username" },
@@ -148,90 +168,81 @@ const UserManagement: React.FC = () => {
     },
   ];
 
-  return (
-    <div style={{ display: "flex", height: "100%" }}>
-      <div
-        style={{
-          width: 280,
-          borderRight: "1px solid #f0f0f0",
-          borderLeft: "1px solid #e0e0e0",
-          background: "#fff",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div style={{ flex: 1, overflow: "hidden" }}>
+  const splitterPanels = [
+    {
+      key: "left",
+      max: 250,
+      children: (
+        <LayoutBox padding={12}>
+          <LayoutBox>
+            <Button type="default" icon={<PlusOutlined />}>
+              添加用户组
+            </Button>
+          </LayoutBox>
           <UserGroupTree
-            onSelectNode={handleTreeSelect}
-            selectedKey={selectedTreeKey}
+            treeData={treeData}
+            defaultExpandedKeys={["all"]}
+            onSelect={handleTreeSelect}
           />
-        </div>
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          background: "#fff",
-        }}
-      >
-        <PageBreadcrumb />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            padding: 12,
-          }}
-        >
-          <div style={{ marginBottom: 12 }}>
-            <Input
-              placeholder="名称"
-              prefix={<SearchOutlined />}
-              style={{ width: 240 }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 8,
-            }}
-          >
-            <div style={{ fontSize: 14, color: "#666" }}>
-              共计 N 条数据 已选 {selectedRowKeys.length} 条
+        </LayoutBox>
+      ),
+    },
+    {
+      key: "right",
+      children: (
+        <LayoutBox>
+          <PageBreadcrumb />
+          <LayoutBox padding={12}>
+            <div style={{ marginBottom: 12 }}>
+              <Input
+                placeholder="名称"
+                prefix={<SearchOutlined />}
+                style={{ width: 240 }}
+              />
             </div>
-            <Space>
-              <Button icon={<SyncOutlined />}>同步头像</Button>
-              <Button icon={<DownloadOutlined />}>导出用户</Button>
-              <Button icon={<UserAddOutlined />}>导入用户</Button>
-              <Button type="primary" icon={<PlusOutlined />}>
-                添加用户
-              </Button>
-              <Button icon={<SyncOutlined />} />
-              <Button icon={<SettingOutlined />} />
-            </Space>
-          </div>
-          <div style={{ flex: 1, overflow: "hidden" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <div style={{ fontSize: 14, color: "#666" }}>
+                共计 N 条数据 已选 {selectedRowKeys.length} 条
+              </div>
+              <Space>
+                <Button icon={<SyncOutlined />}>同步头像</Button>
+                <Button icon={<DownloadOutlined />}>导出用户</Button>
+                <Button icon={<UserAddOutlined />}>导入用户</Button>
+                <Button type="primary" icon={<PlusOutlined />}>
+                  添加用户
+                </Button>
+                <Button icon={<SyncOutlined />} />
+                <Button icon={<SettingOutlined />} />
+              </Space>
+            </div>
             <Table
               rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
               columns={columns}
               dataSource={filteredData}
               pagination={{
                 total: filteredData.length,
-                showTotal: total => `共计 ${total} 条数据`,
+                showTotal: (total) => `共计 ${total} 条数据`,
                 defaultPageSize: 10,
                 showSizeChanger: true,
               }}
             />
-          </div>
-        </div>
-      </div>
-    </div>
+          </LayoutBox>
+        </LayoutBox>
+      ),
+    },
+  ];
+
+  return (
+    <LayoutBox padding={0} gap={0}>
+      <Splitter panels={splitterPanels} />
+    </LayoutBox>
   );
 };
 

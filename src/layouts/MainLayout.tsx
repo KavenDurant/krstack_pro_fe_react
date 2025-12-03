@@ -76,8 +76,23 @@ const MainLayout: React.FC = () => {
           icon: <FileTextOutlined />,
         },
         {
-          key: "/platform-management",
-          label: "系统设置",
+          key: "/platform-management/data",
+          label: "平台数据管理",
+          icon: <FileTextOutlined />,
+        },
+        {
+          key: "/platform-management/security",
+          label: "平台安全设置",
+          icon: <SettingOutlined />,
+        },
+        {
+          key: "/platform-management/lab",
+          label: "实验室",
+          icon: <SettingOutlined />,
+        },
+        {
+          key: "/platform-management/appearance",
+          label: "平台外观管理",
           icon: <SettingOutlined />,
         },
       ];
