@@ -29,8 +29,8 @@
 
 .licenseInfo {
   display: flex;
-  flex-direction: row;
-  gap: 24px;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .infoLeft {
@@ -43,9 +43,9 @@
 .infoRight {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  align-items: stretch;
   min-width: 120px;
 }
 
@@ -73,11 +73,6 @@
   gap: 8px;
 }
 
-.infoActions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
 .statusActive {
   color: #52c41a;

@@ -82,24 +82,24 @@ const DesktopLicenseContent: React.FC = () => {
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>申请码：</span>
               <span className={styles.infoValue}>{licenseCode}</span>
-              <div className={styles.infoActions}>
-                <Button
-                  type="default"
-                  size="small"
-                  icon={<CopyOutlined />}
-                  onClick={handleReserve}
-                >
-                  复制
-                </Button>
-                <Button
-                  type="default"
-                  size="small"
-                  icon={<DownloadOutlined />}
-                  onClick={handleReserve}
-                >
-                  下载
-                </Button>
-              </div>
+              <Button
+                type="default"
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={handleReserve}
+                style={{ marginLeft: 8 }}
+              >
+                复制
+              </Button>
+              <Button
+                type="default"
+                size="small"
+                icon={<DownloadOutlined />}
+                onClick={handleReserve}
+                style={{ marginLeft: 8 }}
+              >
+                下载
+              </Button>
             </div>
 
             <div className={styles.infoRow}>
@@ -108,16 +108,15 @@ const DesktopLicenseContent: React.FC = () => {
                 <CheckCircleOutlined className={styles.statusActive} />
                 <span className={styles.statusActive}>已激活</span>
               </span>
-              <div className={styles.infoActions}>
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<UploadOutlined />}
-                  onClick={handleReserve}
-                >
-                  上传许可
-                </Button>
-              </div>
+              <Button
+                type="primary"
+                size="small"
+                icon={<UploadOutlined />}
+                onClick={handleReserve}
+                style={{ marginLeft: 8 }}
+              >
+                上传许可
+              </Button>
             </div>
 
             <div className={styles.infoRow}>
@@ -142,16 +141,15 @@ const DesktopLicenseContent: React.FC = () => {
                 />
                 <span className={styles.progressText}>10/10</span>
               </div>
-              <div className={styles.infoActions}>
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<SendOutlined />}
-                  onClick={handleReserve}
-                >
-                  申请扩容
-                </Button>
-              </div>
+              <Button
+                type="primary"
+                size="small"
+                icon={<SendOutlined />}
+                onClick={handleReserve}
+                style={{ marginLeft: 8 }}
+              >
+                申请扩容
+              </Button>
             </div>
 
             <div className={styles.infoRow}>
@@ -166,16 +164,15 @@ const DesktopLicenseContent: React.FC = () => {
                 />
                 <span className={styles.progressText}>40/100</span>
               </div>
-              <div className={styles.infoActions}>
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<SendOutlined />}
-                  onClick={handleReserve}
-                >
-                  申请扩容
-                </Button>
-              </div>
+              <Button
+                type="primary"
+                size="small"
+                icon={<SendOutlined />}
+                onClick={handleReserve}
+                style={{ marginLeft: 8 }}
+              >
+                申请扩容
+              </Button>
             </div>
           </div>
         </GrayCard>

@@ -31,7 +31,25 @@ const PlatformLicenseContent: React.FC = () => {
           <div className={styles.infoLeft}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>申请码：</span>
-              <span className={styles.infoValue}>{licenseCode}</span>
+              <div className={styles.infoValue}>
+                <span>{licenseCode}</span>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<CopyOutlined />}
+                  onClick={handleReserve}
+                >
+                  复制
+                </Button>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={handleReserve}
+                >
+                  下载
+                </Button>
+              </div>
             </div>
 
             <div className={styles.infoRow}>
@@ -82,48 +100,20 @@ const PlatformLicenseContent: React.FC = () => {
           </div>
 
           <div className={styles.infoRight}>
-            <div className={styles.infoActions}>
-              <Button
-                type="default"
-                size="small"
-                icon={<CopyOutlined />}
-                onClick={handleReserve}
-              >
-                复制
-              </Button>
-              <Button
-                type="default"
-                size="small"
-                icon={<DownloadOutlined />}
-                onClick={handleReserve}
-              >
-                下载
-              </Button>
-              <Button
-                type="primary"
-                size="small"
-                icon={<UploadOutlined />}
-                onClick={handleReserve}
-              >
-                上传许可
-              </Button>
-              <Button
-                type="primary"
-                size="small"
-                icon={<SendOutlined />}
-                onClick={handleReserve}
-              >
-                申请扩容
-              </Button>
-              <Button
-                type="primary"
-                size="small"
-                icon={<SendOutlined />}
-                onClick={handleReserve}
-              >
-                申请扩容
-              </Button>
-            </div>
+            <Button
+              type="primary"
+              icon={<UploadOutlined />}
+              onClick={handleReserve}
+            >
+              上传许可
+            </Button>
+            <Button
+              type="primary"
+              icon={<SendOutlined />}
+              onClick={handleReserve}
+            >
+              申请扩容
+            </Button>
           </div>
         </div>
       </GrayCard>
