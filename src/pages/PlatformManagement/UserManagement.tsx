@@ -104,7 +104,7 @@ const UserManagement: React.FC = () => {
   const filteredData = useMemo(() => {
     if (selectedTreeKey.startsWith("group-")) {
       const groupId = selectedTreeKey.replace("group-", "");
-      return mockData.filter((user) => user.groupId === groupId);
+      return mockData.filter(user => user.groupId === groupId);
     }
     return mockData;
   }, [selectedTreeKey]);
@@ -228,7 +228,7 @@ const UserManagement: React.FC = () => {
               dataSource={filteredData}
               pagination={{
                 total: filteredData.length,
-                showTotal: (total) => `共计 ${total} 条数据`,
+                showTotal: total => `共计 ${total} 条数据`,
                 defaultPageSize: 10,
                 showSizeChanger: true,
               }}
