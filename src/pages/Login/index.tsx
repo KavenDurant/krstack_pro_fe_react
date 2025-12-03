@@ -107,7 +107,13 @@ const Login: React.FC = () => {
     };
   }, []);
 
-  const onFinish = (values: any) => {
+  interface LoginFormValues {
+    username: string;
+    password: string;
+    remember?: boolean;
+  }
+
+  const onFinish = (values: LoginFormValues) => {
     setLoading(true);
     setTimeout(() => {
       if (values.username === "admin" && values.password === "-p0-p0-p0") {

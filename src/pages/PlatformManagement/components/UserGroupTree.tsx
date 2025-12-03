@@ -1,6 +1,6 @@
 import React from "react";
 import { Tree } from "antd";
-import type { TreeDataNode } from "antd";
+import type { TreeDataNode, TreeProps } from "antd";
 
 const styles = `
   .ant-tree-node-content-wrapper {
@@ -10,7 +10,7 @@ const styles = `
 
 export interface UserGroupTreeProps {
   treeData: TreeDataNode[];
-  onSelect?: (selectedKeys: React.Key[], info: any) => void;
+  onSelect?: TreeProps["onSelect"];
   defaultExpandedKeys?: React.Key[];
   showLine?: boolean;
   showIcon?: boolean;
@@ -25,7 +25,7 @@ const UserGroupTree: React.FC<UserGroupTreeProps> = ({
   showIcon = true,
   showLeafIcon = false,
 }) => {
-  const handleSelect = (selectedKeys: React.Key[], info: any) => {
+  const handleSelect: TreeProps["onSelect"] = (selectedKeys, info) => {
     onSelect?.(selectedKeys, info);
   };
 

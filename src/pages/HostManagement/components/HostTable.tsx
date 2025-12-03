@@ -284,7 +284,7 @@ const HostTable: React.FC<HostTableProps> = ({
         return colDef;
       })
       .filter(Boolean) as ColumnsType<HostDataType>;
-  }, [columnsConfig]);
+  }, [columnsConfig, onHostClick]);
 
   return (
     <div

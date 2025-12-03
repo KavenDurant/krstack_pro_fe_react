@@ -1,18 +1,7 @@
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Card, Space, Typography } from "antd";
-import {
-  FormOutlined,
-  NumberOutlined,
-  CheckSquareOutlined,
-} from "@ant-design/icons";
-
-// Field types definition
-export const fieldTypes = [
-  { type: "text", label: "单行文本", icon: <FormOutlined /> },
-  { type: "number", label: "数字输入", icon: <NumberOutlined /> },
-  { type: "checkbox", label: "多选框", icon: <CheckSquareOutlined /> },
-];
+import { fieldTypes } from "../constants/fieldTypes";
 
 interface DraggableSidebarItemProps {
   type: string;

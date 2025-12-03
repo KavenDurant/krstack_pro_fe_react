@@ -55,13 +55,19 @@ const LayoutBox: React.FC<LayoutBoxProps> = ({
     ...style,
   };
 
+  interface ChildProps {
+    style?: React.CSSProperties;
+  }
+
   const renderChildren = React.Children.map(children, child => {
     if (React.isValidElement(child)) {
-      const childStyle: React.CSSProperties = { ...(child.props as any).style };
+      const childStyle: React.CSSProperties = {
+        ...(child.props as ChildProps).style,
+      };
       if (childWidth !== "auto") {
         childStyle.width = childWidth;
       }
-      return React.cloneElement(child as React.ReactElement<any>, {
+      return React.cloneElement(child as React.ReactElement<ChildProps>, {
         style: childStyle,
       });
     }

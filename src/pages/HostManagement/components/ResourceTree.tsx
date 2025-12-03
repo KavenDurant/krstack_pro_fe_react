@@ -6,7 +6,7 @@ import {
   FolderOutlined,
   HddOutlined,
 } from "@ant-design/icons";
-import type { DataNode, EventDataNode } from "antd/es/tree";
+import type { DataNode, EventDataNode, AntTreeNodeProps } from "antd/es/tree";
 import { mockVMData } from "../../../api/mockData";
 
 export type SelectionInfo =
@@ -26,6 +26,15 @@ export type SelectionInfo =
       vmId: string;
       vmName: string;
     };
+
+interface ExtendedDataNode extends DataNode {
+  nodeType?: string;
+  clusterId?: number;
+  clusterName?: string;
+  hostName?: string;
+  vmId?: string;
+  vmName?: string;
+}
 
 interface ResourceTreeProps {
   onSelectNode: (info: SelectionInfo) => void;
@@ -126,10 +135,10 @@ const ResourceTree: React.FC<ResourceTreeProps> = ({
   const handleSelect = (
     _: React.Key[],
     info: {
-      node: EventDataNode<DataNode> & any;
+      node: EventDataNode<ExtendedDataNode>;
     }
   ) => {
-    const node = info.node as any;
+    const node = info.node as ExtendedDataNode;
     switch (node.nodeType) {
       case "cluster":
         onSelectNode({
@@ -191,7 +200,7 @@ const ResourceTree: React.FC<ResourceTreeProps> = ({
         showIcon
         showLine
         defaultExpandAll
-        switcherIcon={(props: any) => {
+        switcherIcon={(props: AntTreeNodeProps) => {
           if (props.expanded) {
             return <MinusSquareOutlined />;
           }

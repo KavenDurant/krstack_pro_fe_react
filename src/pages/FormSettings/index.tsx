@@ -12,8 +12,9 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Layout, Card } from "antd";
-import FieldSidebar, { fieldTypes } from "./components/FieldSidebar";
+import FieldSidebar from "./components/FieldSidebar";
 import FormCanvas from "./components/FormCanvas";
+import { fieldTypes, type FieldType } from "./constants/fieldTypes";
 import { v4 as uuidv4 } from "uuid";
 
 const { Sider, Content } = Layout;
@@ -27,7 +28,9 @@ interface FormField {
 const FormSettings: React.FC = () => {
   const [fields, setFields] = useState<FormField[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeItem, setActiveItem] = useState<any>(null);
+  const [activeItem, setActiveItem] = useState<FieldType | FormField | null>(
+    null
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
