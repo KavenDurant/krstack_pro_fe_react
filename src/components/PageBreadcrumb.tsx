@@ -39,6 +39,19 @@ const breadcrumbMap: Record<string, { title: string }[]> = {
     { title: "平台管理" },
     { title: "许可管理" },
   ],
+  "/platform-management/data": [
+    { title: "平台管理" },
+    { title: "平台数据管理" },
+  ],
+  "/platform-management/security": [
+    { title: "平台管理" },
+    { title: "平台安全设置" },
+  ],
+  "/platform-management/lab": [{ title: "平台管理" }, { title: "实验室" }],
+  "/platform-management/appearance": [
+    { title: "平台管理" },
+    { title: "平台外观管理" },
+  ],
   "/operations-management": [{ title: "运维管理" }, { title: "操作日志" }],
 };
 
