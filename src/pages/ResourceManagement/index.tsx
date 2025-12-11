@@ -79,10 +79,6 @@ const ResourceManagement: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (location.pathname.includes("/host")) {
-      return <PhysicalMachine />;
-    }
-
     return (
       <div
         style={{
@@ -151,7 +147,11 @@ const ResourceManagement: React.FC = () => {
       <Layout style={{ background: "#fff" }}>
         <Content style={{ display: "flex", flexDirection: "column" }}>
           <PageBreadcrumb />
-          {renderContent()}
+          {location.pathname.includes("/host") ? (
+            <PhysicalMachine />
+          ) : (
+            renderContent()
+          )}
         </Content>
       </Layout>
     </Layout>
