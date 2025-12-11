@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Layout, Input, Button, Space } from "antd";
 import {
   PlusOutlined,
@@ -9,6 +10,8 @@ import {
 import PageBreadcrumb from "../../components/PageBreadcrumb";
 import ResourceSidebar from "./components/ResourceSidebar";
 import ClusterTable from "./components/ClusterTable";
+import ClusterDetail from "./components/ClusterDetail";
+import PhysicalMachine from "./components/PhysicalMachine";
 import type { ClusterDataType } from "./components/ClusterTable";
 
 const { Content, Sider } = Layout;
@@ -57,30 +60,46 @@ const mockClusterData: ClusterDataType[] = [
 ];
 
 const ResourceManagement: React.FC = () => {
+  const location = useLocation();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
+  const [selectedCluster, setSelectedCluster] =
+    useState<ClusterDataType | null>(null);
 
   const handleRowSelectChange = (keys: React.Key[]) => {
     setSelectedRowKeys(keys);
   };
 
-  return (
-    <Layout style={{ height: "100%", background: "#fff" }}>
-      <Sider width={176} style={{ background: "#fff" }}>
-        <ResourceSidebar />
-      </Sider>
-      <Layout style={{ background: "#fff" }}>
-        <Content style={{ display: "flex", flexDirection: "column" }}>
-          <PageBreadcrumb />
-          <div
-            style={{
-              padding: 12,
-              flex: 1,
-              overflow: "auto",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+  const handleClusterClick = (cluster: ClusterDataType) => {
+    setSelectedCluster(cluster);
+  };
+
+  const handleBackToList = () => {
+    setSelectedCluster(null);
+  };
+
+  const renderContent = () => {
+    if (location.pathname.includes("/host")) {
+      return <PhysicalMachine />;
+    }
+
+    return (
+      <div
+        style={{
+          padding: 12,
+          flex: 1,
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {selectedCluster ? (
+          <ClusterDetail
+            cluster={selectedCluster}
+            onBack={handleBackToList}
+          />
+        ) : (
+          <>
             <div style={{ marginBottom: 12 }}>
               <Input
                 placeholder="名称"
@@ -100,7 +119,8 @@ const ResourceManagement: React.FC = () => {
               }}
             >
               <div style={{ fontSize: 14, color: "#666" }}>
-                共计 {mockClusterData.length} 条数据 已选 x 条
+                共计 {mockClusterData.length} 条数据 已选{" "}
+                {selectedRowKeys.length} 条
               </div>
               <Space>
                 <Button type="primary" icon={<PlusOutlined />}>
@@ -115,8 +135,23 @@ const ResourceManagement: React.FC = () => {
               dataSource={mockClusterData}
               selectedRowKeys={selectedRowKeys}
               onSelectChange={handleRowSelectChange}
+              onRowClick={handleClusterClick}
             />
-          </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Layout style={{ height: "100%", background: "#fff" }}>
+      <Sider width={176} style={{ background: "#fff" }}>
+        <ResourceSidebar />
+      </Sider>
+      <Layout style={{ background: "#fff" }}>
+        <Content style={{ display: "flex", flexDirection: "column" }}>
+          <PageBreadcrumb />
+          {renderContent()}
         </Content>
       </Layout>
     </Layout>
