@@ -22,12 +22,14 @@ interface ClusterTableProps {
   dataSource: ClusterDataType[];
   selectedRowKeys: React.Key[];
   onSelectChange: (selectedRowKeys: React.Key[]) => void;
+  onRowClick?: (record: ClusterDataType) => void;
 }
 
 const ClusterTable: React.FC<ClusterTableProps> = ({
   dataSource,
   selectedRowKeys,
   onSelectChange,
+  onRowClick,
 }) => {
   const statusConfig = {
     running: {
@@ -53,7 +55,14 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
       dataIndex: "name",
       key: "name",
       sorter: true,
-      render: (text: string) => <a style={{ color: "#1890ff" }}>{text}</a>,
+      render: (text: string, record: ClusterDataType) => (
+        <a
+          style={{ color: "#1890ff" }}
+          onClick={() => onRowClick?.(record)}
+        >
+          {text}
+        </a>
+      ),
     },
     {
       title: "状态",

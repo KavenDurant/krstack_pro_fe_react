@@ -20,10 +20,11 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ onSettingsClick }) => {
     <div
       style={{
         padding: "10px 0",
+        width: "100%",
       }}
     >
-      <Row justify="space-between" align="middle">
-        <Col>
+      <Row justify="space-between" align="middle" style={{ width: "100%" }}>
+        <Col flex="none">
           <Space>
             <Input
               placeholder="名称/IP"
@@ -35,7 +36,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ onSettingsClick }) => {
             </Select>
           </Space>
         </Col>
-        <Col>
+        <Col flex="none">
           <Space>
             <Dropdown menu={{ items: [{ key: "1", label: "批量操作" }] }}>
               <Button>

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import PageBreadcrumb from "../../components/PageBreadcrumb";
-import ResourceTree, { type SelectionInfo } from "./components/ResourceTree";
+import { type SelectionInfo } from "./types";
 import StatisticsCards from "./components/StatisticsCards";
 import SearchFilter from "./components/SearchFilter";
 import HostTable from "./components/HostTable";
@@ -9,7 +9,7 @@ import type { ColumnConfig } from "./components/ColumnSettingsDrawer";
 import HostDetail from "./components/HostDetail";
 import { mockVMData } from "../../api/mockData";
 import type { HostDataType } from "./components/HostTable";
-import Splitter from "../../components/Splitter";
+import ResizableTreePanel from "@/components/ResizableTreePanel";
 import LayoutBox from "../../components/LayoutBox";
 
 const defaultColumns: ColumnConfig[] = [
@@ -60,10 +60,6 @@ const HostManagement: React.FC = () => {
     setColumns(newColumns);
   }, []);
 
-  const handleTreeSelect = useCallback((info: SelectionInfo) => {
-    setSelection(info);
-  }, []);
-
   const handleHostClick = useCallback((record: HostDataType) => {
     setSelection({
       type: "vm",
@@ -76,7 +72,7 @@ const HostManagement: React.FC = () => {
   }, []);
 
   const handleBackToTable = useCallback(() => {
-    setSelection(prev =>
+    setSelection((prev: SelectionInfo) =>
       prev.type === "vm"
         ? {
             type: "host",
@@ -130,23 +126,86 @@ const HostManagement: React.FC = () => {
     return items;
   }, [selection]);
 
-  const splitterPanels = [
-    {
-      key: "left",
-      size: 280,
-      min: 280,
-      max: 350,
-      children: (
-        <ResourceTree
-          onSelectNode={handleTreeSelect}
-          selectedKey={selectedTreeKey}
-        />
-      ),
+  const treeData = useMemo(() => {
+    const { ancestor_trees, vms } = mockVMData;
+    return [
+      {
+        title: "全部云主机",
+        key: "all",
+        children: ancestor_trees.map(cluster => ({
+          title: cluster.label,
+          key: `cluster-${cluster.value}`,
+          children: cluster.children?.map(host => ({
+            title: host.label,
+            key: `host-${cluster.value}-${host.label}`,
+            children: vms
+              .filter(
+                vm =>
+                  vm.cluster_id === cluster.value && vm.node_name === host.label
+              )
+              .map(vm => ({
+                title: vm.name,
+                key: `vm-${vm.id}`,
+              })),
+          })),
+        })),
+      },
+    ];
+  }, []);
+
+  const handleTreeSelect = useCallback(
+    (_: React.Key[], info: { node: { key: React.Key } }) => {
+      const key = String(info.node.key);
+      if (key === "all") {
+        setSelection({ type: "all" });
+      } else if (key.startsWith("cluster-")) {
+        const clusterId = Number(key.replace("cluster-", ""));
+        const cluster = mockVMData.ancestor_trees.find(
+          c => c.value === clusterId
+        );
+        setSelection({
+          type: "cluster",
+          clusterId,
+          clusterName: cluster?.label || "",
+        });
+      } else if (key.startsWith("host-")) {
+        const [, clusterIdStr, hostName] = key.split("-");
+        const clusterId = Number(clusterIdStr);
+        const cluster = mockVMData.ancestor_trees.find(
+          c => c.value === clusterId
+        );
+        setSelection({
+          type: "host",
+          clusterId,
+          clusterName: cluster?.label || "",
+          hostName,
+        });
+      } else if (key.startsWith("vm-")) {
+        const vmId = key.replace("vm-", "");
+        const vm = mockVMData.vms.find(v => v.id === vmId);
+        if (vm) {
+          setSelection({
+            type: "vm",
+            clusterId: vm.cluster_id,
+            clusterName: vm.cluster_name,
+            hostName: vm.node_name,
+            vmId: vm.id,
+            vmName: vm.name,
+          });
+        }
+      }
     },
-    {
-      key: "right",
-      children:
-        selection.type === "vm" ? (
+    []
+  );
+
+  return (
+    <>
+      <ResizableTreePanel
+        treeData={treeData}
+        selectedKey={selectedTreeKey}
+        onSelect={handleTreeSelect}
+      >
+        {selection.type === "vm" ? (
           <HostDetail
             hostName={selection.vmName}
             onBack={handleBackToTable}
@@ -167,13 +226,8 @@ const HostManagement: React.FC = () => {
               </div>
             </LayoutBox>
           </LayoutBox>
-        ),
-    },
-  ];
-
-  return (
-    <>
-      <Splitter panels={splitterPanels} />
+        )}
+      </ResizableTreePanel>
       <ColumnSettingsDrawer
         open={columnDrawerVisible}
         onClose={() => setColumnDrawerVisible(false)}
