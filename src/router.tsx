@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
         element: <CloudDesktop />,
       },
       {
-        path: "resource-management",
+        path: "resource-management/*",
         element: <ResourceManagement />,
       },
       {

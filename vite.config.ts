@@ -29,6 +29,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0", // allow access via local network IP
     port: 5173,
+    open: true, // automatically open browser
   },
   preview: {
     host: "0.0.0.0",
