@@ -93,7 +93,7 @@
  * ```
  */
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import {
   Table,
   Input,
@@ -161,7 +161,7 @@ import styles from "./AdvancedTable.module.css";
  *   shouldCellUpdate: (record, prevRecord) => record.name !== prevRecord.name,
  * }
  */
-export interface AdvancedColumnType<T = any>
+export interface AdvancedColumnType<T = Record<string, unknown>>
   extends Omit<TableColumnType<T>, "responsive"> {
   /** 列唯一标识 */
   key: string;
@@ -197,7 +197,9 @@ export interface FixedColumnsConfig {
  * 高级表格组件属性
  * @template T - 数据记录类型
  */
-export interface AdvancedTableProps<T extends object = any> {
+export interface AdvancedTableProps<
+  T extends object = Record<string, unknown>,
+> {
   /** 列配置数组 */
   columns: AdvancedColumnType<T>[];
   /** 数据源 */
@@ -212,20 +214,23 @@ export interface AdvancedTableProps<T extends object = any> {
     type?: "primary" | "default" | "dashed" | "link" | "text";
   };
   /** 次要按钮数组（支持普通按钮和下拉菜单按钮） */
-  secondaryButtons?: ({
-    text: string;
-    icon?: React.ReactNode;
-    onClick?: () => void;
-    type?: "primary" | "default" | "dashed" | "link" | "text";
-    danger?: boolean;
-  } | {
-    /** 下拉菜单类型 */
-    dropdown: true;
-    text: string;
-    icon?: React.ReactNode;
-    /** Ant Design Menu items */
-    menuItems: MenuProps["items"];
-  })[];
+  secondaryButtons?: (
+    | {
+        text: string;
+        icon?: React.ReactNode;
+        onClick?: () => void;
+        type?: "primary" | "default" | "dashed" | "link" | "text";
+        danger?: boolean;
+      }
+    | {
+        /** 下拉菜单类型 */
+        dropdown: true;
+        text: string;
+        icon?: React.ReactNode;
+        /** Ant Design Menu items */
+        menuItems: MenuProps["items"];
+      }
+  )[];
   /** 搜索回调 */
   onSearch?: (value: string) => void;
   /** 搜索框占位符 */
@@ -302,7 +307,7 @@ const DraggableColumnItem: React.FC<DraggableColumnItemProps> = ({
       }`}
       draggable={!isFixed}
       onDragStart={() => !isFixed && onDragStart(index)}
-      onDragOver={(e) => !isFixed && onDragOver(e, index)}
+      onDragOver={e => !isFixed && onDragOver(e, index)}
       onDragEnd={onDragEnd}
       role="option"
       aria-selected={column.visible}
@@ -313,7 +318,7 @@ const DraggableColumnItem: React.FC<DraggableColumnItemProps> = ({
       <Checkbox
         checked={column.visible}
         disabled={isFixed}
-        onChange={(e) => onToggleVisible(column.key, e.target.checked)}
+        onChange={e => onToggleVisible(column.key, e.target.checked)}
         aria-label={`切换 ${column.title} 列显示`}
       >
         {column.title}
@@ -325,7 +330,7 @@ const DraggableColumnItem: React.FC<DraggableColumnItemProps> = ({
 
 // ==================== 主组件 ====================
 
-function AdvancedTable<T extends object = any>({
+function AdvancedTable<T extends object = Record<string, unknown>>({
   columns,
   dataSource,
   rowKey,
@@ -359,7 +364,7 @@ function AdvancedTable<T extends object = any>({
   const [columnConfig, setColumnConfig] = useState<
     { key: string; visible: boolean }[]
   >(() =>
-    columns.map((col) => ({
+    columns.map(col => ({
       key: col.key,
       visible: col.defaultVisible !== false,
     }))
@@ -379,29 +384,23 @@ function AdvancedTable<T extends object = any>({
 
   // ==================== 智能搜索（内置） ====================
 
-  /** 智能搜索过滤后的数据源 */
-  const [filteredData, setFilteredData] = useState<T[]>(dataSource);
-
   /**
-   * 智能搜索逻辑：自动搜索指定字段
+   * 智能搜索过滤后的数据源 - 使用 useMemo 避免不必要的重新计算
    */
-  useEffect(() => {
+  const filteredData = useMemo(() => {
     if (!searchFields || searchFields.length === 0) {
-      setFilteredData(dataSource);
-      return;
+      return dataSource;
     }
 
     if (!searchValue) {
-      setFilteredData(dataSource);
-      return;
+      return dataSource;
     }
 
-    const filtered = dataSource.filter((item) =>
-      searchFields.some((field) =>
+    return dataSource.filter(item =>
+      searchFields.some(field =>
         String(item[field]).toLowerCase().includes(searchValue.toLowerCase())
       )
     );
-    setFilteredData(filtered);
   }, [dataSource, searchValue, searchFields]);
 
   // ==================== 搜索与刷新操作 ====================
@@ -460,8 +459,8 @@ function AdvancedTable<T extends object = any>({
    * @param checked 是否显示
    */
   const toggleColumnVisible = useCallback((key: string, checked: boolean) => {
-    setColumnConfig((prev) =>
-      prev.map((item) =>
+    setColumnConfig(prev =>
+      prev.map(item =>
         item.key === key ? { ...item, visible: checked } : item
       )
     );
@@ -473,7 +472,7 @@ function AdvancedTable<T extends object = any>({
    */
   const resetColumnConfig = useCallback(() => {
     setColumnConfig(
-      columns.map((col) => ({
+      columns.map(col => ({
         key: col.key,
         visible: col.defaultVisible !== false,
       }))
@@ -516,7 +515,7 @@ function AdvancedTable<T extends object = any>({
       dragOverIndex !== null &&
       dragIndex !== dragOverIndex
     ) {
-      setColumnConfig((prev) => {
+      setColumnConfig(prev => {
         const newConfig = [...prev];
         const [removed] = newConfig.splice(dragIndex, 1);
         newConfig.splice(dragOverIndex, 0, removed);
@@ -547,8 +546,8 @@ function AdvancedTable<T extends object = any>({
    * 用于抽屉中显示的列配置（包含固定标记）- 使用 useMemo 优化性能
    */
   const drawerColumns = useMemo(() => {
-    return columnConfig.map((config) => {
-      const col = columns.find((c) => c.key === config.key);
+    return columnConfig.map(config => {
+      const col = columns.find(c => c.key === config.key);
       return {
         key: config.key,
         title: col?.title || config.key,
@@ -563,8 +562,9 @@ function AdvancedTable<T extends object = any>({
    * 如果启用了智能搜索，使用过滤后的数据；否则使用原始数据
    */
   const processedDataSource = useMemo(() => {
-    const source = searchFields && searchFields.length > 0 ? filteredData : dataSource;
-    return source.map((item) => ({
+    const source =
+      searchFields && searchFields.length > 0 ? filteredData : dataSource;
+    return source.map(item => ({
       ...item,
       // 可以在这里添加数据处理逻辑
     }));
@@ -576,9 +576,9 @@ function AdvancedTable<T extends object = any>({
    */
   const finalColumns = useMemo(() => {
     const orderedColumns = columnConfig
-      .filter((config) => config.visible)
-      .map((config) => {
-        const col = columns.find((c) => c.key === config.key);
+      .filter(config => config.visible)
+      .map(config => {
+        const col = columns.find(c => c.key === config.key);
         if (!col) return null;
 
         const finalCol: TableColumnsType<T>[number] = {
@@ -646,7 +646,7 @@ function AdvancedTable<T extends object = any>({
             placeholder={searchPlaceholder}
             prefix={<SearchOutlined />}
             value={searchValue}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={e => handleSearch(e.target.value)}
             className={styles.searchInput}
             allowClear
             aria-label="搜索输入框"
@@ -664,12 +664,14 @@ function AdvancedTable<T extends object = any>({
             {/* 次要按钮（批量操作、导入导出等） */}
             {secondaryButtons.map((btn, index) => {
               // 判断是否为下拉菜单类型
-              if ('dropdown' in btn && btn.dropdown) {
+              if ("dropdown" in btn && btn.dropdown) {
                 return (
-                  <Dropdown key={index} menu={{ items: btn.menuItems }} trigger={['click']}>
-                    <Button icon={btn.icon}>
-                      {btn.text}
-                    </Button>
+                  <Dropdown
+                    key={index}
+                    menu={{ items: btn.menuItems }}
+                    trigger={["click"]}
+                  >
+                    <Button icon={btn.icon}>{btn.text}</Button>
                   </Dropdown>
                 );
               }
@@ -765,7 +767,7 @@ function AdvancedTable<T extends object = any>({
           pagination={{
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 条`,
+            showTotal: total => `共 ${total} 条`,
             pageSizeOptions: ["10", "20", "50", "100"],
             defaultPageSize: 10,
           }}
@@ -854,7 +856,7 @@ export interface ActionConfig<T> {
 /**
  * 操作列选项配置
  */
-export interface ActionColumnOptions<T = any> {
+export interface ActionColumnOptions<T = Record<string, unknown>> {
   /** 固定位置 */
   fixed?: "left" | "right";
   /** 列宽 */
@@ -943,7 +945,7 @@ export function makeStatusColumn<T extends Record<string, any>>(config: {
 /**
  * 生成操作列配置（通常固定在右侧）
  * 当操作超过3个时，前2个直接显示，其余收纳到"更多"下拉菜单
- * 
+ *
  * @param actions 操作按钮配置数组
  * @param options 额外配置选项（固定位置、全局禁用等）
  */
@@ -967,8 +969,11 @@ export function makeActionsColumn<T extends Record<string, any>>(
         return (
           <Space size="middle">
             {actions.map((action, index) => {
-              const isDisabled = isGloballyDisabled || action.disabled?.(record) || false;
-              const color = action.danger ? "#ff4d4f" : action.color || "#1890ff";
+              const isDisabled =
+                isGloballyDisabled || action.disabled?.(record) || false;
+              const color = action.danger
+                ? "#ff4d4f"
+                : action.color || "#1890ff";
 
               return (
                 <a
@@ -993,26 +998,30 @@ export function makeActionsColumn<T extends Record<string, any>>(
       const dropdownActions = actions.slice(2);
 
       // 构建下拉菜单项
-      const menuItems: MenuProps['items'] = dropdownActions.map((action, index) => {
-        const isDisabled = isGloballyDisabled || action.disabled?.(record) || false;
-        return {
-          key: `dropdown-${index}`,
-          label: action.label,
-          disabled: isDisabled,
-          danger: action.danger,
-          onClick: () => {
-            if (!isDisabled) {
-              action.onClick(record);
-            }
-          },
-        };
-      });
+      const menuItems: MenuProps["items"] = dropdownActions.map(
+        (action, index) => {
+          const isDisabled =
+            isGloballyDisabled || action.disabled?.(record) || false;
+          return {
+            key: `dropdown-${index}`,
+            label: action.label,
+            disabled: isDisabled,
+            danger: action.danger,
+            onClick: () => {
+              if (!isDisabled) {
+                action.onClick(record);
+              }
+            },
+          };
+        }
+      );
 
       return (
         <Space size="middle">
           {/* 前2个操作直接显示 */}
           {visibleActions.map((action, index) => {
-            const isDisabled = isGloballyDisabled || action.disabled?.(record) || false;
+            const isDisabled =
+              isGloballyDisabled || action.disabled?.(record) || false;
             const color = action.danger ? "#ff4d4f" : action.color || "#1890ff";
 
             return (
@@ -1031,12 +1040,9 @@ export function makeActionsColumn<T extends Record<string, any>>(
           })}
 
           {/* "更多"下拉菜单 */}
-          <Dropdown
-            menu={{ items: menuItems }}
-            trigger={['click']}
-          >
+          <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
             <a
-              onClick={(e) => e.preventDefault()}
+              onClick={e => e.preventDefault()}
               style={{
                 color: "#1890ff",
                 cursor: "pointer",
@@ -1141,7 +1147,7 @@ export function makeTagColumn<T extends Record<string, any>>(config: {
 /**
  * 生成自定义渲染列配置
  * 简化自定义列的配置，同时支持排序和筛选
- * 
+ *
  * @param dataIndex 数据字段名
  * @param title 列标题
  * @param render 自定义渲染函数
@@ -1179,7 +1185,7 @@ export function makeCustomColumn<T extends Record<string, any>>(
 /**
  * 批量操作 Hook
  * 统一处理批量选择、批量删除等常见操作
- * 
+ *
  * @example
  * const batchActions = useBatchActions({
  *   onBatchDelete: (keys, records) => {
@@ -1187,7 +1193,7 @@ export function makeCustomColumn<T extends Record<string, any>>(
  *     message.success('删除成功');
  *   },
  * });
- * 
+ *
  * <AdvancedTable
  *   {...batchActions.tableProps}
  *   secondaryButtons={batchActions.batchButtons}
@@ -1224,7 +1230,7 @@ export function useBatchActions<T extends Record<string, any>>(options: {
     };
 
     const selectedRecords =
-      options.dataSource?.filter((item) =>
+      options.dataSource?.filter(item =>
         selectedRowKeys.includes(getRecordKey(item))
       ) || [];
 
@@ -1260,7 +1266,7 @@ export function useBatchActions<T extends Record<string, any>>(options: {
     };
 
     const selectedRecords =
-      options.dataSource?.filter((item) =>
+      options.dataSource?.filter(item =>
         selectedRowKeys.includes(getRecordKey(item))
       ) || [];
 
@@ -1278,7 +1284,10 @@ export function useBatchActions<T extends Record<string, any>>(options: {
 
     if (options.onBatchDelete) {
       buttons.push({
-        text: selectedRowKeys.length > 0 ? `删除 (${selectedRowKeys.length})` : "删除",
+        text:
+          selectedRowKeys.length > 0
+            ? `删除 (${selectedRowKeys.length})`
+            : "删除",
         icon: <DeleteOutlined />,
         onClick: handleBatchDelete,
         disabled: selectedRowKeys.length === 0,
@@ -1287,14 +1296,23 @@ export function useBatchActions<T extends Record<string, any>>(options: {
 
     if (options.onBatchExport) {
       buttons.push({
-        text: selectedRowKeys.length > 0 ? `导出 (${selectedRowKeys.length})` : "导出",
+        text:
+          selectedRowKeys.length > 0
+            ? `导出 (${selectedRowKeys.length})`
+            : "导出",
         onClick: handleBatchExport,
         disabled: selectedRowKeys.length === 0,
       });
     }
 
     return buttons;
-  }, [selectedRowKeys, handleBatchDelete, handleBatchExport, options.onBatchDelete, options.onBatchExport]);
+  }, [
+    selectedRowKeys,
+    handleBatchDelete,
+    handleBatchExport,
+    options.onBatchDelete,
+    options.onBatchExport,
+  ]);
 
   return {
     /** 选中的行Keys */

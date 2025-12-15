@@ -12,11 +12,15 @@ import ResourceSidebar from "./components/ResourceSidebar";
 import ClusterTable from "./components/ClusterTable";
 import ClusterDetail from "./components/ClusterDetail";
 import PhysicalMachine from "./components/PhysicalMachine";
+import StorageManagement from "./components/StorageManagement";
+import ImageManagement from "./components/ImageManagement";
+import VirtualDiskManagement from "./components/VirtualDiskManagement";
+import ClusterAddModal from "./components/ClusterAddModal";
 import type { ClusterDataType } from "./components/ClusterTable";
 
 const { Content, Sider } = Layout;
 
-const mockClusterData: ClusterDataType[] = [
+const initialClusterData: ClusterDataType[] = [
   {
     key: "1",
     name: "cluster237",
@@ -63,6 +67,9 @@ const ResourceManagement: React.FC = () => {
   const location = useLocation();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
+  const [clusterData, setClusterData] =
+    useState<ClusterDataType[]>(initialClusterData);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCluster, setSelectedCluster] =
     useState<ClusterDataType | null>(null);
 
@@ -78,6 +85,15 @@ const ResourceManagement: React.FC = () => {
     setSelectedCluster(null);
   };
 
+  const handleAddCluster = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleAddSuccess = (newCluster: ClusterDataType) => {
+    setClusterData([newCluster, ...clusterData]);
+    setIsAddModalOpen(false);
+  };
+
   const renderContent = () => {
     return (
       <div
@@ -90,13 +106,17 @@ const ResourceManagement: React.FC = () => {
         }}
       >
         {selectedCluster ? (
-          <ClusterDetail
-            cluster={selectedCluster}
-            onBack={handleBackToList}
-          />
+          <ClusterDetail cluster={selectedCluster} onBack={handleBackToList} />
         ) : (
           <>
-            <div style={{ marginBottom: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
               <Input
                 placeholder="名称"
                 prefix={<SearchOutlined />}
@@ -104,22 +124,12 @@ const ResourceManagement: React.FC = () => {
                 onChange={e => setSearchValue(e.target.value)}
                 style={{ width: 240 }}
               />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <div style={{ fontSize: 14, color: "#666" }}>
-                共计 {mockClusterData.length} 条数据 已选{" "}
-                {selectedRowKeys.length} 条
-              </div>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddCluster}
+                >
                   添加集群
                 </Button>
                 <Button icon={<ReloadOutlined />} />
@@ -127,8 +137,19 @@ const ResourceManagement: React.FC = () => {
               </Space>
             </div>
 
+            <div
+              style={{
+                fontSize: 12,
+                color: "#666",
+                margin: "0 0 8px 0",
+                lineHeight: 1.4,
+              }}
+            >
+              共计 {clusterData.length} 条数据 已选 {selectedRowKeys.length} 条
+            </div>
+
             <ClusterTable
-              dataSource={mockClusterData}
+              dataSource={clusterData}
               selectedRowKeys={selectedRowKeys}
               onSelectChange={handleRowSelectChange}
               onRowClick={handleClusterClick}
@@ -149,11 +170,22 @@ const ResourceManagement: React.FC = () => {
           <PageBreadcrumb />
           {location.pathname.includes("/host") ? (
             <PhysicalMachine />
+          ) : location.pathname.includes("storage") ? (
+            <StorageManagement />
+          ) : location.pathname.includes("image") ? (
+            <ImageManagement />
+          ) : location.pathname.includes("virtual-disk") ? (
+            <VirtualDiskManagement />
           ) : (
             renderContent()
           )}
         </Content>
       </Layout>
+      <ClusterAddModal
+        open={isAddModalOpen}
+        onCancel={() => setIsAddModalOpen(false)}
+        onSuccess={handleAddSuccess}
+      />
     </Layout>
   );
 };
