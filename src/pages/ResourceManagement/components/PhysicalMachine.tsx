@@ -219,7 +219,7 @@ const PhysicalMachine: React.FC = () => {
     <ResizableTreePanel
       treeData={treeData}
       selectedKey={selectedTreeKey}
-      onSelect={(keys) => setSelectedTreeKey(keys[0])}
+      onSelect={keys => setSelectedTreeKey(keys[0])}
     >
       <div
         style={{
@@ -250,7 +250,14 @@ const PhysicalMachine: React.FC = () => {
           </Space>
         </div>
 
-        <div style={{ marginBottom: 12, fontSize: 14, color: "#666" }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: "#666",
+            margin: "0 0 8px 0",
+            lineHeight: 1.4,
+          }}
+        >
           共计 {tableData.length} 条数据 已选 {selectedRowKeys.length} 条
         </div>
         <Table

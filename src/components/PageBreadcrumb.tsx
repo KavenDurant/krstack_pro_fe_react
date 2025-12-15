@@ -28,11 +28,31 @@ const breadcrumbMap: Record<string, { title: string }[]> = {
     { title: "资源管理" },
     { title: "存储管理" },
   ],
+  "/resource-management/external-storage": [
+    { title: "资源管理" },
+    { title: "存储管理" },
+    { title: "外挂存储" },
+  ],
+  "/resource-management/internal-storage": [
+    { title: "资源管理" },
+    { title: "存储管理" },
+    { title: "内置存储" },
+  ],
   "/resource-management/virtual-disk": [
     { title: "资源管理" },
-    { title: "虚拟组盘管理" },
+    { title: "虚拟磁盘管理" },
   ],
   "/resource-management/image": [{ title: "资源管理" }, { title: "镜像管理" }],
+  "/resource-management/system-image": [
+    { title: "资源管理" },
+    { title: "镜像管理" },
+    { title: "系统镜像" },
+  ],
+  "/resource-management/template-image": [
+    { title: "资源管理" },
+    { title: "镜像管理" },
+    { title: "模板镜像" },
+  ],
   "/platform-management": [{ title: "平台管理" }, { title: "系统设置" }],
   "/platform-management/users": [{ title: "平台管理" }, { title: "用户管理" }],
   "/platform-management/license": [

@@ -56,10 +56,7 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
       key: "name",
       sorter: true,
       render: (text: string, record: ClusterDataType) => (
-        <a
-          style={{ color: "#1890ff" }}
-          onClick={() => onRowClick?.(record)}
-        >
+        <a style={{ color: "#1890ff" }} onClick={() => onRowClick?.(record)}>
           {text}
         </a>
       ),

@@ -220,6 +220,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       justifyContent: "space-between",
                       marginBottom: 8,
                       fontSize: 13,
+                      lineHeight: 1.4,
                     }}
                   >
                     <span>剩余:55.00GB</span>
@@ -244,6 +245,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       justifyContent: "flex-end",
                       marginBottom: 8,
                       fontSize: 13,
+                      lineHeight: 1.4,
                     }}
                   >
                     <span>15%</span>
@@ -267,6 +269,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       justifyContent: "space-between",
                       marginBottom: 8,
                       fontSize: 13,
+                      lineHeight: 1.4,
                     }}
                   >
                     <span>剩余:55.00GB</span>
@@ -299,6 +302,16 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
               prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
               style={{ width: 240 }}
             />
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: "#666",
+              margin: "0 0 8px 0",
+              lineHeight: 1.4,
+            }}
+          >
+            共计 {physicalMachines.length} 条数据
           </div>
           <Table
             columns={columns}
@@ -344,7 +357,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
           .cluster-detail-tabs > .ant-tabs-content-holder {
             flex: 1;
             overflow: auto;
-            padding: 12px 0 0 0;
+            padding: 8px 0 0 0;
           }
           .cluster-detail-tabs .ant-tabs-content {
             height: 100%;

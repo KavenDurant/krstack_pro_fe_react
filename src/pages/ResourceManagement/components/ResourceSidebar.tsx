@@ -23,9 +23,9 @@ const ResourceSidebar: React.FC = () => {
     if (path.includes("/host")) return "host";
     if (path.includes("/gpu")) return "gpu";
     if (path.includes("/usb")) return "usb";
-    if (path.includes("/storage")) return "storage";
+    if (path.includes("storage")) return "storage";
     if (path.includes("/virtual-disk")) return "virtual-disk";
-    if (path.includes("/image")) return "image";
+    if (path.includes("image")) return "image";
     return "cluster";
   };
   const items: MenuItem[] = [
@@ -47,7 +47,7 @@ const ResourceSidebar: React.FC = () => {
     },
     {
       key: "virtual-disk",
-      label: "虚拟组盘管理",
+      label: "虚拟磁盘管理",
       icon: <HddOutlined />,
     },
     {
