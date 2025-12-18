@@ -126,7 +126,7 @@ export const getClusterDetail = async (
 export const addCluster = async (
   data: AddClusterParams
 ): Promise<ApiResponse<Cluster>> => {
-  return post<Cluster>(URL.list, data);
+  return post<Cluster>(URL.list, data as unknown as Record<string, unknown>);
 };
 
 /**

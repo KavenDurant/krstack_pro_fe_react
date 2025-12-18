@@ -66,12 +66,9 @@ export interface ClusterListResponse {
 
 // 添加集群参数
 export interface AddClusterParams {
-  name: string;
-  ip: string;
+  url: string;
+  password: string;
   platform_type: string;
-  vt_type: string;
-  username?: string;
-  password?: string;
 }
 
 // 更新集群参数
