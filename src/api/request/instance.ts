@@ -154,8 +154,10 @@ instance.interceptors.response.use(
 
         default:
           if (customConfig?.showError !== false) {
+            // 优先使用后端返回的 detail 字段，其次是 message 字段
             const errorMsg =
-              (data as { message?: string })?.message ||
+              (data as { detail?: string; message?: string })?.detail ||
+              (data as { detail?: string; message?: string })?.message ||
               error.message ||
               "请求失败";
             message.error(errorMsg);
