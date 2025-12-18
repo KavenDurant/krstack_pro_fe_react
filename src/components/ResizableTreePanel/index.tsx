@@ -12,8 +12,8 @@ import type { DataNode, EventDataNode, AntTreeNodeProps } from "antd/es/tree";
 import { PlusSquareOutlined, MinusSquareOutlined } from "@ant-design/icons";
 import Splitter from "../Splitter";
 
-interface ResizableTreePanelProps<T = unknown> {
-  treeData: DataNode[];
+interface ResizableTreePanelProps<T extends DataNode = DataNode> {
+  treeData: T[];
   selectedKey?: React.Key;
   onSelect: (
     selectedKeys: React.Key[],
@@ -66,7 +66,7 @@ const ResizableTreePanel = <T extends DataNode = DataNode>({
               }
             `}
           </style>
-          <Tree
+          <Tree<T>
             showIcon
             showLine
             defaultExpandAll

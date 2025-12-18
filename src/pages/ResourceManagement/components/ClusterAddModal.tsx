@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, Select, message } from "antd";
-import type { ClusterDataType } from "./ClusterTable";
+import { clusterApi } from "../../../api";
+import type { AddClusterParams } from "../../../api";
 
 interface ClusterAddModalProps {
   open: boolean;
   onCancel: () => void;
-  onSuccess: (newCluster: ClusterDataType) => void;
+  onSuccess: () => void;
 }
 
 const ClusterAddModal: React.FC<ClusterAddModalProps> = ({
@@ -21,26 +22,29 @@ const ClusterAddModal: React.FC<ClusterAddModalProps> = ({
       const values = await form.validateFields();
       setConfirmLoading(true);
 
-      // Simulate API call delay
-      setTimeout(() => {
-        const newCluster: ClusterDataType = {
-          key: Date.now().toString(),
-          name: values.name,
-          status: "syncing", // Default status for new cluster
-          controlAddress: values.controlAddress,
-          platform: values.platform,
-          technology: values.technology,
-          hostCount: 0, // Initial count
-          lastSyncTime: new Date().toLocaleString(),
-        };
+      const params: AddClusterParams = {
+        name: values.name,
+        ip: values.ip,
+        platform_type: values.platformType,
+        vt_type: values.vtType,
+        username: values.username,
+        password: values.password,
+      };
 
+      const response = await clusterApi.addCluster(params);
+
+      if (response.code === 200) {
         message.success("集群添加成功");
-        onSuccess(newCluster);
-        setConfirmLoading(false);
         form.resetFields();
-      }, 1000);
+        onSuccess();
+      } else {
+        message.error(response.message || "集群添加失败");
+      }
     } catch (error) {
-      console.error("Validate Failed:", error);
+      message.error("集群添加失败");
+      console.error("Failed to add cluster:", error);
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -62,8 +66,8 @@ const ClusterAddModal: React.FC<ClusterAddModalProps> = ({
         form={form}
         layout="vertical"
         initialValues={{
-          platform: "KRCloud",
-          technology: "KVM",
+          platformType: "kr_cloud",
+          vtType: "KVM",
         }}
       >
         <Form.Item
@@ -75,39 +79,39 @@ const ClusterAddModal: React.FC<ClusterAddModalProps> = ({
         </Form.Item>
 
         <Form.Item
-          name="controlAddress"
-          label="控制台地址"
+          name="ip"
+          label="IP 地址"
           rules={[
-            { required: true, message: "请输入控制台地址" },
+            { required: true, message: "请输入 IP 地址" },
             {
               pattern:
                 /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
-              message: "请输入有效的IPv4地址",
+              message: "请输入有效的 IPv4 地址",
             },
           ]}
         >
-          <Input placeholder="请输入IP地址，例如: 192.168.1.100" />
+          <Input placeholder="请输入 IP 地址，例如: 192.168.1.237" />
         </Form.Item>
 
         <Form.Item
-          name="platform"
-          label="虚拟化平台"
-          rules={[{ required: true, message: "请选择虚拟化平台" }]}
+          name="platformType"
+          label="平台类型"
+          rules={[{ required: true, message: "请选择平台类型" }]}
         >
           <Select
             options={[
-              { value: "KRCloud", label: "KRCloud" },
-              { value: "ZStack", label: "ZStack" },
-              { value: "Vmware", label: "Vmware" },
-              { value: "OpenStack", label: "OpenStack" },
+              { value: "kr_cloud", label: "KR Cloud" },
+              { value: "zstack", label: "ZStack" },
+              { value: "vmware", label: "VMware" },
+              { value: "openstack", label: "OpenStack" },
             ]}
           />
         </Form.Item>
 
         <Form.Item
-          name="technology"
-          label="虚拟化技术"
-          rules={[{ required: true, message: "请选择虚拟化技术" }]}
+          name="vtType"
+          label="虚拟化类型"
+          rules={[{ required: true, message: "请选择虚拟化类型" }]}
         >
           <Select
             options={[
@@ -118,8 +122,12 @@ const ClusterAddModal: React.FC<ClusterAddModalProps> = ({
           />
         </Form.Item>
 
-        <Form.Item name="authInfo" label="认证信息 (Token/密码)">
-          <Input.Password placeholder="请输入认证Token或密码" />
+        <Form.Item name="username" label="用户名">
+          <Input placeholder="请输入用户名（可选）" />
+        </Form.Item>
+
+        <Form.Item name="password" label="密码">
+          <Input.Password placeholder="请输入密码（可选）" />
         </Form.Item>
       </Form>
     </Modal>

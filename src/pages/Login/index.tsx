@@ -113,18 +113,70 @@ const Login: React.FC = () => {
     remember?: boolean;
   }
 
-  const onFinish = (values: LoginFormValues) => {
-    setLoading(true);
-    setTimeout(() => {
-      if (values.username === "admin" && values.password === "-p0-p0-p0") {
-        localStorage.setItem("isAuthenticated", "true");
-        message.success("欢迎回来");
+  const onFinish = async (values: LoginFormValues) => {
+    try {
+      setLoading(true);
+
+      const { authApi } = await import("../../api");
+      const { STORAGE_KEY } = await import("../../api/config");
+
+      const response = await authApi.login({
+        user_name: values.username,
+        password: values.password,
+      });
+
+      // 后端直接返回数据，没有 code 字段
+      const data = response.data;
+
+      console.log("✅ Login Success:", {
+        jwt_token: data.jwt_token
+          ? `${data.jwt_token.substring(0, 20)}...`
+          : "null",
+        user_name: data.user_name,
+      });
+
+      // 保存 token
+      localStorage.setItem(STORAGE_KEY.TOKEN, data.jwt_token);
+      localStorage.setItem(STORAGE_KEY.IS_AUTHENTICATED, "true");
+
+      // 保存用户信息
+      const userInfo = {
+        user_id: data.user_id,
+        user_name: data.user_name,
+        nickname: data.nickname,
+        user_type: data.user_type,
+      };
+      localStorage.setItem(STORAGE_KEY.USER_INFO, JSON.stringify(userInfo));
+
+      console.log("💾 Saved to localStorage:", {
+        tokenKey: STORAGE_KEY.TOKEN,
+        token:
+          localStorage.getItem(STORAGE_KEY.TOKEN)?.substring(0, 20) + "...",
+        userInfo: localStorage.getItem(STORAGE_KEY.USER_INFO),
+      });
+
+      // 验证保存是否成功
+      console.group("🔍 Verification");
+      console.log("Can read token?", !!localStorage.getItem(STORAGE_KEY.TOKEN));
+      console.log(
+        "Token matches?",
+        localStorage.getItem(STORAGE_KEY.TOKEN) === data.jwt_token
+      );
+      console.log("All localStorage keys:", Object.keys(localStorage));
+      console.groupEnd();
+
+      message.success("欢迎回来");
+
+      // 延迟跳转，确保数据已保存
+      setTimeout(() => {
         navigate("/hosts");
-      } else {
-        message.error("账号或密码错误");
-      }
+      }, 100);
+    } catch (error) {
+      console.error("Login error:", error);
+      message.error("登录失败，请检查账号密码");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const inputStyle: React.CSSProperties = {

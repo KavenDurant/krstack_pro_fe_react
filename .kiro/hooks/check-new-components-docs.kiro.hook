@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Documentation Check for New Components",
+  "description": "Monitors file edits for imports of new components, libraries, or unfamiliar APIs and prompts the agent to verify documentation, compatibility with React 19 and Ant Design 6.0, breaking changes, and correct API usage before proceeding.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.tsx",
+      "src/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file has been edited. Before proceeding, check if any NEW components, libraries, or unfamiliar APIs are being imported or used. If so:\n\n1. **Check latest documentation** using fetch MCP or other available tools\n2. **Verify compatibility** with current project versions (React 19, Ant Design 6.0)\n3. **Check for breaking changes** or deprecated features\n4. **Confirm API usage** matches the latest official documentation\n\nExample scenarios requiring documentation check:\n- Using a new Ant Design component for the first time\n- Implementing unfamiliar React 19 features\n- Adding third-party libraries\n- Using updated APIs in existing libraries\n\nIf new components/libraries are detected, fetch their documentation and verify compatibility before allowing the code change to proceed. If everything is already familiar and documented, proceed normally."
+  }
+}

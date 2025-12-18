@@ -46,11 +46,11 @@ const FormSettings: React.FC = () => {
     if (active.data.current?.isSidebar) {
       const type = active.data.current.type;
       const item = fieldTypes.find(f => f.type === type);
-      setActiveItem(item);
+      setActiveItem(item || null);
     } else {
       // Dragging existing field
       const field = fields.find(f => f.id === active.id);
-      setActiveItem(field);
+      setActiveItem(field || null);
     }
   };
 
