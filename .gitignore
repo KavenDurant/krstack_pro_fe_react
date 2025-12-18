@@ -24,7 +24,9 @@ dist-ssr
 *.sw?
 
 # AI tool configuration (local only)
-CLAUDE.md
 AGENTS.md
 .agent/
-.claude/
+
+# Environment variables (keep templates, ignore local overrides)
+.env.local
+.env.*.local

@@ -21,6 +21,7 @@ import DataManagement from "./pages/PlatformManagement/DataManagement";
 import SecurityManagement from "./pages/PlatformManagement/SecurityManagement";
 import LabManagement from "./pages/PlatformManagement/LabManagement";
 import AppearanceManagement from "./pages/PlatformManagement/AppearanceManagement";
+import TokenTest from "./pages/TokenTest";
 
 export const router = createBrowserRouter([
   {
@@ -86,6 +87,10 @@ export const router = createBrowserRouter([
       {
         path: "settings/form",
         element: <FormSettings />,
+      },
+      {
+        path: "token-test",
+        element: <TokenTest />,
       },
     ],
   },

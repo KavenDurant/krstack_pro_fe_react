@@ -1,7 +1,8 @@
 // Table component for Cloud Desktop
 import React from "react";
 import { Table, Tag, Space, Button, Dropdown, Badge } from "antd";
-import type { ColumnsType, BadgeProps } from "antd/es/table";
+import type { ColumnsType } from "antd/es/table";
+import type { BadgeProps } from "antd";
 import type { MenuProps } from "antd";
 import {
   DesktopOutlined,

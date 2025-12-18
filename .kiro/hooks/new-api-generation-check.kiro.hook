@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "New API Generation Validation",
+  "description": "When Agent creates new API interface files, automatically validate that they include error handling, complete type definitions, request timeout configuration, and proper boundary condition handling",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "src/api/**/*.ts",
+      "src/api/**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "请对新生成的接口文件进行全面校验：\n\n1. **错误处理（必需）**：\n   - 是否包含完整的 try-catch 或 Promise 错误处理\n   - 是否处理网络错误、超时错误、业务错误\n   - 错误信息是否有明确的类型定义\n\n2. **类型定义（必需）**：\n   - 请求参数是否有完整的 TypeScript 接口定义\n   - 响应数据是否有明确的类型定义\n   - 严禁使用 any 类型（参考 AGENTS.md 规则）\n   - 优先使用明确类型、联合类型或泛型\n\n3. **请求超时配置（必需）**：\n   - 是否配置了请求超时时间（如 timeout: 30000）\n   - 是否有超时后的错误处理逻辑\n\n4. **边界处理（必需）**：\n   - 是否验证必填参数的存在性\n   - 是否处理 null、undefined、空字符串等边界值\n   - 是否处理数组为空的情况\n   - 是否处理数值边界（负数、零、最大值、最小值）\n   - 是否处理字符串长度限制\n   - 是否处理日期格式的有效性\n\n5. **REST 规范**：\n   - 接口命名是否符合 REST 规范\n   - HTTP 方法使用是否正确\n\n如有任何缺失项，请立即指出并提供完整的修复代码。所有接口必须包含以上所有检查项。"
+  }
+}

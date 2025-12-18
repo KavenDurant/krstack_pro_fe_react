@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Layout, Input, Button, Space } from "antd";
+import { Layout, Input, Button, Space, message } from "antd";
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -16,83 +16,89 @@ import StorageManagement from "./components/StorageManagement";
 import ImageManagement from "./components/ImageManagement";
 import VirtualDiskManagement from "./components/VirtualDiskManagement";
 import ClusterAddModal from "./components/ClusterAddModal";
-import type { ClusterDataType } from "./components/ClusterTable";
+import { clusterApi } from "../../api";
+import type { Cluster } from "../../api";
 
 const { Content, Sider } = Layout;
-
-const initialClusterData: ClusterDataType[] = [
-  {
-    key: "1",
-    name: "cluster237",
-    status: "running",
-    controlAddress: "192.168.1.237",
-    platform: "KRCloud",
-    technology: "KVM",
-    hostCount: 1,
-    lastSyncTime: "2025-08-11 16:59:05",
-  },
-  {
-    key: "2",
-    name: "cluster180",
-    status: "running",
-    controlAddress: "192.168.1.180",
-    platform: "KRCloud",
-    technology: "KVM",
-    hostCount: 1,
-    lastSyncTime: "2025-08-11 16:59:05",
-  },
-  {
-    key: "3",
-    name: "cluster181",
-    status: "syncing",
-    controlAddress: "192.168.1.181",
-    platform: "Zstack",
-    technology: "KVM",
-    hostCount: 2,
-    lastSyncTime: "2025-08-11 16:59:05",
-  },
-  {
-    key: "4",
-    name: "cluster223",
-    status: "running",
-    controlAddress: "192.168.1.223",
-    platform: "KRCloud",
-    technology: "KVM",
-    hostCount: 1,
-    lastSyncTime: "2025-08-11 16:59:05",
-  },
-];
 
 const ResourceManagement: React.FC = () => {
   const location = useLocation();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState("");
-  const [clusterData, setClusterData] =
-    useState<ClusterDataType[]>(initialClusterData);
+  const [clusterData, setClusterData] = useState<Cluster[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedCluster, setSelectedCluster] =
-    useState<ClusterDataType | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<Cluster | null>(null);
+
+  // 加载集群列表
+  const loadClusterList = async () => {
+    try {
+      setLoading(true);
+      const response = await clusterApi.getClusterList();
+      if (response.code === 200) {
+        setClusterData(response.data.list);
+      } else {
+        message.error(response.message || "获取集群列表失败");
+      }
+    } catch (error) {
+      message.error("获取集群列表失败");
+      console.error("Failed to load cluster list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始加载
+  useEffect(() => {
+    loadClusterList();
+  }, []);
 
   const handleRowSelectChange = (keys: React.Key[]) => {
     setSelectedRowKeys(keys);
   };
 
-  const handleClusterClick = (cluster: ClusterDataType) => {
+  const handleClusterClick = (cluster: Cluster) => {
     setSelectedCluster(cluster);
   };
 
   const handleBackToList = () => {
     setSelectedCluster(null);
+    // 返回列表时重新加载数据
+    loadClusterList();
   };
 
   const handleAddCluster = () => {
     setIsAddModalOpen(true);
   };
 
-  const handleAddSuccess = (newCluster: ClusterDataType) => {
-    setClusterData([newCluster, ...clusterData]);
+  const handleAddSuccess = () => {
     setIsAddModalOpen(false);
+    loadClusterList();
   };
+
+  const handleRefresh = () => {
+    loadClusterList();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await clusterApi.deleteCluster(id);
+      if (response.code === 200) {
+        message.success("删除成功");
+        loadClusterList();
+      } else {
+        message.error(response.message || "删除失败");
+      }
+    } catch (error) {
+      message.error("删除失败");
+      console.error("Failed to delete cluster:", error);
+    }
+  };
+
+  // 过滤集群数据
+  const filteredData = clusterData.filter(cluster =>
+    cluster.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
 
   const renderContent = () => {
     return (
@@ -132,7 +138,11 @@ const ResourceManagement: React.FC = () => {
                 >
                   添加集群
                 </Button>
-                <Button icon={<ReloadOutlined />} />
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={handleRefresh}
+                  loading={loading}
+                />
                 <Button icon={<SettingOutlined />} />
               </Space>
             </div>
@@ -145,14 +155,16 @@ const ResourceManagement: React.FC = () => {
                 lineHeight: 1.4,
               }}
             >
-              共计 {clusterData.length} 条数据 已选 {selectedRowKeys.length} 条
+              共计 {filteredData.length} 条数据 已选 {selectedRowKeys.length} 条
             </div>
 
             <ClusterTable
-              dataSource={clusterData}
+              dataSource={filteredData}
               selectedRowKeys={selectedRowKeys}
               onSelectChange={handleRowSelectChange}
               onRowClick={handleClusterClick}
+              onDelete={handleDelete}
+              loading={loading}
             />
           </>
         )}

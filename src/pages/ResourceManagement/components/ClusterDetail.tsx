@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Button,
   Tabs,
@@ -8,6 +8,8 @@ import {
   Table,
   Input,
   Space,
+  Tag,
+  message,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -15,10 +17,11 @@ import {
   PlayCircleFilled,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import type { ClusterDataType } from "./ClusterTable";
+import { clusterApi } from "../../../api";
+import type { Cluster, ClusterDetail as ClusterDetailType } from "../../../api";
 
 interface ClusterDetailProps {
-  cluster: ClusterDataType;
+  cluster: Cluster;
   onBack: () => void;
 }
 
@@ -26,50 +29,10 @@ interface PhysicalMachineType {
   key: string;
   name: string;
   status: string;
-  platform: string;
   ip: string;
-  cpu: number;
-  memory: number;
-  ipmi: string;
-  storage: {
-    used: number; // TB
-    total: number; // TB
-    percent: number;
-  };
+  cpuTotal: number;
+  memTotal: number;
 }
-
-const physicalMachines: PhysicalMachineType[] = [
-  {
-    key: "1",
-    name: "host180",
-    status: "运行中",
-    platform: "KRCloud",
-    ip: "192.168.1.102",
-    cpu: 128,
-    memory: 512,
-    ipmi: "https://192.168.1.80:3000",
-    storage: {
-      used: 0.45,
-      total: 1,
-      percent: 55,
-    },
-  },
-  {
-    key: "2",
-    name: "host181",
-    status: "运行中",
-    platform: "KRCloud",
-    ip: "192.168.1.102",
-    cpu: 128,
-    memory: 512,
-    ipmi: "https://192.168.1.181:3000",
-    storage: {
-      used: 0.45,
-      total: 1,
-      percent: 55,
-    },
-  },
-];
 
 const columns: ColumnsType<PhysicalMachineType> = [
   {
@@ -82,84 +45,135 @@ const columns: ColumnsType<PhysicalMachineType> = [
     title: "状态",
     dataIndex: "status",
     key: "status",
-    render: text => (
+    render: (status: string) => (
       <Space>
-        <PlayCircleFilled style={{ color: "#52c41a" }} />
-        <span>{text}</span>
+        <PlayCircleFilled
+          style={{ color: status === "online" ? "#52c41a" : "#999" }}
+        />
+        <span>{status === "online" ? "在线" : "离线"}</span>
       </Space>
     ),
   },
   {
-    title: "虚拟化平台",
-    dataIndex: "platform",
-    key: "platform",
-  },
-  {
-    title: "IP",
+    title: "IP 地址",
     dataIndex: "ip",
     key: "ip",
   },
   {
-    title: "CPU (核)",
-    dataIndex: "cpu",
-    key: "cpu",
+    title: "CPU 总量 (核)",
+    dataIndex: "cpuTotal",
+    key: "cpuTotal",
+    render: (value: number) => value.toFixed(1),
   },
   {
-    title: "内存 (GB)",
-    dataIndex: "memory",
-    key: "memory",
+    title: "内存总量 (GB)",
+    dataIndex: "memTotal",
+    key: "memTotal",
+    render: (value: number) => (value / 1024 / 1024 / 1024).toFixed(2),
+  },
+  {
+    title: "虚拟化平台",
+    key: "platform",
+    render: () => <Tag color="default">暂未提供</Tag>,
   },
   {
     title: "ipmi地址",
-    dataIndex: "ipmi",
     key: "ipmi",
-    render: text => (
-      <a
-        style={{ color: "#1890ff" }}
-        href={text}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {text}
-      </a>
-    ),
+    render: () => <Tag color="default">暂未提供</Tag>,
   },
   {
     title: "本机存储",
-    dataIndex: "storage",
     key: "storage",
-    width: 300,
-    render: storage => (
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 12,
-            marginBottom: 4,
-          }}
-        >
-          <span>
-            {storage.used}TB/{storage.total}TB
-          </span>
-          <span>剩余:{(storage.total - storage.used).toFixed(2)}TB</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Progress
-            percent={storage.percent}
-            showInfo={false}
-            strokeColor="#52c41a"
-            size="small"
-            style={{ flex: 1 }}
-          />
-          <span style={{ fontSize: 12 }}>{storage.percent}%</span>
-        </div>
-      </div>
-    ),
+    width: 200,
+    render: () => <Tag color="default">暂未提供</Tag>,
   },
 ];
 
 const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
+  const [physicalMachines, setPhysicalMachines] = useState<
+    PhysicalMachineType[]
+  >([]);
+  const [clusterDetail, setClusterDetail] = useState<ClusterDetailType | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("basic");
+  const isInitializedRef = useRef(false);
+
+  // 加载集群详情
+  const loadClusterDetail = useCallback(async () => {
+    try {
+      const response = await clusterApi.getClusterDetail(cluster.uid);
+      if (response.code === 200) {
+        setClusterDetail(response.data);
+      } else {
+        message.error(response.message || "获取集群详情失败");
+      }
+    } catch (error) {
+      message.error("获取集群详情失败");
+      console.error("Failed to load cluster detail:", error);
+    }
+  }, [cluster.uid]);
+
+  // 加载物理机列表
+  const loadPhysicalMachines = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await clusterApi.getPhysicalList(cluster.uid);
+
+      if (response && response.code === 200) {
+        // 直接使用后端返回的数据
+        const machines: PhysicalMachineType[] = response.data.map(
+          (node, index) => ({
+            key: node.ip || `node-${index}`,
+            name: node.name,
+            status: node.status,
+            ip: node.ip,
+            cpuTotal: node.cpuTotal,
+            memTotal: node.memTotal,
+          })
+        );
+        setPhysicalMachines(machines);
+      } else {
+        message.error(response.message || "获取物理机列表失败");
+      }
+    } catch (error) {
+      console.error("Failed to load physical machines:", error);
+      message.error("获取物理机列表失败");
+    } finally {
+      setLoading(false);
+    }
+  }, [cluster.uid]);
+
+  // 初始加载基本信息
+  useEffect(() => {
+    loadClusterDetail();
+    isInitializedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Tab 切换时重新加载数据
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+
+    // 跳过初始化时的调用，只处理用户主动切换
+    if (!isInitializedRef.current) {
+      return;
+    }
+
+    // 每次切换都重新加载对应 Tab 的数据
+    if (key === "basic") {
+      loadClusterDetail();
+    } else if (key === "hosts") {
+      loadPhysicalMachines();
+    }
+  };
+
+  // 过滤物理机数据
+  const filteredMachines = physicalMachines.filter(machine =>
+    machine.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
   const items = [
     {
       key: "basic",
@@ -180,23 +194,25 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                 content: { color: "#333" },
               }}
             >
-              <Descriptions.Item label="虚拟化技术">
-                {cluster.technology}
+              <Descriptions.Item label="集群名称">
+                {clusterDetail?.name || cluster.name}
               </Descriptions.Item>
-              <Descriptions.Item label="虚拟化平台">
-                {cluster.platform}
+              <Descriptions.Item label="集群 UID">
+                {clusterDetail?.uid || cluster.uid}
               </Descriptions.Item>
-              <Descriptions.Item label="物理机数量">
-                <a style={{ color: "#1890ff" }}>{cluster.hostCount}</a>
+              <Descriptions.Item label="IP 地址">
+                {cluster.ip}
               </Descriptions.Item>
-              <Descriptions.Item label="虚拟机数量">
-                <a style={{ color: "#1890ff" }}>200</a>
+              <Descriptions.Item label="虚拟化类型">
+                {clusterDetail?.vtType || cluster.vtType}
               </Descriptions.Item>
-              <Descriptions.Item label="添加时间">
-                2015-09-03 17:54:41
+              <Descriptions.Item label="节点数量">
+                <a style={{ color: "#1890ff" }}>{cluster.nodesNum}</a>
               </Descriptions.Item>
-              <Descriptions.Item label="最近同步时间">
-                {cluster.lastSyncTime}
+              <Descriptions.Item label="创建时间">
+                {new Date(
+                  clusterDetail?.createdAt || cluster.createdAt
+                ).toLocaleString("zh-CN")}
               </Descriptions.Item>
             </Descriptions>
           </Card>
@@ -214,76 +230,166 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
             >
               <Descriptions.Item label="集群存储">
                 <div style={{ width: "100%" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                      fontSize: 13,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    <span>剩余:55.00GB</span>
-                    <span>45%</span>
-                  </div>
-                  <Progress
-                    percent={45}
-                    strokeColor="#52c41a"
-                    showInfo={false}
-                    size="small"
-                  />
-                  <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
-                    45.26TB/100TB
-                  </div>
+                  {clusterDetail ? (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                          fontSize: 13,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        <span>
+                          剩余:
+                          {(
+                            (clusterDetail.diskTotal - clusterDetail.diskUsed) /
+                            1024 /
+                            1024 /
+                            1024
+                          ).toFixed(2)}
+                          GB
+                        </span>
+                        <span>
+                          {(
+                            (clusterDetail.diskUsed / clusterDetail.diskTotal) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </span>
+                      </div>
+                      <Progress
+                        percent={Number(
+                          (
+                            (clusterDetail.diskUsed / clusterDetail.diskTotal) *
+                            100
+                          ).toFixed(1)
+                        )}
+                        strokeColor="#52c41a"
+                        showInfo={false}
+                        size="small"
+                      />
+                      <div
+                        style={{ fontSize: 12, color: "#999", marginTop: 4 }}
+                      >
+                        {(clusterDetail.diskUsed / 1024 / 1024 / 1024).toFixed(
+                          2
+                        )}
+                        GB/
+                        {(clusterDetail.diskTotal / 1024 / 1024 / 1024).toFixed(
+                          2
+                        )}
+                        GB
+                      </div>
+                    </>
+                  ) : (
+                    <span>加载中...</span>
+                  )}
                 </div>
               </Descriptions.Item>
               <Descriptions.Item label="CPU使用率">
                 <div style={{ width: "100%" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      marginBottom: 8,
-                      fontSize: 13,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    <span>15%</span>
-                  </div>
-                  <Progress
-                    percent={15}
-                    strokeColor="#52c41a"
-                    showInfo={false}
-                    size="small"
-                  />
-                  <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
-                    15.26%/100%
-                  </div>
+                  {clusterDetail ? (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          marginBottom: 8,
+                          fontSize: 13,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        <span>
+                          {(
+                            (clusterDetail.cpuUsed / clusterDetail.cpuTotal) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </span>
+                      </div>
+                      <Progress
+                        percent={Number(
+                          (
+                            (clusterDetail.cpuUsed / clusterDetail.cpuTotal) *
+                            100
+                          ).toFixed(1)
+                        )}
+                        strokeColor="#52c41a"
+                        showInfo={false}
+                        size="small"
+                      />
+                      <div
+                        style={{ fontSize: 12, color: "#999", marginTop: 4 }}
+                      >
+                        {clusterDetail.cpuUsed.toFixed(2)}/
+                        {clusterDetail.cpuTotal.toFixed(2)} 核
+                      </div>
+                    </>
+                  ) : (
+                    <span>加载中...</span>
+                  )}
                 </div>
               </Descriptions.Item>
               <Descriptions.Item label="内存使用率">
                 <div style={{ width: "100%" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                      fontSize: 13,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    <span>剩余:55.00GB</span>
-                    <span>28%</span>
-                  </div>
-                  <Progress
-                    percent={28}
-                    strokeColor="#52c41a"
-                    showInfo={false}
-                    size="small"
-                  />
-                  <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
-                    36.02GB/128GB
-                  </div>
+                  {clusterDetail ? (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                          fontSize: 13,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        <span>
+                          剩余:
+                          {(
+                            (clusterDetail.memTotal - clusterDetail.memUsed) /
+                            1024 /
+                            1024 /
+                            1024
+                          ).toFixed(2)}
+                          GB
+                        </span>
+                        <span>
+                          {(
+                            (clusterDetail.memUsed / clusterDetail.memTotal) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </span>
+                      </div>
+                      <Progress
+                        percent={Number(
+                          (
+                            (clusterDetail.memUsed / clusterDetail.memTotal) *
+                            100
+                          ).toFixed(1)
+                        )}
+                        strokeColor="#52c41a"
+                        showInfo={false}
+                        size="small"
+                      />
+                      <div
+                        style={{ fontSize: 12, color: "#999", marginTop: 4 }}
+                      >
+                        {(clusterDetail.memUsed / 1024 / 1024 / 1024).toFixed(
+                          2
+                        )}
+                        GB/
+                        {(clusterDetail.memTotal / 1024 / 1024 / 1024).toFixed(
+                          2
+                        )}
+                        GB
+                      </div>
+                    </>
+                  ) : (
+                    <span>加载中...</span>
+                  )}
                 </div>
               </Descriptions.Item>
             </Descriptions>
@@ -300,6 +406,8 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
             <Input
               placeholder="名称"
               prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
               style={{ width: 240 }}
             />
           </div>
@@ -311,13 +419,14 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
               lineHeight: 1.4,
             }}
           >
-            共计 {physicalMachines.length} 条数据
+            共计 {filteredMachines.length} 条数据
           </div>
           <Table
             columns={columns}
-            dataSource={physicalMachines}
+            dataSource={filteredMachines}
             pagination={false}
             size="small"
+            loading={loading}
           />
         </div>
       ),
@@ -370,7 +479,13 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
           }
         `}
       </style>
-      <Tabs type="card" items={items} className="cluster-detail-tabs" />
+      <Tabs
+        type="card"
+        items={items}
+        className="cluster-detail-tabs"
+        activeKey={activeTab}
+        onChange={handleTabChange}
+      />
     </div>
   );
 };
