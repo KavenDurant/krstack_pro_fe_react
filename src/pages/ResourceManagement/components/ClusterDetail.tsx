@@ -19,6 +19,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { clusterApi } from "../../../api";
 import type { Cluster, ClusterDetail as ClusterDetailType } from "../../../api";
+import { bytesToGB, calculatePercentage } from "../../../utils/format";
 
 interface ClusterDetailProps {
   cluster: Cluster;
@@ -69,7 +70,7 @@ const columns: ColumnsType<PhysicalMachineType> = [
     title: "内存总量 (GB)",
     dataIndex: "memTotal",
     key: "memTotal",
-    render: (value: number) => (value / 1024 / 1024 / 1024).toFixed(2),
+    render: (value: number) => bytesToGB(value),
   },
   {
     title: "虚拟化平台",
@@ -252,19 +253,17 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                           GB
                         </span>
                         <span>
-                          {(
-                            (clusterDetail.diskUsed / clusterDetail.diskTotal) *
-                            100
-                          ).toFixed(1)}
+                          {calculatePercentage(
+                            clusterDetail.diskUsed,
+                            clusterDetail.diskTotal
+                          )}
                           %
                         </span>
                       </div>
                       <Progress
-                        percent={Number(
-                          (
-                            (clusterDetail.diskUsed / clusterDetail.diskTotal) *
-                            100
-                          ).toFixed(1)
+                        percent={calculatePercentage(
+                          clusterDetail.diskUsed,
+                          clusterDetail.diskTotal
                         )}
                         strokeColor="#52c41a"
                         showInfo={false}
@@ -273,13 +272,9 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       <div
                         style={{ fontSize: 12, color: "#999", marginTop: 4 }}
                       >
-                        {(clusterDetail.diskUsed / 1024 / 1024 / 1024).toFixed(
-                          2
-                        )}
+                        {bytesToGB(clusterDetail.diskUsed)}
                         GB/
-                        {(clusterDetail.diskTotal / 1024 / 1024 / 1024).toFixed(
-                          2
-                        )}
+                        {bytesToGB(clusterDetail.diskTotal)}
                         GB
                       </div>
                     </>
@@ -302,19 +297,17 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                         }}
                       >
                         <span>
-                          {(
-                            (clusterDetail.cpuUsed / clusterDetail.cpuTotal) *
-                            100
-                          ).toFixed(1)}
+                          {calculatePercentage(
+                            clusterDetail.cpuUsed,
+                            clusterDetail.cpuTotal
+                          )}
                           %
                         </span>
                       </div>
                       <Progress
-                        percent={Number(
-                          (
-                            (clusterDetail.cpuUsed / clusterDetail.cpuTotal) *
-                            100
-                          ).toFixed(1)
+                        percent={calculatePercentage(
+                          clusterDetail.cpuUsed,
+                          clusterDetail.cpuTotal
                         )}
                         strokeColor="#52c41a"
                         showInfo={false}
@@ -356,19 +349,17 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                           GB
                         </span>
                         <span>
-                          {(
-                            (clusterDetail.memUsed / clusterDetail.memTotal) *
-                            100
-                          ).toFixed(1)}
+                          {calculatePercentage(
+                            clusterDetail.memUsed,
+                            clusterDetail.memTotal
+                          )}
                           %
                         </span>
                       </div>
                       <Progress
-                        percent={Number(
-                          (
-                            (clusterDetail.memUsed / clusterDetail.memTotal) *
-                            100
-                          ).toFixed(1)
+                        percent={calculatePercentage(
+                          clusterDetail.memUsed,
+                          clusterDetail.memTotal
                         )}
                         strokeColor="#52c41a"
                         showInfo={false}
@@ -377,13 +368,9 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       <div
                         style={{ fontSize: 12, color: "#999", marginTop: 4 }}
                       >
-                        {(clusterDetail.memUsed / 1024 / 1024 / 1024).toFixed(
-                          2
-                        )}
+                        {bytesToGB(clusterDetail.memUsed)}
                         GB/
-                        {(clusterDetail.memTotal / 1024 / 1024 / 1024).toFixed(
-                          2
-                        )}
+                        {bytesToGB(clusterDetail.memTotal)}
                         GB
                       </div>
                     </>

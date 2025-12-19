@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { Layout, Input, Button, Space, message } from "antd";
 import {
@@ -21,6 +21,19 @@ import type { Cluster } from "../../api";
 
 const { Content, Sider } = Layout;
 
+// 路由路径常量
+const ROUTES = {
+  HOST: "/host",
+  STORAGE: "/storage",
+  IMAGE: "/image",
+  VIRTUAL_DISK: "/virtual-disk",
+} as const;
+
+// 检查是否为集群列表页面
+const isClusterListPage = (pathname: string): boolean => {
+  return !Object.values(ROUTES).some(route => pathname.includes(route));
+};
+
 const ResourceManagement: React.FC = () => {
   const location = useLocation();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -31,7 +44,7 @@ const ResourceManagement: React.FC = () => {
   const [selectedCluster, setSelectedCluster] = useState<Cluster | null>(null);
 
   // 加载集群列表
-  const loadClusterList = async () => {
+  const loadClusterList = useCallback(async () => {
     try {
       setLoading(true);
       const response = await clusterApi.getClusterList();
@@ -46,58 +59,68 @@ const ResourceManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // 初始加载
-  useEffect(() => {
-    loadClusterList();
   }, []);
 
-  const handleRowSelectChange = (keys: React.Key[]) => {
+  // 初始加载和路由变化时加载
+  useEffect(() => {
+    // 只在集群管理页面时加载数据
+    if (isClusterListPage(location.pathname)) {
+      loadClusterList();
+    }
+  }, [location.pathname, loadClusterList]);
+
+  const handleRowSelectChange = useCallback((keys: React.Key[]) => {
     setSelectedRowKeys(keys);
-  };
+  }, []);
 
-  const handleClusterClick = (cluster: Cluster) => {
+  const handleClusterClick = useCallback((cluster: Cluster) => {
     setSelectedCluster(cluster);
-  };
+  }, []);
 
-  const handleBackToList = () => {
+  const handleBackToList = useCallback(() => {
     setSelectedCluster(null);
     // 返回列表时重新加载数据
     loadClusterList();
-  };
+  }, [loadClusterList]);
 
-  const handleAddCluster = () => {
+  const handleAddCluster = useCallback(() => {
     setIsAddModalOpen(true);
-  };
+  }, []);
 
-  const handleAddSuccess = () => {
+  const handleAddSuccess = useCallback(() => {
     setIsAddModalOpen(false);
     loadClusterList();
-  };
+  }, [loadClusterList]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     loadClusterList();
-  };
+  }, [loadClusterList]);
 
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await clusterApi.deleteCluster(id);
-      if (response.code === 200) {
-        message.success("删除成功");
-        loadClusterList();
-      } else {
-        message.error(response.message || "删除失败");
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        const response = await clusterApi.deleteCluster(id);
+        if (response.code === 200) {
+          message.success("删除成功");
+          loadClusterList();
+        } else {
+          message.error(response.message || "删除失败");
+        }
+      } catch (error) {
+        message.error("删除失败");
+        console.error("Failed to delete cluster:", error);
       }
-    } catch (error) {
-      message.error("删除失败");
-      console.error("Failed to delete cluster:", error);
-    }
-  };
+    },
+    [loadClusterList]
+  );
 
   // 过滤集群数据
-  const filteredData = clusterData.filter(cluster =>
-    cluster.name.toLowerCase().includes(searchValue.toLowerCase())
+  const filteredData = useMemo(
+    () =>
+      clusterData.filter(cluster =>
+        cluster.name.toLowerCase().includes(searchValue.toLowerCase())
+      ),
+    [clusterData, searchValue]
   );
 
   const renderContent = () => {
@@ -180,13 +203,13 @@ const ResourceManagement: React.FC = () => {
       <Layout style={{ background: "#fff" }}>
         <Content style={{ display: "flex", flexDirection: "column" }}>
           <PageBreadcrumb />
-          {location.pathname.includes("/host") ? (
+          {location.pathname.includes(ROUTES.HOST) ? (
             <PhysicalMachine />
-          ) : location.pathname.includes("storage") ? (
+          ) : location.pathname.includes(ROUTES.STORAGE) ? (
             <StorageManagement />
-          ) : location.pathname.includes("image") ? (
+          ) : location.pathname.includes(ROUTES.IMAGE) ? (
             <ImageManagement />
-          ) : location.pathname.includes("virtual-disk") ? (
+          ) : location.pathname.includes(ROUTES.VIRTUAL_DISK) ? (
             <VirtualDiskManagement />
           ) : (
             renderContent()
