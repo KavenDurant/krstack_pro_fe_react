@@ -197,63 +197,54 @@ const PhysicalMachine: React.FC = () => {
     onChange: onSelectChange,
   };
 
-  // 通用确认操作处理
-  const handleConfirmAction = async (
-    title: string,
-    content: string,
-    action: () => Promise<void>,
-    successMessage: string,
-    errorMessage: string
-  ) => {
+  // 处理单个物理机关机
+  const handleShutdown = async (uid: string, name: string) => {
     Modal.confirm({
-      title,
+      title: "确认关机",
       icon: <ExclamationCircleOutlined />,
-      content,
+      content: `确定要关闭物理机 ${name} 吗？`,
       okText: "确认",
       cancelText: "取消",
       onOk: async () => {
         try {
-          await action();
-          message.success(successMessage);
-          loadNodeList();
+          const response = await nodeApi.shutdownNode(uid);
+          if (response.code === 200) {
+            message.success("关机指令已发送");
+            loadNodeList();
+          } else {
+            message.error(response.message || "关机失败");
+          }
         } catch (error) {
-          message.error(errorMessage);
-          console.error(`Action failed:`, error);
+          message.error("关机失败");
+          console.error("Shutdown failed:", error);
         }
       },
     });
   };
 
-  // 处理关机
-  const handleShutdown = async (uid: string, name: string) => {
-    await handleConfirmAction(
-      "确认关机",
-      `确定要关闭物理机 ${name} 吗？`,
-      async () => {
-        const response = await nodeApi.shutdownNode(uid);
-        if (response.code !== 200) {
-          throw new Error(response.message || "关机失败");
-        }
-      },
-      "关机指令已发送",
-      "关机失败"
-    );
-  };
-
-  // 处理重启
+  // 处理单个物理机重启
   const handleReboot = async (uid: string, name: string) => {
-    await handleConfirmAction(
-      "确认重启",
-      `确定要重启物理机 ${name} 吗？`,
-      async () => {
-        const response = await nodeApi.rebootNode(uid);
-        if (response.code !== 200) {
-          throw new Error(response.message || "重启失败");
+    Modal.confirm({
+      title: "确认重启",
+      icon: <ExclamationCircleOutlined />,
+      content: `确定要重启物理机 ${name} 吗？`,
+      okText: "确认",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          const response = await nodeApi.rebootNode(uid);
+          if (response.code === 200) {
+            message.success("重启指令已发送");
+            loadNodeList();
+          } else {
+            message.error(response.message || "重启失败");
+          }
+        } catch (error) {
+          message.error("重启失败");
+          console.error("Reboot failed:", error);
         }
       },
-      "重启指令已发送",
-      "重启失败"
-    );
+    });
   };
 
   // 批量关机
@@ -263,19 +254,27 @@ const PhysicalMachine: React.FC = () => {
       return;
     }
 
-    handleConfirmAction(
-      "确认批量关机",
-      `确定要关闭选中的 ${selectedRowKeys.length} 台物理机吗？`,
-      async () => {
-        const promises = selectedRowKeys.map(key =>
-          nodeApi.shutdownNode(key as string)
-        );
-        await Promise.all(promises);
-        setSelectedRowKeys([]);
+    Modal.confirm({
+      title: "确认批量关机",
+      icon: <ExclamationCircleOutlined />,
+      content: `确定要关闭选中的 ${selectedRowKeys.length} 台物理机吗？`,
+      okText: "确认",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          const promises = selectedRowKeys.map(key =>
+            nodeApi.shutdownNode(key as string)
+          );
+          await Promise.all(promises);
+          message.success("批量关机指令已发送");
+          setSelectedRowKeys([]);
+          loadNodeList();
+        } catch (error) {
+          message.error("批量关机失败");
+          console.error("Batch shutdown failed:", error);
+        }
       },
-      "批量关机指令已发送",
-      "批量关机失败"
-    );
+    });
   };
 
   // 批量重启
@@ -285,19 +284,27 @@ const PhysicalMachine: React.FC = () => {
       return;
     }
 
-    handleConfirmAction(
-      "确认批量重启",
-      `确定要重启选中的 ${selectedRowKeys.length} 台物理机吗？`,
-      async () => {
-        const promises = selectedRowKeys.map(key =>
-          nodeApi.rebootNode(key as string)
-        );
-        await Promise.all(promises);
-        setSelectedRowKeys([]);
+    Modal.confirm({
+      title: "确认批量重启",
+      icon: <ExclamationCircleOutlined />,
+      content: `确定要重启选中的 ${selectedRowKeys.length} 台物理机吗？`,
+      okText: "确认",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          const promises = selectedRowKeys.map(key =>
+            nodeApi.rebootNode(key as string)
+          );
+          await Promise.all(promises);
+          message.success("批量重启指令已发送");
+          setSelectedRowKeys([]);
+          loadNodeList();
+        } catch (error) {
+          message.error("批量重启失败");
+          console.error("Batch reboot failed:", error);
+        }
       },
-      "批量重启指令已发送",
-      "批量重启失败"
-    );
+    });
   };
 
   // 刷新列表
@@ -332,90 +339,84 @@ const PhysicalMachine: React.FC = () => {
     loadNodeList();
   };
 
-  const columns: ColumnsType<Node> = useMemo(
-    () => [
-      {
-        title: "名称",
-        dataIndex: "name",
-        key: "name",
-        render: (text: string, record: Node) => (
+  const columns: ColumnsType<Node> = [
+    {
+      title: "名称",
+      dataIndex: "name",
+      key: "name",
+      render: (text: string, record: Node) => (
+        <a style={{ color: "#1890ff" }} onClick={() => handleNodeClick(record)}>
+          {text}
+        </a>
+      ),
+    },
+    {
+      title: "状态",
+      dataIndex: "status",
+      key: "status",
+      render: renderStatus,
+    },
+    { title: "IP", dataIndex: "ip", key: "ip" },
+    {
+      title: "CPU (核)",
+      dataIndex: "cpuTotal",
+      key: "cpuTotal",
+      render: (value: number | undefined) =>
+        value !== undefined ? value : <Tag color="default">暂未提供</Tag>,
+    },
+    {
+      title: "内存 (GB)",
+      dataIndex: "memTotal",
+      key: "memTotal",
+      render: (value: number | undefined) =>
+        value !== undefined ? (
+          (value / MB_TO_GB).toFixed(2)
+        ) : (
+          <Tag color="default">暂未提供</Tag>
+        ),
+    },
+    {
+      title: "本机存储",
+      dataIndex: "diskTotal",
+      key: "storage",
+      width: 200,
+      render: renderStorage,
+    },
+    {
+      title: "关联虚拟机数量",
+      dataIndex: "vmCount",
+      key: "vmCount",
+      render: (value: number | undefined) =>
+        value !== undefined ? value : <Tag color="default">暂未提供</Tag>,
+    },
+    {
+      title: "运行时长",
+      dataIndex: "uptime",
+      key: "uptime",
+      render: (value: string | undefined) =>
+        value ? value : <Tag color="default">暂未提供</Tag>,
+    },
+    {
+      title: "操作",
+      key: "action",
+      render: (_: unknown, record: Node) => (
+        <Space size="middle">
           <a
             style={{ color: "#1890ff" }}
-            onClick={() => handleNodeClick(record)}
+            onClick={() => handleShutdown(record.uid, record.name)}
           >
-            {text}
+            关机
           </a>
-        ),
-      },
-      {
-        title: "状态",
-        dataIndex: "status",
-        key: "status",
-        render: renderStatus,
-      },
-      { title: "IP", dataIndex: "ip", key: "ip" },
-      {
-        title: "CPU (核)",
-        dataIndex: "cpuTotal",
-        key: "cpuTotal",
-        render: (value: number | undefined) =>
-          value !== undefined ? value : <Tag color="default">暂未提供</Tag>,
-      },
-      {
-        title: "内存 (GB)",
-        dataIndex: "memTotal",
-        key: "memTotal",
-        render: (value: number | undefined) =>
-          value !== undefined ? (
-            (value / MB_TO_GB).toFixed(2)
-          ) : (
-            <Tag color="default">暂未提供</Tag>
-          ),
-      },
-      {
-        title: "本机存储",
-        dataIndex: "diskTotal",
-        key: "storage",
-        width: 200,
-        render: renderStorage,
-      },
-      {
-        title: "关联虚拟机数量",
-        dataIndex: "vmCount",
-        key: "vmCount",
-        render: (value: number | undefined) =>
-          value !== undefined ? value : <Tag color="default">暂未提供</Tag>,
-      },
-      {
-        title: "运行时长",
-        dataIndex: "uptime",
-        key: "uptime",
-        render: (value: string | undefined) =>
-          value ? value : <Tag color="default">暂未提供</Tag>,
-      },
-      {
-        title: "操作",
-        key: "action",
-        render: (_: unknown, record: Node) => (
-          <Space size="middle">
-            <a
-              style={{ color: "#1890ff" }}
-              onClick={() => handleShutdown(record.uid, record.name)}
-            >
-              关机
-            </a>
-            <a
-              style={{ color: "#1890ff" }}
-              onClick={() => handleReboot(record.uid, record.name)}
-            >
-              重启
-            </a>
-          </Space>
-        ),
-      },
-    ],
-    [handleShutdown, handleReboot]
-  );
+          <a
+            style={{ color: "#1890ff" }}
+            onClick={() => handleReboot(record.uid, record.name)}
+          >
+            重启
+          </a>
+        </Space>
+      ),
+    },
+  ];
 
   // 如果选中了物理机，显示详情页
   if (selectedNode) {

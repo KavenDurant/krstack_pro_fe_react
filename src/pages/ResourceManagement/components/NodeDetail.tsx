@@ -12,7 +12,6 @@ import {
 } from "antd";
 import {
   ArrowLeftOutlined,
-  PlayCircleFilled,
   PoweroffOutlined,
   SyncOutlined,
   ExclamationCircleOutlined,
@@ -21,6 +20,8 @@ import type { ColumnsType } from "antd/es/table";
 import { nodeApi } from "@/api";
 import type { Node, NodeDetail as NodeDetailType, VMInfo } from "@/api";
 import { formatBytesAuto } from "@/utils/format";
+import PerformanceMonitor from "./PerformanceMonitor";
+import VMCard from "./VMCard";
 
 interface NodeDetailProps {
   node: Node;
@@ -41,6 +42,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
   const hasLoadedDevicesRef = useRef(false);
   const hasLoadedStorageRef = useRef(false);
   const hasLoadedNetworkSettingsRef = useRef(false);
+  const hasLoadedPerformanceRef = useRef(false);
 
   // 加载物理机详情
   const loadNodeDetail = async () => {
@@ -61,6 +63,37 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
   const loadVMList = async () => {
     try {
       setLoading(true);
+      if (import.meta.env.DEV) {
+        const vms = Array.from({ length: 100 }).map((_, index) => {
+          const vmId = 100 + index;
+          const running = index % 4 === 0;
+
+          return {
+            id: `qemu/${vmId}`,
+            name: `mock-vm-${vmId}`,
+            vm_uid: btoa(
+              JSON.stringify({
+                cluster_id: 2,
+                node_name: "host237",
+                vm_id: vmId,
+              })
+            ),
+            status: running ? "running" : "stopped",
+            cluster_id: 2,
+            cluster_name: "cluster237",
+            node_name: "host237",
+            cpu_total: [2, 4, 8][index % 3],
+            mem_total: [2147483648, 4294967296, 8589934592, 10737418240][
+              index % 4
+            ],
+            ip: running ? `192.168.1.${index + 10}` : "",
+            os_type: index % 3 === 0 ? "Windows" : "Linux",
+          };
+        });
+
+        setVmList(vms);
+        return;
+      }
       const response = await nodeApi.getNodeVMs(node.uid);
       if (response.code === 200) {
         setVmList(response.data);
@@ -164,6 +197,8 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
     ) {
       hasLoadedNetworkSettingsRef.current = true;
       loadNetworkSettings();
+    } else if (key === "performance" && !hasLoadedPerformanceRef.current) {
+      hasLoadedPerformanceRef.current = true;
     }
   };
 
@@ -246,52 +281,6 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
 
     return <Tag color={color}>{text}</Tag>;
   };
-
-  // 虚拟机列表列定义
-  const vmColumns: ColumnsType<VMInfo> = [
-    {
-      title: "名称",
-      dataIndex: "name",
-      key: "name",
-      render: text => <a style={{ color: "#1890ff" }}>{text}</a>,
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: (status: string) => (
-        <Space>
-          <PlayCircleFilled
-            style={{ color: status === "Running" ? "#52c41a" : "#999" }}
-          />
-          <span>{status === "Running" ? "运行中" : "已停止"}</span>
-        </Space>
-      ),
-    },
-    {
-      title: "IP 地址",
-      dataIndex: "ip",
-      key: "ip",
-      render: (value: string) => value || <Tag color="default">暂未提供</Tag>,
-    },
-    {
-      title: "CPU (核)",
-      dataIndex: "cpuTotal",
-      key: "cpuTotal",
-    },
-    {
-      title: "内存",
-      dataIndex: "memTotal",
-      key: "memTotal",
-      render: (value: number) => formatBytesAuto(value),
-    },
-    {
-      title: "操作系统",
-      dataIndex: "osType",
-      key: "osType",
-      render: (value: string) => value || <Tag color="default">暂未提供</Tag>,
-    },
-  ];
 
   // USB 设备列定义
   const usbColumns: ColumnsType<unknown> = [
@@ -573,7 +562,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
       key: "vms",
       label: "虚拟机",
       children: (
-        <div style={{ padding: "0 0" }}>
+        <div style={{ padding: "0 0", height: "100%", overflow: "auto" }}>
           <div
             style={{
               fontSize: 12,
@@ -584,14 +573,40 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
           >
             共计 {vmList.length} 条数据
           </div>
-          <Table
-            columns={vmColumns}
-            dataSource={vmList}
-            rowKey="id"
-            pagination={false}
-            size="small"
-            loading={loading}
-          />
+          {loading ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: "40px 0",
+              }}
+            >
+              加载中...
+            </div>
+          ) : vmList.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 0",
+                color: "#999",
+              }}
+            >
+              暂无虚拟机
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: 10,
+                paddingBottom: 20,
+              }}
+            >
+              {vmList.map(vm => (
+                <VMCard key={vm.id} vm={vm} />
+              ))}
+            </div>
+          )}
         </div>
       ),
     },
@@ -707,17 +722,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
     {
       key: "performance",
       label: "性能监控",
-      children: (
-        <div
-          style={{
-            padding: 20,
-            textAlign: "center",
-            color: "#999",
-          }}
-        >
-          <Tag color="default">性能监控功能开发中</Tag>
-        </div>
-      ),
+      children: <PerformanceMonitor nodeUid={node.uid} />,
     },
     {
       key: "shell",
@@ -791,17 +796,20 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
           }
           .node-detail-tabs > .ant-tabs-nav {
             margin: 0;
+            flex-shrink: 0;
           }
           .node-detail-tabs > .ant-tabs-content-holder {
             flex: 1;
-            overflow: auto;
+            overflow: hidden;
             padding: 8px 0 0 0;
+            min-height: 0;
           }
           .node-detail-tabs .ant-tabs-content {
             height: 100%;
           }
           .node-detail-tabs .ant-tabs-tabpane {
             height: 100%;
+            overflow: auto;
           }
           .node-detail-card {
             background: rgba(245, 245, 245, 0.3);
