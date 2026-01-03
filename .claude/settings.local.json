@@ -22,7 +22,10 @@
       "Bash(git checkout -b fix/desktop-license-ui)",
       "Bash(git add src/pages/PlatformManagement/LicenseManagement/tabs/DesktopLicenseContent.tsx src/pages/PlatformManagement/LicenseManagement/tabs/PlatformLicenseContent.tsx src/pages/PlatformManagement/LicenseManagement/License.module.css)",
       "Bash(xargs ls -la)",
-      "Bash(xargs basename)"
+      "Bash(xargs basename)",
+      "Bash(git checkout -b feature/claude-skills)",
+      "Bash(git add .claude/skills)",
+      "Bash(git add -A)"
     ],
     "deny": [],
     "ask": []
