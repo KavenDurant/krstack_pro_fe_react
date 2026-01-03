@@ -13,7 +13,7 @@ const CloudDesktop: React.FC = () => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "#f0f2f5",
+        background: "#fff",
       }}
     >
       <PageBreadcrumb fullWidth />
