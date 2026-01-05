@@ -11,11 +11,7 @@ interface DataCountProps {
  * 统一的数据统计文本组件
  * 显示格式：共计 N 条数据 已选 N 条
  */
-const DataCount = ({
-  total,
-  selected,
-  unit = "数据",
-}: DataCountProps) => {
+const DataCount = ({ total, selected, unit = "数据" }: DataCountProps) => {
   return (
     <div
       style={{

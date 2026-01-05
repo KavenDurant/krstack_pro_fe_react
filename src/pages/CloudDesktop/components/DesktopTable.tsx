@@ -158,7 +158,7 @@ const data: DesktopDataType[] = [
 
 const DesktopTable: React.FC = () => {
   return (
-    <div style={{ background: "#fff", padding: "16px" }}>
+    <div style={{ width: "100%" }}>
       <Table
         columns={columns}
         dataSource={data}
