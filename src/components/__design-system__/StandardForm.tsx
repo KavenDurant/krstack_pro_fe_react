@@ -38,7 +38,11 @@ const StandardForm = ({
         borderRadius: tokens.borderRadius.md,
       }}
     >
-      <Form layout={layout} style={{ maxWidth: getMaxWidth() }} {...restProps} />
+      <Form
+        layout={layout}
+        style={{ maxWidth: getMaxWidth() }}
+        {...restProps}
+      />
     </div>
   );
 };
