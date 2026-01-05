@@ -41,7 +41,7 @@ const ImageManagement: React.FC = () => {
         `}
       </style>
       <Tabs
-        tabPlacement="left"
+        tabPlacement="start"
         activeKey={getActiveKey()}
         onChange={handleTabChange}
         style={{ height: "100%" }}
