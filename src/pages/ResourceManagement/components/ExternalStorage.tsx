@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Input, Button, Space, Progress, Tag } from "antd";
+import { Input, Button, Space, Progress, Tag } from "antd";
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -7,6 +7,8 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import TableToolbar from "../../../components/__design-system__/TableToolbar";
+import StandardTable from "../../../components/__design-system__/StandardTable";
 
 interface ExternalStorageType {
   key: string;
@@ -164,56 +166,46 @@ const ExternalStorage: React.FC = () => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        padding: 16,
-        background: "#fff",
+        padding: "12px",
+        overflow: "auto",
       }}
     >
-      <div
-        style={{
-          paddingBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Input
-          placeholder="名称/访问路径"
-          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-          style={{ width: 300 }}
-          value={searchText}
-          onChange={e => setSearchText(e.target.value)}
-        />
-        <Space>
-          <Button type="primary" icon={<PlusOutlined />}>
-            添加
-          </Button>
-          <Button icon={<ReloadOutlined />} />
-          <Button icon={<SettingOutlined />} />
-        </Space>
-      </div>
-
-      <div
-        style={{
-          fontSize: 12,
-          color: "#666",
-          margin: "0 0 8px 0",
-          lineHeight: 1.4,
-        }}
-      >
-        共计 {mockData.length} 条数据 已选 {selectedRowKeys.length} 条
-      </div>
-
-      <Table
-        rowSelection={rowSelection}
-        columns={columns}
-        dataSource={mockData}
-        pagination={{
-          total: mockData.length,
-          showTotal: total => `共 ${total} 条`,
-          defaultPageSize: 10,
-          showSizeChanger: true,
-        }}
+      <TableToolbar
+        left={
+          <Input
+            placeholder="名称/访问路径"
+            prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+            style={{ width: 300 }}
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+          />
+        }
+        right={
+          <Space>
+            <Button type="primary" icon={<PlusOutlined />}>
+              添加
+            </Button>
+            <Button icon={<ReloadOutlined />} />
+            <Button icon={<SettingOutlined />} />
+          </Space>
+        }
+        padding={0}
       />
+      <div style={{ marginTop: 4 }}>
+        <StandardTable<ExternalStorageType>
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={mockData}
+          selectedCount={selectedRowKeys.length}
+          pagination={{
+            total: mockData.length,
+            defaultPageSize: 10,
+          }}
+          containerStyle={{
+            paddingLeft: 0,
+          }}
+        />
+      </div>
     </div>
   );
 };

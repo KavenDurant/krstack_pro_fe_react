@@ -23,6 +23,8 @@ import {
   LogoutOutlined,
   LockOutlined,
   ExclamationCircleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { getUserInfo, logout } from "../utils/auth";
@@ -39,6 +41,7 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const [userInfo] = useState<UserInfo | null>(() => getUserInfo());
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   // 处理登出
   const handleLogout = () => {
@@ -147,17 +150,6 @@ const MainLayout: React.FC = () => {
           key: "/platform-management/appearance",
           label: "平台外观管理",
           icon: <SettingOutlined />,
-        },
-      ];
-    }
-
-    // Operations Management submenu
-    if (path.startsWith("/operations-management")) {
-      return [
-        {
-          key: "/operations-management",
-          label: "操作日志",
-          icon: <FileTextOutlined />,
         },
       ];
     }
@@ -314,24 +306,47 @@ const MainLayout: React.FC = () => {
           </div>
         )}
         <Layout style={{ overflow: "hidden" }}>
-          {!location.pathname.startsWith("/resource-management") && (
-            <Sider
-              width={176}
-              style={{
-                background: colorBgContainer,
-                borderRight: "1px solid #f0f0f0",
-              }}
-            >
-              <Menu
-                mode="inline"
-                defaultSelectedKeys={["/hosts"]}
-                selectedKeys={[location.pathname]}
-                style={{ height: "100%", borderRight: 0 }}
-                items={sideNavItems}
-                onClick={({ key }) => navigate(key)}
-              />
-            </Sider>
-          )}
+          {!location.pathname.startsWith("/resource-management") &&
+            !location.pathname.startsWith("/operations-management") && (
+              <Sider
+                width={200}
+                collapsedWidth={80}
+                collapsible
+                collapsed={collapsed}
+                onCollapse={value => setCollapsed(value)}
+                trigger={
+                  <div
+                    style={{
+                      height: 48,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#fff",
+                      borderTop: "1px solid #f0f0f0",
+                      borderRight: "1px solid #f0f0f0",
+                      cursor: "pointer",
+                      color: "rgba(0, 0, 0, 0.65)",
+                      fontSize: 16,
+                    }}
+                  >
+                    {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                  </div>
+                }
+                style={{
+                  background: colorBgContainer,
+                  borderRight: "1px solid #f0f0f0",
+                }}
+              >
+                <Menu
+                  mode="inline"
+                  defaultSelectedKeys={["/hosts"]}
+                  selectedKeys={[location.pathname]}
+                  style={{ height: "100%", borderRight: 0 }}
+                  items={sideNavItems}
+                  onClick={({ key }) => navigate(key)}
+                />
+              </Sider>
+            )}
           <Layout style={{ padding: 0, overflow: "hidden" }}>
             <Content
               style={{

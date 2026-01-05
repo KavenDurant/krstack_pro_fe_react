@@ -31,12 +31,10 @@ const breadcrumbMap: Record<string, { title: string }[]> = {
   "/resource-management/external-storage": [
     { title: "资源管理" },
     { title: "存储管理" },
-    { title: "外挂存储" },
   ],
   "/resource-management/internal-storage": [
     { title: "资源管理" },
     { title: "存储管理" },
-    { title: "内置存储" },
   ],
   "/resource-management/virtual-disk": [
     { title: "资源管理" },
@@ -72,7 +70,21 @@ const breadcrumbMap: Record<string, { title: string }[]> = {
     { title: "平台管理" },
     { title: "平台外观管理" },
   ],
-  "/operations-management": [{ title: "运维管理" }, { title: "操作日志" }],
+  "/operations-management": [
+    { title: "消息日志" },
+    { title: "告警消息" },
+    { title: "当前告警" },
+  ],
+  "/operations-management/history": [
+    { title: "消息日志" },
+    { title: "告警消息" },
+    { title: "历史告警" },
+  ],
+  "/operations-management/policy": [
+    { title: "消息日志" },
+    { title: "告警消息" },
+    { title: "告警策略" },
+  ],
 };
 
 interface PageBreadcrumbProps {

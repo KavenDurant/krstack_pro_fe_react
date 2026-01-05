@@ -33,11 +33,19 @@ const ImageManagement: React.FC = () => {
 
   return (
     <div style={{ height: "100%", background: "#fff" }}>
+      <style>
+        {`
+          .image-management-tabs .ant-tabs-tabpane {
+            padding-left: 0 !important;
+          }
+        `}
+      </style>
       <Tabs
-        tabPosition="left"
+        tabPlacement="left"
         activeKey={getActiveKey()}
         onChange={handleTabChange}
         style={{ height: "100%" }}
+        className="image-management-tabs"
         items={[
           {
             key: "system",

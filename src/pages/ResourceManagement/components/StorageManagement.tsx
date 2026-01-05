@@ -33,11 +33,19 @@ const StorageManagement: React.FC = () => {
 
   return (
     <div style={{ height: "100%", background: "#fff" }}>
+      <style>
+        {`
+          .storage-management-tabs .ant-tabs-tabpane {
+            padding-left: 0 !important;
+          }
+        `}
+      </style>
       <Tabs
-        tabPosition="left"
+        tabPlacement="start"
         activeKey={getActiveKey()}
         onChange={handleTabChange}
         style={{ height: "100%" }}
+        className="storage-management-tabs"
         items={[
           {
             key: "external",

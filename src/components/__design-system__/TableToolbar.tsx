@@ -27,7 +27,7 @@ const TableToolbar = ({
         alignItems: "center",
         padding,
         background,
-        marginBottom: tokens.spacing.md,
+        marginBottom: tokens.spacing.sm,
         borderRadius: tokens.borderRadius.md,
       }}
     >

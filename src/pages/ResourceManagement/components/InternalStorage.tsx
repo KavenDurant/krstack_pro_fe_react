@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Table, Input, Button, Space, Tag } from "antd";
+import { Input, Button, Space, Tag } from "antd";
 import {
   SearchOutlined,
   ReloadOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import TableToolbar from "../../../components/__design-system__/TableToolbar";
+import StandardTable from "../../../components/__design-system__/StandardTable";
 
 interface InternalStorageType {
   key: string;
@@ -96,50 +98,41 @@ const InternalStorage: React.FC = () => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        padding: 16,
-        background: "#fff",
+        padding: "12px",
+        overflow: "auto",
       }}
     >
-      <div
-        style={{
-          paddingBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Input
-          placeholder="名称"
-          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-          style={{ width: 300 }}
-        />
-        <Space>
-          <Button icon={<ReloadOutlined />} />
-          <Button icon={<SettingOutlined />} />
-        </Space>
-      </div>
-
-      <div
-        style={{
-          fontSize: 12,
-          color: "#666",
-          margin: "0 0 8px 0",
-          lineHeight: 1.4,
-        }}
-      >
-        共计 {mockData.length} 条数据 已选 {selectedRowKeys.length} 条
-      </div>
-
-      <Table
-        rowSelection={rowSelection}
-        columns={columns}
-        dataSource={mockData}
-        pagination={{
-          total: mockData.length,
-          showTotal: total => `共 ${total} 条`,
-          defaultPageSize: 10,
-        }}
+      <TableToolbar
+        left={
+          <Input
+            placeholder="名称"
+            prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+            style={{ width: 300 }}
+          />
+        }
+        right={
+          <Space>
+            <Button icon={<ReloadOutlined />} />
+            <Button icon={<SettingOutlined />} />
+          </Space>
+        }
+        padding={0}
       />
+      <div style={{ marginTop: 4 }}>
+        <StandardTable<InternalStorageType>
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={mockData}
+          selectedCount={selectedRowKeys.length}
+          pagination={{
+            total: mockData.length,
+            defaultPageSize: 10,
+          }}
+          containerStyle={{
+            paddingLeft: 0,
+          }}
+        />
+      </div>
     </div>
   );
 };

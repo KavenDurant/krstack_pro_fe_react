@@ -1,132 +1,157 @@
-import React from "react";
-import { Layout, Card, Table, Tag, Badge } from "antd";
-import type { ColumnsType } from "antd/es/table";
+import React, { useState } from "react";
+import { Layout, Menu, theme } from "antd";
+import {
+  MessageOutlined,
+  SafetyCertificateOutlined,
+  AlertOutlined,
+  ScheduleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  HistoryOutlined,
+} from "@ant-design/icons";
 import PageBreadcrumb from "../../components/PageBreadcrumb";
+import AlertMessages from "./components/AlertMessages";
+import OperationLogs from "./components/OperationLogs";
+import TaskLogs from "./components/TaskLogs";
 
-const { Content } = Layout;
+const { Content, Sider } = Layout;
 
-interface LogDataType {
+type MenuItem = {
   key: string;
-  time: string;
-  level: "info" | "warning" | "error";
-  module: string;
-  message: string;
-  operator: string;
-}
-
-const levelMap = {
-  info: { color: "blue", text: "信息" },
-  warning: { color: "orange", text: "警告" },
-  error: { color: "red", text: "错误" },
+  icon?: React.ReactNode;
+  children?: MenuItem[];
+  label: React.ReactNode;
 };
 
-const columns: ColumnsType<LogDataType> = [
-  {
-    title: "时间",
-    dataIndex: "time",
-    key: "time",
-    width: 180,
-  },
-  {
-    title: "级别",
-    dataIndex: "level",
-    key: "level",
-    width: 100,
-    render: (level: keyof typeof levelMap) => {
-      const { color, text } = levelMap[level];
-      return <Tag color={color}>{text}</Tag>;
-    },
-  },
-  {
-    title: "模块",
-    dataIndex: "module",
-    key: "module",
-    width: 150,
-  },
-  {
-    title: "消息",
-    dataIndex: "message",
-    key: "message",
-  },
-  {
-    title: "操作人",
-    dataIndex: "operator",
-    key: "operator",
-    width: 120,
-  },
-];
+function getItem(
+  label: React.ReactNode,
+  key: string,
+  icon?: React.ReactNode,
+  children?: MenuItem[]
+): MenuItem {
+  return {
+    key,
+    icon,
+    children,
+    label,
+  };
+}
 
-const data: LogDataType[] = [
-  {
-    key: "1",
-    time: "2024-11-19 16:20:30",
-    level: "info",
-    module: "虚拟机管理",
-    message: "虚拟机 VM-001 启动成功",
-    operator: "admin",
-  },
-  {
-    key: "2",
-    time: "2024-11-19 16:15:22",
-    level: "warning",
-    module: "资源管理",
-    message: "CPU 使用率超过 80%",
-    operator: "system",
-  },
-  {
-    key: "3",
-    time: "2024-11-19 16:10:15",
-    level: "error",
-    module: "存储管理",
-    message: "存储池 local-lvm 可用容量不足 10%",
-    operator: "system",
-  },
-  {
-    key: "4",
-    time: "2024-11-19 16:05:08",
-    level: "info",
-    module: "用户管理",
-    message: "用户 zhangsan 登录系统",
-    operator: "zhangsan",
-  },
-  {
-    key: "5",
-    time: "2024-11-19 16:00:00",
-    level: "info",
-    module: "备份管理",
-    message: "定时备份任务执行成功",
-    operator: "system",
-  },
+const items: MenuItem[] = [
+  getItem("消息日志", "message-logs", <MessageOutlined />, [
+    getItem("告警消息", "alert-messages", <AlertOutlined />),
+    getItem("任务日志", "task-logs", <ScheduleOutlined />),
+    getItem("操作日志", "operation-logs", <HistoryOutlined />),
+  ]),
+  getItem("审计管理", "audit-management", <SafetyCertificateOutlined />),
 ];
 
 const OperationsManagement: React.FC = () => {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+  const [selectedKey, setSelectedKey] = useState("alert-messages");
+  const [openKeys, setOpenKeys] = useState(["message-logs"]);
+  const [collapsed, setCollapsed] = useState(false);
+
+  const getBreadcrumbItems = () => {
+    const base = [{ title: "运维管理" }];
+    switch (selectedKey) {
+      case "alert-messages":
+        return [...base, { title: "消息日志" }, { title: "告警消息" }];
+      case "task-logs":
+        return [...base, { title: "消息日志" }, { title: "任务日志" }];
+      case "operation-logs":
+        return [...base, { title: "消息日志" }, { title: "操作日志" }];
+      case "audit-management":
+        return [...base, { title: "审计管理" }];
+      default:
+        return base;
+    }
+  };
+
+  const renderContent = () => {
+    switch (selectedKey) {
+      case "alert-messages":
+        return <AlertMessages />;
+      case "task-logs":
+        return <TaskLogs />;
+      case "operation-logs":
+        return <OperationLogs />;
+      case "audit-management":
+        return <div>审计管理内容</div>;
+      default:
+        return <AlertMessages />;
+    }
+  };
+
   return (
     <div
       style={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "#f0f2f5",
+        background: "#f0f2f5", // Use a light gray background for the main container
       }}
     >
-      <PageBreadcrumb fullWidth />
-      <Content style={{ padding: 12, overflow: "auto", flex: 1 }}>
-        <Card
-          title="系统日志"
-          extra={<Badge status="processing" text="实时监控中" />}
+      <Layout style={{ height: "100%" }}>
+        <Sider
+          width={200}
+          collapsedWidth={80}
+          collapsible
+          collapsed={collapsed}
+          onCollapse={value => setCollapsed(value)}
+          trigger={
+            <div
+              style={{
+                height: 48,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: colorBgContainer,
+                borderTop: "1px solid #f0f0f0",
+                borderRight: "1px solid #f0f0f0",
+                cursor: "pointer",
+                color: "rgba(0, 0, 0, 0.65)",
+                fontSize: 16,
+              }}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </div>
+          }
+          style={{
+            background: colorBgContainer,
+            borderRight: "1px solid #f0f0f0",
+          }}
         >
-          <Table
-            columns={columns}
-            dataSource={data}
-            pagination={{
-              total: 100,
-              showTotal: total => `共计 ${total} 条日志`,
-              defaultPageSize: 10,
-              showSizeChanger: true,
+          <div style={{ height: "100%", overflowY: "auto" }}>
+            <Menu
+              mode="inline"
+              selectedKeys={[selectedKey]}
+              openKeys={openKeys}
+              onOpenChange={keys => setOpenKeys(keys as string[])}
+              onSelect={({ key }) => setSelectedKey(key)}
+              style={{ height: "100%", borderRight: 0 }}
+              items={items}
+            />
+          </div>
+        </Sider>
+        <Layout style={{ padding: "0" }}>
+          <PageBreadcrumb customItems={getBreadcrumbItems()} />
+          <Content
+            style={{
+              background: colorBgContainer,
+              margin: 0,
+              minHeight: 280,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
             }}
-          />
-        </Card>
-      </Content>
+          >
+            {renderContent()}
+          </Content>
+        </Layout>
+      </Layout>
     </div>
   );
 };

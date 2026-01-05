@@ -12,6 +12,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Layout, Card } from "antd";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import FieldSidebar from "./components/FieldSidebar";
 import FormCanvas from "./components/FormCanvas";
 import { fieldTypes, type FieldType } from "./constants/fieldTypes";
@@ -108,6 +109,8 @@ const FormSettings: React.FC = () => {
     setFields(fields.filter(f => f.id !== id));
   };
 
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <DndContext
       sensors={sensors}
@@ -123,11 +126,30 @@ const FormSettings: React.FC = () => {
           <FormCanvas fields={fields} onRemoveField={handleRemoveField} />
         </Content>
         <Sider
-          width={300}
+          width={200}
+          collapsedWidth={80}
           theme="light"
           style={{ borderLeft: "1px solid #f0f0f0" }}
+          collapsible
+          collapsed={collapsed}
+          onCollapse={value => setCollapsed(value)}
+          trigger={
+            <div
+              style={{
+                height: 48,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#fff",
+                borderTop: "1px solid #f0f0f0",
+                cursor: "pointer",
+              }}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </div>
+          }
         >
-          <FieldSidebar />
+          <FieldSidebar collapsed={collapsed} />
         </Sider>
       </Layout>
       <DragOverlay>

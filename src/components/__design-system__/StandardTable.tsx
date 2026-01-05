@@ -6,6 +6,7 @@ interface StandardTableProps<T> extends TableProps<T> {
   showDataCount?: boolean;
   dataCountUnit?: string;
   selectedCount?: number;
+  containerStyle?: React.CSSProperties;
 }
 
 /**
@@ -18,6 +19,7 @@ function StandardTable<T extends object>({
   selectedCount,
   pagination,
   dataSource,
+  containerStyle,
   ...restProps
 }: StandardTableProps<T>) {
   const total = dataSource?.length || 0;
@@ -35,6 +37,7 @@ function StandardTable<T extends object>({
         background: tokens.colors.background.container,
         padding: tokens.spacing.lg,
         borderRadius: tokens.borderRadius.md,
+        ...containerStyle,
       }}
     >
       {showDataCount && (
