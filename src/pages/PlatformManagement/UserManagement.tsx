@@ -12,8 +12,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import type { TreeDataNode } from "antd";
 import PageBreadcrumb from "../../components/PageBreadcrumb";
-import UserGroupTree from "./components/UserGroupTree";
-import Splitter from "../../components/Splitter";
+import ResizableTreePanel from "../../components/ResizableTreePanel";
 import LayoutBox from "../../components/LayoutBox";
 
 interface UserDataType {
@@ -168,81 +167,69 @@ const UserManagement: React.FC = () => {
     },
   ];
 
-  const splitterPanels = [
-    {
-      key: "left",
-      max: 250,
-      children: (
+  return (
+    <ResizableTreePanel
+      treeData={treeData}
+      selectedKey={selectedTreeKey}
+      onSelect={handleTreeSelect}
+      defaultExpandedKeys={["all"]}
+      showIcon={true}
+      showLine={true}
+      treeWidth={250}
+      treeMinWidth={250}
+      treeMaxWidth={250}
+      treeToolbar={
+        <Button type="default" icon={<PlusOutlined />}>
+          添加用户组
+        </Button>
+      }
+    >
+      <LayoutBox>
+        <PageBreadcrumb />
         <LayoutBox padding={12}>
-          <LayoutBox>
-            <Button type="default" icon={<PlusOutlined />}>
-              添加用户组
-            </Button>
-          </LayoutBox>
-          <UserGroupTree
-            treeData={treeData}
-            defaultExpandedKeys={["all"]}
-            onSelect={handleTreeSelect}
+          <div style={{ marginBottom: 12 }}>
+            <Input
+              placeholder="名称"
+              prefix={<SearchOutlined />}
+              style={{ width: 240 }}
+            />
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <div style={{ fontSize: 14, color: "#666" }}>
+              共计 N 条数据 已选 {selectedRowKeys.length} 条
+            </div>
+            <Space>
+              <Button icon={<SyncOutlined />}>同步头像</Button>
+              <Button icon={<DownloadOutlined />}>导出用户</Button>
+              <Button icon={<UserAddOutlined />}>导入用户</Button>
+              <Button type="primary" icon={<PlusOutlined />}>
+                添加用户
+              </Button>
+              <Button icon={<SyncOutlined />} />
+              <Button icon={<SettingOutlined />} />
+            </Space>
+          </div>
+          <Table
+            rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
+            columns={columns}
+            dataSource={filteredData}
+            pagination={{
+              total: filteredData.length,
+              showTotal: total => `共计 ${total} 条数据`,
+              defaultPageSize: 10,
+              showSizeChanger: true,
+            }}
           />
         </LayoutBox>
-      ),
-    },
-    {
-      key: "right",
-      children: (
-        <LayoutBox>
-          <PageBreadcrumb />
-          <LayoutBox padding={12}>
-            <div style={{ marginBottom: 12 }}>
-              <Input
-                placeholder="名称"
-                prefix={<SearchOutlined />}
-                style={{ width: 240 }}
-              />
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <div style={{ fontSize: 14, color: "#666" }}>
-                共计 N 条数据 已选 {selectedRowKeys.length} 条
-              </div>
-              <Space>
-                <Button icon={<SyncOutlined />}>同步头像</Button>
-                <Button icon={<DownloadOutlined />}>导出用户</Button>
-                <Button icon={<UserAddOutlined />}>导入用户</Button>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  添加用户
-                </Button>
-                <Button icon={<SyncOutlined />} />
-                <Button icon={<SettingOutlined />} />
-              </Space>
-            </div>
-            <Table
-              rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-              columns={columns}
-              dataSource={filteredData}
-              pagination={{
-                total: filteredData.length,
-                showTotal: total => `共计 ${total} 条数据`,
-                defaultPageSize: 10,
-                showSizeChanger: true,
-              }}
-            />
-          </LayoutBox>
-        </LayoutBox>
-      ),
-    },
-  ];
-
-  return (
-    <LayoutBox padding={0} gap={0}>
-      <Splitter panels={splitterPanels} />
-    </LayoutBox>
+      </LayoutBox>
+    </ResizableTreePanel>
   );
 };
 
