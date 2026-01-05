@@ -9,8 +9,8 @@
 /**
  * 认证相关 API
  */
-import { get, post, put } from "../../request/index";
-import type { ApiResponse } from "../../types";
+import { get, post, put } from "@/api/request/index";
+import type { ApiResponse } from "@/api/types";
 import type {
   LoginParams,
   LoginResponse,

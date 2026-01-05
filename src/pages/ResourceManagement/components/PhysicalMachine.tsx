@@ -25,9 +25,9 @@ import type { ColumnsType } from "antd/es/table";
 import type { DataNode } from "antd/es/tree";
 import ResizableTreePanel from "@/components/ResizableTreePanel";
 import NodeDetail from "./NodeDetail";
-import { nodeApi } from "../../../api";
-import type { Node } from "../../../api";
-import type { NodeStatus } from "../../../api/modules/node/types";
+import { nodeApi } from "@/api";
+import type { Node } from "@/api";
+import type { NodeStatus } from "@/api/modules/node/types";
 
 // 常量定义
 const BYTES_TO_TB = 1024 * 1024 * 1024 * 1024;

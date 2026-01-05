@@ -1,8 +1,8 @@
 /**
  * 认证相关工具函数
  */
-import { STORAGE_KEY } from "../api/config";
-import type { UserInfo } from "../api";
+import { STORAGE_KEY } from "@/api/config";
+import type { UserInfo } from "@/api";
 
 /**
  * 获取 Token

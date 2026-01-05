@@ -9,7 +9,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
-import PageBreadcrumb from "../../components/PageBreadcrumb";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 import ResourceSidebar from "./components/ResourceSidebar";
 import ClusterTable from "./components/ClusterTable";
 import ClusterDetail from "./components/ClusterDetail";
@@ -18,8 +18,8 @@ import StorageManagement from "./components/StorageManagement";
 import ImageManagement from "./components/ImageManagement";
 import VirtualDiskManagement from "./components/VirtualDiskManagement";
 import ClusterAddModal from "./components/ClusterAddModal";
-import { clusterApi } from "../../api";
-import type { Cluster } from "../../api";
+import { clusterApi } from "@/api";
+import type { Cluster } from "@/api";
 
 const { Content, Sider } = Layout;
 

@@ -7,7 +7,7 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import type { Cluster, ClusterStatus } from "../../../api";
+import type { Cluster, ClusterStatus } from "@/api";
 
 interface ClusterTableProps {
   dataSource: Cluster[];

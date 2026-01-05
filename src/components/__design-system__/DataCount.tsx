@@ -1,5 +1,5 @@
 import React from "react";
-import { tokens } from "../../styles/tokens";
+import { tokens } from "@/styles/tokens";
 
 interface DataCountProps {
   total: number;

@@ -1,7 +1,7 @@
 /**
  * API 配置文件
  */
-import { ENV_CONFIG, isDev } from "../../config/env";
+import { ENV_CONFIG, isDev } from "@/config/env";
 
 /**
  * API 基础配置

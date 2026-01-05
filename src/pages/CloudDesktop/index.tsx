@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Layout, Tabs } from "antd";
 import { DesktopOutlined, SettingOutlined } from "@ant-design/icons";
-import PageBreadcrumb from "../../components/PageBreadcrumb";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 import DesktopTable from "./components/DesktopTable";
 import DesktopFilter from "./components/DesktopFilter";
 import DesktopPolicy from "./components/DesktopPolicy";

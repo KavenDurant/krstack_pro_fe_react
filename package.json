@@ -8,8 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,less,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,less,md}\"",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"
@@ -45,6 +45,7 @@
     "fast-check": "^4.4.0",
     "globals": "^16.5.0",
     "jsdom": "^27.3.0",
+    "less": "^4.5.1",
     "prettier": "^3.6.2",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",

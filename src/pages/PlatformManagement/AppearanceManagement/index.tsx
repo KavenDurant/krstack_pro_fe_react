@@ -5,9 +5,9 @@ import {
   UploadOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import GrayCard from "../../../components/GrayCard";
-import LayoutBox from "../../../components/LayoutBox";
-import BreadcrumbContainer from "../../../components/BreadcrumbContainer";
+import GrayCard from "@/components/GrayCard";
+import LayoutBox from "@/components/LayoutBox";
+import BreadcrumbContainer from "@/components/BreadcrumbContainer";
 
 const AppearanceManagement: React.FC = () => {
   return (

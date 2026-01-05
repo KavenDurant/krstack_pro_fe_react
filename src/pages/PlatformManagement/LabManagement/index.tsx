@@ -1,8 +1,8 @@
 import React from "react";
 import { Row, Col, Alert, Switch } from "antd";
-import GrayCard from "../../../components/GrayCard";
-import LayoutBox from "../../../components/LayoutBox";
-import BreadcrumbContainer from "../../../components/BreadcrumbContainer";
+import GrayCard from "@/components/GrayCard";
+import LayoutBox from "@/components/LayoutBox";
+import BreadcrumbContainer from "@/components/BreadcrumbContainer";
 
 const LabManagement: React.FC = () => {
   return (

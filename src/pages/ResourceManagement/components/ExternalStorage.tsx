@@ -7,8 +7,8 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import TableToolbar from "../../../components/__design-system__/TableToolbar";
-import StandardTable from "../../../components/__design-system__/StandardTable";
+import TableToolbar from "@/components/__design-system__/TableToolbar";
+import StandardTable from "@/components/__design-system__/StandardTable";
 
 interface ExternalStorageType {
   key: string;

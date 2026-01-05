@@ -8,8 +8,8 @@
  */
 import React from "react";
 import { Checkbox, Select, Radio, InputNumber } from "antd";
-import GrayCard from "../../../components/GrayCard";
-import styles from "./DesktopPolicy.module.css";
+import GrayCard from "@/components/GrayCard";
+import styles from "./DesktopPolicy.module.less";
 
 const DesktopPolicy: React.FC = () => {
   return (

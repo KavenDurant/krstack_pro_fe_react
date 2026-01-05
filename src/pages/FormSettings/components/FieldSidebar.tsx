@@ -1,7 +1,7 @@
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Card, Space, Typography } from "antd";
-import { fieldTypes } from "../constants/fieldTypes";
+import { fieldTypes } from "@/pages/FormSettings/constants/fieldTypes";
 
 interface DraggableSidebarItemProps {
   type: string;

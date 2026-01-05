@@ -20,20 +20,20 @@ export {
   upload,
   download,
   request,
-} from "./request/index";
+} from "@/api/request/index";
 
 // 导出通用类型
-export type { ApiResponse, PaginatedResponse, RequestConfig } from "./types";
+export type { ApiResponse, PaginatedResponse, RequestConfig } from "@/api/types";
 
 // 导出配置
-export { API_CONFIG, BUSINESS_CODE, TOKEN_KEY, API_PREFIX } from "./config";
+export { API_CONFIG, BUSINESS_CODE, TOKEN_KEY, API_PREFIX } from "@/api/config";
 
 // 导出 API 模块
-export * as authApi from "./modules/auth/index";
-export * as vmApi from "./modules/vm/index";
-export * as clusterApi from "./modules/cluster/index";
-export * as userApi from "./modules/user/index";
-export * as nodeApi from "./modules/node/index";
+export * as authApi from "@/api/modules/auth/index";
+export * as vmApi from "@/api/modules/vm/index";
+export * as clusterApi from "@/api/modules/cluster/index";
+export * as userApi from "@/api/modules/user/index";
+export * as nodeApi from "@/api/modules/node/index";
 
 // 导出各模块类型
 export type {
@@ -43,19 +43,19 @@ export type {
   HistoryListParams,
   AlarmLog,
   UserInfo,
-} from "./modules/auth/types";
+} from "@/api/modules/auth/types";
 export type {
   User,
   UserListParams,
   CreateUserParams,
-} from "./modules/user/types";
+} from "@/api/modules/user/types";
 export type {
   VM,
   VMStatus,
   VMListParams,
   CreateVMParams,
   AncestorNode,
-} from "./modules/vm/types";
+} from "@/api/modules/vm/types";
 export type {
   Cluster,
   ClusterDetail,
@@ -64,7 +64,7 @@ export type {
   UpdateClusterParams,
   ContentQuery,
   PhysicalNode,
-} from "./modules/cluster/types";
+} from "@/api/modules/cluster/types";
 export type {
   Node,
   NodeStatus,
@@ -76,4 +76,4 @@ export type {
   StorageInfo,
   NetworkSetting,
   PerformanceData,
-} from "./modules/node/types";
+} from "@/api/modules/node/types";

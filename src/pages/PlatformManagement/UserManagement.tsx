@@ -11,9 +11,9 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { TreeDataNode } from "antd";
-import PageBreadcrumb from "../../components/PageBreadcrumb";
-import ResizableTreePanel from "../../components/ResizableTreePanel";
-import LayoutBox from "../../components/LayoutBox";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
+import ResizableTreePanel from "@/components/ResizableTreePanel";
+import LayoutBox from "@/components/LayoutBox";
 
 interface UserDataType {
   key: string;
