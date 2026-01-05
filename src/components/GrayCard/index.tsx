@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./GrayCard.module.css";
+import styles from "./GrayCard.module.less";
 
 export interface GrayCardProps {
   title?: React.ReactNode;

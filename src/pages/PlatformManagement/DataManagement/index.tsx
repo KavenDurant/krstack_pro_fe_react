@@ -6,8 +6,8 @@ import {
   SafetyOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import BreadcrumbContainer from "../../../components/BreadcrumbContainer";
-import LayoutBox from "../../../components/LayoutBox";
+import BreadcrumbContainer from "@/components/BreadcrumbContainer";
+import LayoutBox from "@/components/LayoutBox";
 
 interface BackupRecord {
   id: string;

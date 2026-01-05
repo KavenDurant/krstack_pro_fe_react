@@ -1,7 +1,7 @@
 /**
  * 调试工具函数
  */
-import { STORAGE_KEY } from "../api/config";
+import { STORAGE_KEY } from "@/api/config";
 
 /**
  * 检查认证状态

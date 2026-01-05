@@ -10,7 +10,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { message } from "antd";
-import type { ApiResponse, RequestConfig } from "../types";
+import type { ApiResponse, RequestConfig } from "@/api/types";
 import {
   API_CONFIG,
   HTTP_STATUS,
@@ -18,7 +18,7 @@ import {
   STORAGE_KEY,
   REQUEST_HEADERS,
   CONTENT_TYPE,
-} from "../config";
+} from "@/api/config";
 
 /**
  * 创建 axios 实例

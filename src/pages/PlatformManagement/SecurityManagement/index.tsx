@@ -1,8 +1,8 @@
 import React from "react";
 import { Switch, Row, Col } from "antd";
-import GrayCard from "../../../components/GrayCard";
-import LayoutBox from "../../../components/LayoutBox";
-import BreadcrumbContainer from "../../../components/BreadcrumbContainer";
+import GrayCard from "@/components/GrayCard";
+import LayoutBox from "@/components/LayoutBox";
+import BreadcrumbContainer from "@/components/BreadcrumbContainer";
 
 const SecurityManagement: React.FC = () => {
   return (

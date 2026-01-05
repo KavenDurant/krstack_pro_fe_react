@@ -7,9 +7,9 @@ import {
   CheckCircleOutlined,
   SendOutlined,
 } from "@ant-design/icons";
-import LayoutBox from "../../../../components/LayoutBox";
-import GrayCard from "../../../../components/GrayCard";
-import styles from "../License.module.css";
+import LayoutBox from "@/components/LayoutBox";
+import GrayCard from "@/components/GrayCard";
+import styles from "@/pages/PlatformManagement/LicenseManagement/License.module.less";
 
 const PlatformLicenseContent: React.FC = () => {
   const licenseCode = "示例申请码";

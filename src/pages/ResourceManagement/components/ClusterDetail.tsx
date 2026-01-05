@@ -17,9 +17,9 @@ import {
   PlayCircleFilled,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { clusterApi } from "../../../api";
-import type { Cluster, ClusterDetail as ClusterDetailType } from "../../../api";
-import { bytesToGB, calculatePercentage } from "../../../utils/format";
+import { clusterApi } from "@/api";
+import type { Cluster, ClusterDetail as ClusterDetailType } from "@/api";
+import { bytesToGB, calculatePercentage } from "@/utils/format";
 
 interface ClusterDetailProps {
   cluster: Cluster;

@@ -1,8 +1,8 @@
 /**
  * 虚拟机相关 API
  */
-import { get, post, put, del } from "../../request/index";
-import type { ApiResponse } from "../../types";
+import { get, post, put, del } from "@/api/request/index";
+import type { ApiResponse } from "@/api/types";
 import type {
   VM,
   VMListParams,

@@ -9,7 +9,7 @@
 import React from "react";
 import { Tabs } from "antd";
 import type { TabsProps } from "antd";
-import styles from "./VerticalTabs.module.css";
+import styles from "./VerticalTabs.module.less";
 
 export interface TabItem {
   key: string;

@@ -1,6 +1,6 @@
 import { Table, type TableProps } from "antd";
 import DataCount from "./DataCount";
-import { tokens } from "../../styles/tokens";
+import { tokens } from "@/styles/tokens";
 
 interface StandardTableProps<T> extends TableProps<T> {
   showDataCount?: boolean;

@@ -9,7 +9,7 @@ import {
   MenuUnfoldOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
-import PageBreadcrumb from "../../components/PageBreadcrumb";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 import AlertMessages from "./components/AlertMessages";
 import OperationLogs from "./components/OperationLogs";
 import TaskLogs from "./components/TaskLogs";

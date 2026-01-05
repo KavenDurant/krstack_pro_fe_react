@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { Layout } from "antd";
-import PageBreadcrumb from "../PageBreadcrumb";
-import { tokens } from "../../styles/tokens";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
+import { tokens } from "@/styles/tokens";
 
 const { Content } = Layout;
 

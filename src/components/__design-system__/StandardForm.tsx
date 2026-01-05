@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, type FormProps } from "antd";
-import { tokens } from "../../styles/tokens";
+import { tokens } from "@/styles/tokens";
 
 interface StandardFormProps extends FormProps {
   width?: "sm" | "md" | "lg" | "full";

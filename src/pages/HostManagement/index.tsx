@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import PageBreadcrumb from "../../components/PageBreadcrumb";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { type SelectionInfo } from "./types";
 import StatisticsCards from "./components/StatisticsCards";
 import SearchFilter from "./components/SearchFilter";
@@ -7,10 +7,10 @@ import HostTable from "./components/HostTable";
 import ColumnSettingsDrawer from "./components/ColumnSettingsDrawer";
 import type { ColumnConfig } from "./components/ColumnSettingsDrawer";
 import HostDetail from "./components/HostDetail";
-import { mockVMData } from "../../api/mockData";
+import { mockVMData } from "@/api/mockData";
 import type { HostDataType } from "./components/HostTable";
 import ResizableTreePanel from "@/components/ResizableTreePanel";
-import LayoutBox from "../../components/LayoutBox";
+import LayoutBox from "@/components/LayoutBox";
 
 const defaultColumns: ColumnConfig[] = [
   { key: "name", title: "名称", visible: true, fixed: true },

@@ -27,9 +27,9 @@ import {
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { getUserInfo, logout } from "../utils/auth";
-import ChangePasswordModal from "../components/ChangePasswordModal";
-import type { UserInfo } from "../api";
+import { getUserInfo, logout } from "@/utils/auth";
+import ChangePasswordModal from "@/components/ChangePasswordModal";
+import type { UserInfo } from "@/api";
 
 const { Header, Sider, Content } = Layout;
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, Select, message } from "antd";
-import { clusterApi } from "../../../api";
-import type { AddClusterParams } from "../../../api";
+import { clusterApi } from "@/api";
+import type { AddClusterParams } from "@/api";
 
 interface ClusterAddModalProps {
   open: boolean;

@@ -10,9 +10,9 @@ import {
   SettingOutlined as PolicyOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import TableToolbar from "../../../components/__design-system__/TableToolbar";
-import StandardTable from "../../../components/__design-system__/StandardTable";
-import VerticalTabs from "../../../components/VerticalTabs";
+import TableToolbar from "@/components/__design-system__/TableToolbar";
+import StandardTable from "@/components/__design-system__/StandardTable";
+import VerticalTabs from "@/components/VerticalTabs";
 import { type Dayjs } from "dayjs";
 
 const { RangePicker } = DatePicker;

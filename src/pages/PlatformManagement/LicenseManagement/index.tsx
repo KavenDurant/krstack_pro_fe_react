@@ -1,8 +1,8 @@
 import React from "react";
 import { SafetyCertificateOutlined, UploadOutlined } from "@ant-design/icons";
-import LayoutBox from "../../../components/LayoutBox";
-import BreadcrumbContainer from "../../../components/BreadcrumbContainer";
-import VerticalTabs from "../../../components/VerticalTabs";
+import LayoutBox from "@/components/LayoutBox";
+import BreadcrumbContainer from "@/components/BreadcrumbContainer";
+import VerticalTabs from "@/components/VerticalTabs";
 import PlatformLicenseContent from "./tabs/PlatformLicenseContent";
 import DesktopLicenseContent from "./tabs/DesktopLicenseContent";
 

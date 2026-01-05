@@ -3,8 +3,8 @@
  */
 import React, { useEffect, useState } from "react";
 import { Card, Button, Space, Typography, Descriptions } from "antd";
-import { STORAGE_KEY } from "../api/config";
-import { clusterApi } from "../api";
+import { STORAGE_KEY } from "@/api/config";
+import { clusterApi } from "@/api";
 
 const { Title, Text, Paragraph } = Typography;
 

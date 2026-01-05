@@ -7,21 +7,21 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import MainLayout from "./layouts/MainLayout";
-import HostManagement from "./pages/HostManagement";
-import FormSettings from "./pages/FormSettings";
-import Login from "./pages/Login";
-import AuthGuard from "./components/AuthGuard";
-import CloudDesktop from "./pages/CloudDesktop";
-import ResourceManagement from "./pages/ResourceManagement";
-import OperationsManagement from "./pages/OperationsManagement";
-import UserManagement from "./pages/PlatformManagement/UserManagement";
-import LicenseManagement from "./pages/PlatformManagement/LicenseManagement";
-import DataManagement from "./pages/PlatformManagement/DataManagement";
-import SecurityManagement from "./pages/PlatformManagement/SecurityManagement";
-import LabManagement from "./pages/PlatformManagement/LabManagement";
-import AppearanceManagement from "./pages/PlatformManagement/AppearanceManagement";
-import TokenTest from "./pages/TokenTest";
+import MainLayout from "@/layouts/MainLayout";
+import HostManagement from "@/pages/HostManagement";
+import FormSettings from "@/pages/FormSettings";
+import Login from "@/pages/Login";
+import AuthGuard from "@/components/AuthGuard";
+import CloudDesktop from "@/pages/CloudDesktop";
+import ResourceManagement from "@/pages/ResourceManagement";
+import OperationsManagement from "@/pages/OperationsManagement";
+import UserManagement from "@/pages/PlatformManagement/UserManagement";
+import LicenseManagement from "@/pages/PlatformManagement/LicenseManagement";
+import DataManagement from "@/pages/PlatformManagement/DataManagement";
+import SecurityManagement from "@/pages/PlatformManagement/SecurityManagement";
+import LabManagement from "@/pages/PlatformManagement/LabManagement";
+import AppearanceManagement from "@/pages/PlatformManagement/AppearanceManagement";
+import TokenTest from "@/pages/TokenTest";
 
 export const router = createBrowserRouter([
   {

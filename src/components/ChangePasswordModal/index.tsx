@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, message } from "antd";
-import { authApi } from "../../api";
-import type { ChangePasswordParams } from "../../api";
+import { authApi } from "@/api";
+import type { ChangePasswordParams } from "@/api";
 
 interface ChangePasswordModalProps {
   open: boolean;

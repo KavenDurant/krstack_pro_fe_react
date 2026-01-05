@@ -10,7 +10,7 @@ import React from "react";
 import { Tree } from "antd";
 import type { DataNode, AntTreeNodeProps, TreeProps } from "antd/es/tree";
 import { PlusSquareOutlined, MinusSquareOutlined } from "@ant-design/icons";
-import Splitter from "../Splitter";
+import Splitter from "@/components/Splitter";
 
 interface ResizableTreePanelProps<T extends DataNode = DataNode> {
   treeData: T[];

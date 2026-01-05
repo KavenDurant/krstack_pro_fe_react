@@ -9,7 +9,7 @@ import {
   Space,
   Divider,
 } from "antd";
-import PageBreadcrumb from "../../components/PageBreadcrumb";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 const { Content } = Layout;
 
