@@ -60,6 +60,9 @@ const ResourceSidebar: React.FC = () => {
   const handleMenuClick = ({ key }: { key: string }) => {
     if (key === "cluster") {
       navigate("/resource-management");
+    } else if (key === "storage") {
+      // 直接导航到外挂存储，避免重定向
+      navigate("/resource-management/external-storage");
     } else {
       navigate(`/resource-management/${key}`);
     }

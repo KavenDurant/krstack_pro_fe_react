@@ -6,6 +6,8 @@ import {
   ReloadOutlined,
   SettingOutlined,
   SearchOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import PageBreadcrumb from "../../components/PageBreadcrumb";
 import ResourceSidebar from "./components/ResourceSidebar";
@@ -42,6 +44,7 @@ const ResourceManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCluster, setSelectedCluster] = useState<Cluster | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   // 加载集群列表
   const loadClusterList = useCallback(async () => {
@@ -195,9 +198,51 @@ const ResourceManagement: React.FC = () => {
     );
   };
 
+  // 更精确的路由匹配逻辑
+  const isStorageRoute = (pathname: string): boolean => {
+    return (
+      pathname.includes("/storage") ||
+      pathname.includes("/external-storage") ||
+      pathname.includes("/internal-storage")
+    );
+  };
+
+  const isImageRoute = (pathname: string): boolean => {
+    return (
+      pathname.includes("/image") ||
+      pathname.includes("/system-image") ||
+      pathname.includes("/template-image")
+    );
+  };
+
   return (
     <Layout style={{ height: "100%", background: "#fff" }}>
-      <Sider width={176} style={{ background: "#fff" }}>
+      <Sider
+        width={200}
+        collapsedWidth={80}
+        collapsible
+        collapsed={collapsed}
+        onCollapse={value => setCollapsed(value)}
+        trigger={
+          <div
+            style={{
+              height: 48,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#fff",
+              borderTop: "1px solid #f0f0f0",
+              borderRight: "1px solid #f0f0f0",
+              cursor: "pointer",
+              color: "rgba(0, 0, 0, 0.65)",
+              fontSize: 16,
+            }}
+          >
+            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          </div>
+        }
+        style={{ background: "#fff" }}
+      >
         <ResourceSidebar />
       </Sider>
       <Layout style={{ background: "#fff" }}>
@@ -205,9 +250,9 @@ const ResourceManagement: React.FC = () => {
           <PageBreadcrumb />
           {location.pathname.includes(ROUTES.HOST) ? (
             <PhysicalMachine />
-          ) : location.pathname.includes(ROUTES.STORAGE) ? (
+          ) : isStorageRoute(location.pathname) ? (
             <StorageManagement />
-          ) : location.pathname.includes(ROUTES.IMAGE) ? (
+          ) : isImageRoute(location.pathname) ? (
             <ImageManagement />
           ) : location.pathname.includes(ROUTES.VIRTUAL_DISK) ? (
             <VirtualDiskManagement />

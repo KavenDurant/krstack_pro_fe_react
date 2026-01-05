@@ -55,7 +55,7 @@ const VerticalTabs: React.FC<VerticalTabsProps> = ({
   return (
     <div className={`${styles.container} ${className ?? ""}`} style={style}>
       <Tabs
-        tabPosition="left"
+        tabPlacement="left"
         items={tabItems}
         defaultActiveKey={defaultActiveKey}
         activeKey={activeKey}

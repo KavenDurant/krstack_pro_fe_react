@@ -10,7 +10,7 @@ const LabManagement: React.FC = () => {
       <BreadcrumbContainer items={[{ label: "实验室" }]} />
       <LayoutBox padding={12} gap={12}>
         <Alert
-          message="实验室内的功能都为beta版功能，需要开启后才能使用！"
+          title="实验室内的功能都为beta版功能，需要开启后才能使用！"
           type="info"
           showIcon
           style={{ width: "100%" }}
