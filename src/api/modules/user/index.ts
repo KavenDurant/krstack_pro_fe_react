@@ -72,3 +72,31 @@ export const deleteUser = async (id: number): Promise<ApiResponse<null>> => {
 export const getCurrentUser = async (): Promise<ApiResponse<User>> => {
   return get<User>(URL.current);
 };
+
+/**
+ * 重置用户密码
+ */
+export const resetPassword = async (
+  username: string
+): Promise<ApiResponse<null>> => {
+  return post<null>(`${URL.list}/${username}/reset_password`);
+};
+
+/**
+ * 批量删除用户
+ */
+export const deleteUsers = async (data: {
+  user_names: string[];
+}): Promise<ApiResponse<null>> => {
+  return post<null>("users/delete_users", data);
+};
+
+/**
+ * 更新用户（通过用户名）
+ */
+export const updateUserByName = async (
+  name: string,
+  data: UpdateUserParams
+): Promise<ApiResponse<User>> => {
+  return put<User>(`${URL.list}/${name}`, data);
+};
