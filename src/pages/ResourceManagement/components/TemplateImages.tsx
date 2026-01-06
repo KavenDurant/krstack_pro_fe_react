@@ -1,19 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Table, Input, Button, Space, Dropdown, message } from "antd";
+import React, { useState, useEffect, useMemo } from "react";
+import { Table, Input, Button, Modal, message, Tooltip } from "antd";
+import { useLocation } from "react-router-dom";
 import {
   SearchOutlined,
   ReloadOutlined,
-  SettingOutlined,
-  PlusOutlined,
-  DownOutlined,
   DeleteOutlined,
-  WindowsOutlined,
-  CodeOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { imageApi } from "@/api";
-import type { TemplateImage } from "@/api";
-import { formatFileSize, formatDateTime } from "@/utils/format";
+import type { TemplateImage } from "@/api/modules/image/types";
+import { formatFileSize } from "@/utils/format";
 
 interface ImageType {
   key: string;
@@ -22,17 +18,21 @@ interface ImageType {
   format: string;
   size: string;
   location: string;
-  uploadTime: string;
+  cluster_name: string;
+  node: string;
+  image_uid: string;
 }
 
 const TemplateImages: React.FC = () => {
+  const location = useLocation();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRows, setSelectedRows] = useState<TemplateImage[]>([]);
   const [imageData, setImageData] = useState<ImageType[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const hasLoadedRef = useRef(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // 数据转换函数：将后端数据转换为前端格式
   const transformImageData = (data: TemplateImage[]): ImageType[] => {
     return data.map(item => ({
       key: item.image_uid,
@@ -40,53 +40,122 @@ const TemplateImages: React.FC = () => {
       os: item.os_type || "—",
       format: item.format || "—",
       size: item.size ? formatFileSize(item.size) : "—",
-      location: item.storage || "—",
-      uploadTime: item.updated_at ? formatDateTime(item.updated_at) : "—",
+      location: `${item.cluster_name} / ${item.node}`,
+      cluster_name: item.cluster_name || "",
+      node: item.node || "",
+      image_uid: item.image_uid,
     }));
   };
 
-  // 加载模板镜像列表
   const loadTemplateImageList = async () => {
     try {
       setLoading(true);
       const response = await imageApi.getTemplateImageList();
-      if (response.code === 200) {
-        const transformedData = transformImageData(response.data);
+      if (response && "images" in response && Array.isArray(response.images)) {
+        const transformedData = transformImageData(response.images);
         setImageData(transformedData);
       } else {
-        message.error(response.message || "获取模板镜像列表失败");
+        setImageData([]);
       }
     } catch (error) {
       message.error("获取模板镜像列表失败");
       console.error("Failed to load template image list:", error);
+      setImageData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // 初始加载 - 使用 ref 防止重复请求
   useEffect(() => {
-    if (!hasLoadedRef.current) {
-      hasLoadedRef.current = true;
+    if (location.pathname.includes("template-image")) {
       loadTemplateImageList();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.pathname]);
 
-  // 刷新列表
   const handleRefresh = () => {
     loadTemplateImageList();
   };
 
-  // 过滤数据
+  const handleDelete = async () => {
+    if (selectedRows.length === 0) {
+      message.warning("请先选择要删除的镜像");
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const deleteParams = {
+        images: selectedRows.map(row => ({ image_uid: row.image_uid })),
+      };
+
+      const response = await imageApi.deleteTemplateImage(deleteParams);
+
+      if (response.code === 200 && response.data) {
+        const { delete_images_succeed, delete_images_failed } = response.data;
+
+        if (
+          delete_images_succeed.length === deleteParams.images.length &&
+          delete_images_failed.length === 0
+        ) {
+          message.success("删除模板镜像成功");
+        } else if (delete_images_failed.length === deleteParams.images.length) {
+          message.error(
+            "全部模板镜像删除失败，可能是被云主机引用或模版镜像相关存储不存在！"
+          );
+        } else if (delete_images_failed.length > 0) {
+          message.warning("部分模板镜像删除失败，可能是被云主机引用！");
+        }
+
+        setSelectedRowKeys([]);
+        setSelectedRows([]);
+        loadTemplateImageList();
+      } else {
+        message.error(response.message || "删除失败");
+      }
+    } catch (error) {
+      message.error("删除模板镜像失败");
+      console.error("Failed to delete template images:", error);
+    } finally {
+      setDeleteLoading(false);
+      setDeleteModalVisible(false);
+    }
+  };
+
+  const handleDeleteSingle = (record: ImageType) => {
+    setSelectedRows([
+      {
+        image_uid: record.image_uid,
+        name: record.name,
+        cluster_name: record.cluster_name,
+        node: record.node,
+      } as TemplateImage,
+    ]);
+    setDeleteModalVisible(true);
+  };
+
   const filteredData = useMemo(() => {
     return imageData.filter(item =>
       item.name.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [imageData, searchText]);
 
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+  const onSelectChange = (
+    newSelectedRowKeys: React.Key[],
+    newSelectedRows: ImageType[]
+  ) => {
     setSelectedRowKeys(newSelectedRowKeys);
+    setSelectedRows(
+      newSelectedRows.map(
+        row =>
+          ({
+            image_uid: row.image_uid,
+            name: row.name,
+            cluster_name: row.cluster_name,
+            node: row.node,
+          }) as TemplateImage
+      )
+    );
   };
 
   const rowSelection = {
@@ -94,80 +163,52 @@ const TemplateImages: React.FC = () => {
     onChange: onSelectChange,
   };
 
-  const getOsIcon = (os: string) => {
-    const lowerOs = os.toLowerCase();
-    if (lowerOs.includes("windows"))
-      return <WindowsOutlined style={{ color: "#0078d4" }} />;
-    return <CodeOutlined style={{ color: "#f34b7d" }} />;
-  };
-
   const columns: ColumnsType<ImageType> = [
     {
       title: "名称",
       dataIndex: "name",
       key: "name",
-      render: text => <span style={{ color: "#333" }}>{text}</span>,
-    },
-    {
-      title: "操作系统",
-      dataIndex: "os",
-      key: "os",
-      render: (text: string) => {
-        if (!text || text === "-" || text === "—") {
-          return "—";
-        }
-        return (
-          <Space>
-            {getOsIcon(text)}
-            <span>{text}</span>
-          </Space>
-        );
-      },
+      ellipsis: true,
+      width: 160,
+      render: (text: string) => (
+        <Tooltip title={text || "-"} placement="topLeft">
+          <span style={{ color: "#333" }}>{text || "-"}</span>
+        </Tooltip>
+      ),
     },
     {
       title: "格式",
       dataIndex: "format",
       key: "format",
-      render: (text: string) => (text && text !== "-" ? text : "—"),
-    },
-    {
-      title: "大小",
-      dataIndex: "size",
-      key: "size",
+      width: 90,
       render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
       title: "存放位置",
       dataIndex: "location",
-      key: "location",
-      render: (text: string) => (text && text !== "-" ? text : "—"),
-    },
-    {
-      title: "上传时间",
-      dataIndex: "uploadTime",
-      key: "uploadTime",
-      render: (text: string) => (text && text !== "-" ? text : "—"),
+      key: "node",
+      width: 200,
+      render: (text: string, record: ImageType) => (
+        <Tooltip
+          title={`${record.cluster_name} / ${record.node}`}
+          placement="topLeft"
+        >
+          <span>{text || "—"}</span>
+        </Tooltip>
+      ),
     },
     {
       title: "操作",
-      key: "action",
-      render: () => (
-        <Space size="middle">
-          <a style={{ color: "#1890ff" }}>编辑</a>
-          <a style={{ color: "#1890ff" }}>删除</a>
-          <Dropdown
-            menu={{
-              items: [
-                { key: "download", label: "下载" },
-                { key: "sync", label: "同步" },
-              ],
-            }}
-          >
-            <a style={{ color: "#1890ff" }} onClick={e => e.preventDefault()}>
-              更多 <DownOutlined style={{ fontSize: 10 }} />
-            </a>
-          </Dropdown>
-        </Space>
+      key: "operation",
+      width: 100,
+      align: "left" as const,
+      render: (_: unknown, record: ImageType) => (
+        <span
+          style={{ color: "#1890ff", cursor: "pointer" }}
+          onClick={() => handleDeleteSingle(record)}
+        >
+          删除
+        </span>
       ),
     },
   ];
@@ -178,50 +219,54 @@ const TemplateImages: React.FC = () => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        padding: 16,
+        padding: "12px",
         background: "#fff",
       }}
     >
       <div
         style={{
-          paddingBottom: 16,
+          paddingBottom: 12,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
         <Input
-          placeholder="名称"
+          placeholder="请输入内容"
           prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-          style={{ width: 300 }}
+          style={{ width: 280 }}
           value={searchText}
           onChange={e => setSearchText(e.target.value)}
+          allowClear
         />
         <div style={{ display: "flex", gap: 8 }}>
-          <Button icon={<DeleteOutlined />} disabled>
+          <Button
+            icon={<DeleteOutlined />}
+            disabled={selectedRowKeys.length === 0}
+            onClick={() => setDeleteModalVisible(true)}
+          >
             删除
-          </Button>
-          <Button type="primary" icon={<PlusOutlined />}>
-            上传
           </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
             loading={loading}
           />
-          <Button icon={<SettingOutlined />} />
         </div>
       </div>
 
       <div
         style={{
-          fontSize: 12,
-          color: "#666",
-          margin: "0 0 8px 0",
-          lineHeight: 1.4,
+          fontSize: 14,
+          color: "rgba(0, 0, 0, 0.6)",
+          marginBottom: 8,
         }}
       >
-        共计 {filteredData.length} 条数据 已选 {selectedRowKeys.length} 条
+        共&nbsp;
+        <span style={{ color: "#1890ff" }}>{imageData.length}</span>
+        &nbsp;项数据&nbsp;&nbsp;已选&nbsp;
+        <span style={{ color: "#1890ff" }}>{selectedRowKeys.length}</span>
+        &nbsp;项
       </div>
 
       <Table
@@ -229,13 +274,22 @@ const TemplateImages: React.FC = () => {
         columns={columns}
         dataSource={filteredData}
         loading={loading}
-        pagination={{
-          total: filteredData.length,
-          showTotal: total => `共 ${total} 条`,
-          defaultPageSize: 10,
-          showSizeChanger: true,
-        }}
+        pagination={false}
+        scroll={{ y: "calc(100vh - 350px)", x: 800 }}
+        rowKey="key"
       />
+
+      <Modal
+        title="删除"
+        open={deleteModalVisible}
+        onOk={handleDelete}
+        onCancel={() => setDeleteModalVisible(false)}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={deleteLoading}
+      >
+        <p>是否要删除模板镜像？</p>
+      </Modal>
     </div>
   );
 };
