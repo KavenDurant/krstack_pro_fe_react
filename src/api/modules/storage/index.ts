@@ -18,14 +18,14 @@ import type {
 } from "./types";
 
 const URL = {
-  outside: "storages/outside",
-  inside: "storages/inside",
-  mount: "storages/outside/mount",
-  unmount: "storages/outside/unmount",
-  alarmThreshold: "storages/alarm_threshold",
-  content: "storages/content",
-  clusters: "clusters",
-  smbCifsPath: "storages/get_smb_cifs_path",
+  outside: "/api/storages/outside",
+  inside: "/api/storages/inside",
+  mount: "/api/storages/outside/mount",
+  unmount: "/api/storages/outside/unmount",
+  alarmThreshold: "/api/storages/alarm_threshold",
+  content: "/api/storages/content",
+  clusters: "/api/clusters",
+  smbCifsPath: "/api/storages/get_smb_cifs_path",
 } as const;
 
 // ========== 外挂存储管理 ==========
@@ -34,9 +34,9 @@ const URL = {
  * 获取外挂存储列表
  */
 export const getExternalStorageList = async (): Promise<
-  ApiResponse<ExternalStorage[]>
+  ApiResponse<{ storages: ExternalStorage[] }>
 > => {
-  return get<ExternalStorage[]>(URL.outside);
+  return get<{ storages: ExternalStorage[] }>(URL.outside);
 };
 
 /**
@@ -45,7 +45,7 @@ export const getExternalStorageList = async (): Promise<
 export const getExternalStorageEditList = async (
   clusterId: string
 ): Promise<ApiResponse<ClusterEditList[]>> => {
-  return get<ClusterEditList[]>(`storages/outside/${clusterId}`);
+  return get<ClusterEditList[]>(`/api/storages/outside/${clusterId}`);
 };
 
 /**
@@ -90,9 +90,9 @@ export const unmountStorage = async (
  * 获取内置存储列表
  */
 export const getInternalStorageList = async (): Promise<
-  ApiResponse<InternalStorage[]>
+  ApiResponse<{ cluster_storages: InternalStorage[] }>
 > => {
-  return get<InternalStorage[]>(URL.inside);
+  return get<{ cluster_storages: InternalStorage[] }>(URL.inside);
 };
 
 // ========== 存储设置 ==========

@@ -1,3 +1,17 @@
+/**
+ * ⚠️ 注意：此组件当前使用 MOCK 数据
+ *
+ * 原因：后端暂未提供全局虚拟磁盘列表的 API 接口
+ *
+ * 说明：
+ * - API 迁移计划中只有 `vmApi.getVMDiskList(vmUid)` 用于获取特定虚拟机的磁盘列表
+ * - 没有全局虚拟磁盘列表的 API
+ * - 如需实现真实数据，需要：
+ *   1. 等待后端提供全局虚拟磁盘列表 API
+ *   2. 或者从所有虚拟机中聚合磁盘数据（不推荐，性能问题）
+ *
+ * 待办：等待后端提供对应的 API 接口后，替换为真实 API 调用
+ */
 import React, { useState } from "react";
 import { Table, Input, Button, Space, Dropdown, Progress, Tag } from "antd";
 import {
@@ -25,6 +39,7 @@ interface VirtualDiskType {
   associatedVm?: string;
 }
 
+// ⚠️ MOCK 数据 - 等待后端提供 API 接口
 const mockData: VirtualDiskType[] = [
   {
     key: "1",

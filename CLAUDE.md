@@ -14,6 +14,9 @@ npm run build            # Type check + production build
 npm run lint             # Run ESLint
 npm run format           # Format code with Prettier
 npm run format:check     # Check code formatting
+npm run test             # Run tests (Vitest)
+npm run test:watch       # Run tests in watch mode
+npm run test:ui          # Run tests with UI
 npm run preview          # Preview production build
 ```
 
@@ -25,29 +28,40 @@ npm run preview          # Preview production build
 - **MainLayout** (`src/layouts/MainLayout.tsx`): Wraps all authenticated routes with AuthGuard
 - **Dynamic sidebar**: Changes based on top navigation selection
 - **Route mapping**:
+  - `/` → Redirects to `/hosts` (VM Management)
   - `/hosts` → Virtual Machine Management (default)
   - `/cloud-desktop` → Cloud Desktop Management
-  - `/resource-management` → Resource Overview
-  - `/platform-management` → Platform Settings
+  - `/resource-management/*` → Resource Overview (with nested routing)
+  - `/platform-management/*` → Platform Settings
   - `/operations-management` → Operations Logs
   - `/settings/form` → VM Form Settings
+
+### Nested Routing Pattern
+
+Some pages use nested routing within themselves (e.g., ResourceManagement):
+- Route defined with wildcard: `/resource-management/*`
+- Component uses `useLocation()` to determine sub-page
+- Internal sidebar navigation changes the URL path
+- Example: `ResourceSidebar` component handles navigation between `/resource-management`, `/resource-management/host`, etc.
 
 ### Page Structure Pattern
 
 Pages follow a consistent layout pattern:
 
-1. **Tree/Filter sidebar** (left, resizable 280-350px)
+1. **Tree/Filter sidebar** (left, resizable 280-350px) - Uses `ResizableTreePanel` or custom sidebar
 2. **Main content area** (right):
-   - Statistics cards (if applicable)
+   - Breadcrumb navigation (using `PageBreadcrumb`)
+   - Statistics cards (if applicable) - using `GrayCard` component
    - Search/filter toolbar
    - Data table with column settings
    - Detail view (replaces table when item selected)
 
-Example: `HostManagement/index.tsx` demonstrates this pattern with:
-- `ResourceTree` component (sidebar)
+**Key example**: `HostManagement/index.tsx` demonstrates the selection state pattern with:
+- `ResourceTree` component (sidebar via `ResizableTreePanel`)
 - `StatisticsCards` component
 - `SearchFilter` + `HostTable` components
-- `HostDetail` component (detail view)
+- `HostDetail` component (detail view replaces table)
+- Selection state: `{ type: "all" | "cluster" | "host" | "vm", ... }`
 
 ### Component Organization
 
@@ -61,14 +75,72 @@ src/
 │           ├── [Feature]Table.tsx # Table components
 │           └── [Feature]Types.ts  # Type definitions
 ├── components/                    # Global shared components
-└── layouts/                       # Layout wrappers
+│   ├── LayoutBox/                 # Flex layout wrapper
+│   ├── GrayCard/                  # Card with gray background
+│   ├── Splitter/                  # Resizable panels wrapper
+│   ├── ResizableTreePanel/        # Tree sidebar with resize
+│   ├── VerticalTabs/              # Left-aligned tabs
+│   └── PageBreadcrumb/            # Breadcrumb navigation
+├── layouts/                       # Layout wrappers
+│   └── MainLayout.tsx             # Main layout with navigation
+├── api/                           # API layer
+│   ├── modules/                   # API modules by feature
+│   ├── request/                   # Axios instance and interceptors
+│   ├── config/                    # API configuration
+│   └── types.ts                   # Common API types
+├── utils/                         # Utility functions
+│   ├── auth.ts                    # Authentication utilities
+│   └── format.ts                  # Formatting utilities
+└── config/                        # Configuration files
+    └── env.ts                     # Environment configuration
 ```
 
 ### State Management
 
 - **React Hooks** for local state (useState, useCallback, useMemo)
 - **No global state library** - state lifted to parent components when needed
-- **Selection state pattern**: Used in HostManagement to track tree selection and navigate between list/detail views
+- **useRef pattern** for preventing duplicate data loads on mount (see AGENTS.md)
+- **Selection state pattern**: Complex union types for tracking selections (e.g., cluster/host/vm)
+
+### Data Loading Pattern (CRITICAL)
+
+**Always use `useRef` to prevent duplicate loads in React StrictMode:**
+
+```typescript
+const [data, setData] = useState([]);
+const hasLoadedRef = useRef(false);
+
+const loadData = async () => {
+  // NOT wrapped in useCallback to avoid dependency issues
+  // ... fetch logic
+};
+
+useEffect(() => {
+  if (!hasLoadedRef.current) {
+    hasLoadedRef.current = true;
+    loadData();
+  }
+}, []); // Empty deps for mount-only
+```
+
+### API Architecture
+
+**Modular API structure** organized by feature:
+- `src/api/modules/[feature]/index.ts` - API functions
+- `src/api/modules/[feature]/types.ts` - Feature-specific types
+- Centralized exports in `src/api/index.ts`
+- Axios interceptors handle auth tokens and error responses
+- Consistent response format: `{ code: number, message: string, data: T }`
+- Pagination format: `{ list: T[], total: number, page: number, pageSize: number }`
+
+### Authentication Flow
+
+- `AuthGuard` component wraps all protected routes
+- Token stored in localStorage (`token` key)
+- User info stored in localStorage (`userInfo` key)
+- Auth state flag: `isAuthenticated` in localStorage
+- Axios interceptor adds token to all requests
+- 401 responses trigger redirect to login
 
 ### Type Safety Rules
 
@@ -78,11 +150,12 @@ src/
 - Use `unknown` if type is truly unknown
 - Define type aliases for complex unions (e.g., `type DeviceRow = NetworkDevice | USBDevice | GPUDevice | CdromItem`)
 - When using Ant Design Table with union types, specify generic: `<Table<UnionType>>`
+- API responses are strongly typed with exported interfaces
 
 ### Ant Design 6.0 Specifics
 
 - **Deprecated props to avoid (CRITICAL - ALWAYS UPDATE)**:
-  - `tabPosition` → Use CSS or alternative layout
+  - `tabPosition` → Use CSS or alternative layout (or `tabPlacement="start"` for left tabs)
   - `bodyStyle` → Use `styles={{ body: {...} }}`
   - `bordered` → Use `variant="outlined"` (Card component)
   - `labelStyle` → Use `styles={{ label: {...} }}` (Descriptions component)
@@ -91,7 +164,7 @@ src/
 
 ### Mock Data Pattern
 
-Mock data stored in `src/api/mockData.ts` with typed interfaces. Components import and transform mock data as needed.
+Mock data stored in `src/api/mockData.ts` with typed interfaces. During development, components may use mock data before backend integration.
 
 ## Code Standards
 
@@ -112,7 +185,7 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. Components impo
 
 **Before using any new component, library, or unfamiliar API:**
 
-1. **Check latest documentation** using fetch MCP or duckduckgo MCP
+1. **Check latest documentation** using fetch MCP or web search
 2. **Verify compatibility** with current project versions (React 19, Ant Design 6.0)
 3. **Check for breaking changes** or deprecated features
 4. **Confirm API usage** matches the latest official documentation
@@ -123,10 +196,6 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. Components impo
 - Adding third-party libraries
 - Using updated APIs in existing libraries
 
-### Test-Driven Development - REQUIRED
-
- 
-
 ### Component Abstraction - AGGRESSIVE STRATEGY
 
 **Prioritize component abstraction and encapsulation:**
@@ -134,7 +203,6 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. Components impo
 - **Extract aggressively**: Create components even for 2+ occurrences of similar patterns
 - **Favor composition**: Build complex UIs from small, composable components
 - **Abstract early**: Don't wait for 3+ repetitions - abstract when you see potential reuse
-- **Sacrifice readability for reusability**: Acceptable to add abstraction layers for better maintainability
 - **Create utility components**: Extract repeated JSX patterns into dedicated components
 
 **Abstraction triggers:**
@@ -147,7 +215,7 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. Components impo
 
 **Before implementing any feature, follow this process:**
 
-1. **Search first**: Use Grep/Glob to search for similar functionality in the codebase 
+1. **Search first**: Use Grep/Glob to search for similar functionality in the codebase
 2. **Reuse existing**: If a suitable component exists, reuse it
 3. **Evaluate encapsulation**: If you find repeated patterns (2+ occurrences), create a shared component
 4. **Location strategy**:
@@ -155,11 +223,28 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. Components impo
    - Used within one page → `src/pages/[PageName]/components/` (local)
 5. **Component design**: Keep components small, focused, and properly typed
 
-**Examples of reusable patterns to look for:**
-- Table toolbars (search + action buttons)
-- Status tags with consistent styling
-- Modal forms with similar layouts
-- Data display cards
+**Reusable components available:**
+- `LayoutBox` - Flexbox layout wrapper
+- `GrayCard` - Card with gray background and title
+- `Splitter` - Resizable panel layout
+- `ResizableTreePanel` - Tree with resizable sidebar
+- `VerticalTabs` - Left-aligned vertical tabs
+- `PageBreadcrumb` - Breadcrumb navigation
+
+### UI Spacing Standards
+
+From AGENTS.md - maintain consistent spacing:
+- "共计 N 条数据" text: `margin-bottom: 8px` with 14px font size
+- Page content area: `padding: 12px`
+- Search box to toolbar: `marginBottom: 12px`
+- Toolbar to table: `marginBottom: 8px`
+
+### Missing Backend Data Handling
+
+**When backend doesn't provide a field:**
+- Display `<Tag color="default">暂未提供</Tag>`
+- Never fabricate fake data
+- Use Tag component to clearly indicate missing data
 
 ### Formatting
 
@@ -172,7 +257,7 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. Components impo
 - Functional components with TypeScript
 - PascalCase for component files
 - Break large components into smaller sub-components in `components/` subdirectory
-- Keep consistent spacing: "共计 N 条数据" text uses `margin-bottom: 8px`
+- Use CSS Modules or inline styles (not CSS-in-JS libraries)
 
 ## Git Workflow
 
@@ -200,15 +285,6 @@ type: brief description
 Optional detailed explanation of changes.
 ```
 
-**Example:**
-```
-fix: 修复 DeviceManagement 组件类型错误
-
-- 修复 Table 组件的 TypeScript 类型推断问题
-- 移除已弃用的 tabPosition 属性
-- 将 bodyStyle 替换为 styles.body
-```
-
 ### PR Requirements
 
 Must include:
@@ -229,10 +305,15 @@ Must include:
 - **React Router DOM 7.9.6** - Client-side routing
 - **ECharts 6.0.0** - Data visualization
 - **@dnd-kit** - Drag and drop functionality (used in FormSettings)
+- **Axios** - HTTP client
+- **Vitest** - Testing framework
+- **uuid** - Unique ID generation
 
 ## Important Files
 
-- `AGENTS.md` - AI assistant rules (no `any` types, component structure)
-- `.agent/rules.md` - Detailed development workflow and testing requirements
-- `src/router.tsx` - Route definitions
-- `src/layouts/MainLayout.tsx` - Main layout with navigation
+- `AGENTS.md` - AI assistant rules (no `any` types, data loading patterns, spacing standards)
+- `src/router.tsx` - Route definitions with nested routing
+- `src/layouts/MainLayout.tsx` - Main layout with two-level navigation
+- `src/api/index.ts` - Centralized API exports
+- `src/utils/format.ts` - Byte formatting, percentage calculation, date formatting
+- `src/components/` - Reusable components (check before creating new ones)

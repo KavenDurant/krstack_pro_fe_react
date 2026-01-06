@@ -54,8 +54,10 @@ export interface StorageAlarmThreshold {
 // 编辑列表（集群列表）
 export interface ClusterEditList {
   cluster_id: number;
+  cluster_uid: string;
   cluster_name: string;
   mount_status: boolean;
+  platform_type: "zstack" | "kr_cloud";
 }
 
 // 平台配置（用于添加外挂存储）
