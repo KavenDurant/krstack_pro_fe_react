@@ -17,6 +17,8 @@ import PhysicalMachine from "./components/PhysicalMachine";
 import StorageManagement from "./components/StorageManagement";
 import ImageManagement from "./components/ImageManagement";
 import VirtualDiskManagement from "./components/VirtualDiskManagement";
+import GPUManagement from "./components/GPUManagement";
+import USBManagement from "./components/USBManagement";
 import ClusterAddModal from "./components/ClusterAddModal";
 import { clusterApi } from "@/api";
 import type { Cluster } from "@/api";
@@ -29,11 +31,35 @@ const ROUTES = {
   STORAGE: "/storage",
   IMAGE: "/image",
   VIRTUAL_DISK: "/virtual-disk",
+  GPU: "/gpu",
+  USB: "/usb",
 } as const;
 
 // 检查是否为集群列表页面
 const isClusterListPage = (pathname: string): boolean => {
-  return !Object.values(ROUTES).some(route => pathname.includes(route));
+  // 精确匹配，避免匹配到 /external-storage, /internal-storage 等
+  const isHostRoute = pathname.includes(ROUTES.HOST);
+  // 修复：正确识别所有存储相关路由
+  const isStorageRoute =
+    pathname.includes("/external-storage") ||
+    pathname.includes("/internal-storage") ||
+    (pathname.includes("/storage") &&
+      (pathname.endsWith("/storage") ||
+        pathname.endsWith("/storage/") ||
+        pathname === "/resource-management/storage"));
+  const isImageRoute = pathname.includes(ROUTES.IMAGE);
+  const isVirtualDiskRoute = pathname.includes(ROUTES.VIRTUAL_DISK);
+  const isGPURoute = pathname.includes(ROUTES.GPU);
+  const isUSBRoute = pathname.includes(ROUTES.USB);
+
+  return !(
+    isHostRoute ||
+    isStorageRoute ||
+    isImageRoute ||
+    isVirtualDiskRoute ||
+    isGPURoute ||
+    isUSBRoute
+  );
 };
 
 const ResourceManagement: React.FC = () => {
@@ -201,9 +227,12 @@ const ResourceManagement: React.FC = () => {
   // 更精确的路由匹配逻辑
   const isStorageRoute = (pathname: string): boolean => {
     return (
-      pathname.includes("/storage") ||
       pathname.includes("/external-storage") ||
-      pathname.includes("/internal-storage")
+      pathname.includes("/internal-storage") ||
+      (pathname.includes("/storage") &&
+        (pathname.endsWith("/storage") ||
+          pathname.endsWith("/storage/") ||
+          pathname === "/resource-management/storage"))
     );
   };
 
@@ -213,6 +242,14 @@ const ResourceManagement: React.FC = () => {
       pathname.includes("/system-image") ||
       pathname.includes("/template-image")
     );
+  };
+
+  const isGPURoute = (pathname: string): boolean => {
+    return pathname.includes("/gpu");
+  };
+
+  const isUSBRoute = (pathname: string): boolean => {
+    return pathname.includes("/usb");
   };
 
   return (
@@ -256,6 +293,10 @@ const ResourceManagement: React.FC = () => {
             <ImageManagement />
           ) : location.pathname.includes(ROUTES.VIRTUAL_DISK) ? (
             <VirtualDiskManagement />
+          ) : isGPURoute(location.pathname) ? (
+            <GPUManagement />
+          ) : isUSBRoute(location.pathname) ? (
+            <USBManagement />
           ) : (
             renderContent()
           )}

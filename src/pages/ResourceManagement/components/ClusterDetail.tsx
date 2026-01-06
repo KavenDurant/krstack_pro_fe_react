@@ -8,7 +8,6 @@ import {
   Table,
   Input,
   Space,
-  Tag,
   message,
 } from "antd";
 import {
@@ -71,22 +70,6 @@ const columns: ColumnsType<PhysicalMachineType> = [
     dataIndex: "memTotal",
     key: "memTotal",
     render: (value: number) => bytesToGB(value),
-  },
-  {
-    title: "虚拟化平台",
-    key: "platform",
-    render: () => <Tag color="default">暂未提供</Tag>,
-  },
-  {
-    title: "ipmi地址",
-    key: "ipmi",
-    render: () => <Tag color="default">暂未提供</Tag>,
-  },
-  {
-    title: "本机存储",
-    key: "storage",
-    width: 200,
-    render: () => <Tag color="default">暂未提供</Tag>,
   },
 ];
 

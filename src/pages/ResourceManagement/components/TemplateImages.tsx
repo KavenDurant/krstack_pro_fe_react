@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Table, Input, Button, Space, Dropdown } from "antd";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Table, Input, Button, Space, Dropdown, message } from "antd";
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -11,6 +11,9 @@ import {
   CodeOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { imageApi } from "@/api";
+import type { TemplateImage } from "@/api";
+import { formatFileSize, formatDateTime } from "@/utils/format";
 
 interface ImageType {
   key: string;
@@ -22,29 +25,65 @@ interface ImageType {
   uploadTime: string;
 }
 
-const mockData: ImageType[] = [
-  {
-    key: "1",
-    name: "template-centos-7",
-    os: "centos",
-    format: "QCOW2",
-    size: "20 GB",
-    location: "data112",
-    uploadTime: "2025-08-10 10:00:00",
-  },
-  {
-    key: "2",
-    name: "template-win10",
-    os: "Windows",
-    format: "QCOW2",
-    size: "40 GB",
-    location: "data113",
-    uploadTime: "2025-08-11 11:30:00",
-  },
-];
-
 const TemplateImages: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [imageData, setImageData] = useState<ImageType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const hasLoadedRef = useRef(false);
+
+  // 数据转换函数：将后端数据转换为前端格式
+  const transformImageData = (data: TemplateImage[]): ImageType[] => {
+    return data.map(item => ({
+      key: item.image_uid,
+      name: item.name || "-",
+      os: item.os_type || "—",
+      format: item.format || "—",
+      size: item.size ? formatFileSize(item.size) : "—",
+      location: item.storage || "—",
+      uploadTime: item.updated_at ? formatDateTime(item.updated_at) : "—",
+    }));
+  };
+
+  // 加载模板镜像列表
+  const loadTemplateImageList = async () => {
+    try {
+      setLoading(true);
+      const response = await imageApi.getTemplateImageList();
+      if (response.code === 200) {
+        const transformedData = transformImageData(response.data);
+        setImageData(transformedData);
+      } else {
+        message.error(response.message || "获取模板镜像列表失败");
+      }
+    } catch (error) {
+      message.error("获取模板镜像列表失败");
+      console.error("Failed to load template image list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始加载 - 使用 ref 防止重复请求
+  useEffect(() => {
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      loadTemplateImageList();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 刷新列表
+  const handleRefresh = () => {
+    loadTemplateImageList();
+  };
+
+  // 过滤数据
+  const filteredData = useMemo(() => {
+    return imageData.filter(item =>
+      item.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [imageData, searchText]);
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
     setSelectedRowKeys(newSelectedRowKeys);
@@ -73,32 +112,41 @@ const TemplateImages: React.FC = () => {
       title: "操作系统",
       dataIndex: "os",
       key: "os",
-      render: text => (
-        <Space>
-          {getOsIcon(text)}
-          <span>{text}</span>
-        </Space>
-      ),
+      render: (text: string) => {
+        if (!text || text === "-" || text === "—") {
+          return "—";
+        }
+        return (
+          <Space>
+            {getOsIcon(text)}
+            <span>{text}</span>
+          </Space>
+        );
+      },
     },
     {
       title: "格式",
       dataIndex: "format",
       key: "format",
+      render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
       title: "大小",
       dataIndex: "size",
       key: "size",
+      render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
       title: "存放位置",
       dataIndex: "location",
       key: "location",
+      render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
       title: "上传时间",
       dataIndex: "uploadTime",
       key: "uploadTime",
+      render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
       title: "操作",
@@ -146,6 +194,8 @@ const TemplateImages: React.FC = () => {
           placeholder="名称"
           prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
           style={{ width: 300 }}
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
         />
         <div style={{ display: "flex", gap: 8 }}>
           <Button icon={<DeleteOutlined />} disabled>
@@ -154,7 +204,11 @@ const TemplateImages: React.FC = () => {
           <Button type="primary" icon={<PlusOutlined />}>
             上传
           </Button>
-          <Button icon={<ReloadOutlined />} />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={handleRefresh}
+            loading={loading}
+          />
           <Button icon={<SettingOutlined />} />
         </div>
       </div>
@@ -167,15 +221,16 @@ const TemplateImages: React.FC = () => {
           lineHeight: 1.4,
         }}
       >
-        共计 {mockData.length} 条数据 已选 {selectedRowKeys.length} 条
+        共计 {filteredData.length} 条数据 已选 {selectedRowKeys.length} 条
       </div>
 
       <Table
         rowSelection={rowSelection}
         columns={columns}
-        dataSource={mockData}
+        dataSource={filteredData}
+        loading={loading}
         pagination={{
-          total: mockData.length,
+          total: filteredData.length,
           showTotal: total => `共 ${total} 条`,
           defaultPageSize: 10,
           showSizeChanger: true,

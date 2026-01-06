@@ -25,7 +25,10 @@
       "Bash(xargs basename)",
       "Bash(git checkout -b feature/claude-skills)",
       "Bash(git add .claude/skills)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(npm run format:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run format:check:*)"
     ],
     "deny": [],
     "ask": []

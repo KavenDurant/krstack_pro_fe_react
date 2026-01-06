@@ -17,12 +17,12 @@ const breadcrumbMap: Record<string, { title: string }[]> = {
   "/resource-management/gpu": [
     { title: "资源管理" },
     { title: "硬件管理" },
-    { title: "GPU管理" },
+    { title: "GPU管理 (Mock数据)" },
   ],
   "/resource-management/usb": [
     { title: "资源管理" },
     { title: "硬件管理" },
-    { title: "USB管理" },
+    { title: "USB管理 (Mock数据)" },
   ],
   "/resource-management/storage": [
     { title: "资源管理" },
