@@ -3,7 +3,11 @@
  */
 import request from "./instance";
 import type { AxiosRequestConfig } from "axios";
-import type { ApiResponse, PaginatedResponse, RequestConfig } from "@/api/types";
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  RequestConfig,
+} from "@/api/types";
 
 // 扩展的请求配置类型
 type ExtendedRequestConfig = AxiosRequestConfig & RequestConfig;
