@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useTableScrollHeight } from "@/hooks";
 import { Table, Input, Button, Space, Modal, message, Tooltip } from "antd";
 import { useLocation } from "react-router-dom";
 import {
@@ -180,6 +181,9 @@ const SystemImages: React.FC = () => {
     );
   }, [imageData, searchText]);
 
+  // 动态计算表格滚动区域高度
+  const tableScrollY = useTableScrollHeight({ pageSize: pagination.pageSize });
+
   // 搜索时重置到第1页
   useEffect(() => {
     setPagination(prev => ({ ...prev, current: 1 }));
@@ -350,7 +354,7 @@ const SystemImages: React.FC = () => {
       <div
         style={{
           flex: 1,
-          overflow: "auto",
+          minHeight: 0,
         }}
       >
         <Table
@@ -371,6 +375,7 @@ const SystemImages: React.FC = () => {
           }}
           scroll={{
             x: 1100,
+            ...(tableScrollY ? { y: tableScrollY } : {}),
           }}
           rowKey="key"
         />
