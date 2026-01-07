@@ -14,7 +14,7 @@ import type {
   SmbCifsPathParams,
   SmbCifsPathOption,
   StorageContentQuery,
-  StorageContent,
+  StorageContentResponse,
 } from "./types";
 
 const URL = {
@@ -122,8 +122,8 @@ export const updateStorageAlarmThreshold = async (
  */
 export const getStorageContent = async (
   data: StorageContentQuery
-): Promise<ApiResponse<StorageContent[]>> => {
-  return post<StorageContent[]>(URL.content, data);
+): Promise<ApiResponse<StorageContentResponse>> => {
+  return post<StorageContentResponse>(URL.content, data);
 };
 
 // ========== 辅助接口 ==========

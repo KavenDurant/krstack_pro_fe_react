@@ -105,4 +105,10 @@ export interface StorageContent {
   content: string;
   overview: string;
   storage?: string;
+  platform_type?: "zstack" | "kr_cloud";
+}
+
+// 存储内容响应
+export interface StorageContentResponse {
+  cluster_storages: StorageContent[];
 }

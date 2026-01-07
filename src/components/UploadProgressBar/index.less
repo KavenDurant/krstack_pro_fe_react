@@ -1,0 +1,140 @@
+.upload-progress-container {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 1000;
+  width: 360px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+
+  // 滚动条样式
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+.upload-progress-card {
+  transition: all 0.3s ease;
+
+  &.minimized {
+    .upload-progress-minimized {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+  }
+}
+
+.upload-progress-minimized {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .file-icon {
+    font-size: 16px;
+    margin-right: 8px;
+  }
+
+  .file-name {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.65);
+    min-width: 45px;
+    text-align: right;
+  }
+}
+
+.upload-progress-expanded {
+  .upload-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .upload-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.85);
+    }
+  }
+
+  .upload-progress-content {
+    .file-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+
+      .file-icon {
+        font-size: 18px;
+      }
+
+      .file-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.85);
+        font-weight: 500;
+      }
+
+      .file-size {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+    }
+
+    .upload-progress-info {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.65);
+      margin-top: 8px;
+
+      strong {
+        color: rgba(0, 0, 0, 0.85);
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// 动画效果
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.upload-progress-card {
+  animation: slideInRight 0.3s ease-out;
+}
