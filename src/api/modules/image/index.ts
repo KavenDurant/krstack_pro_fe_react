@@ -2,6 +2,7 @@
  * 镜像管理相关 API
  */
 import { get, post } from "@/api/request/index";
+import request from "@/api/request/instance";
 import type { ApiResponse } from "@/api/types";
 import type {
   SystemImage,
@@ -51,26 +52,55 @@ export const deleteSystemImage = async (
  * 上传镜像
  * @param type - 上传类型: 'internal' | 'external'
  * @param storageUid - 存储 UID
- * @param data - 镜像数据
+ * @param formData - FormData 对象（包含文件和其他字段）
  * @param config - 上传配置（包含 onUploadProgress 等）
  */
 export const uploadImage = async (
   type: "internal" | "external",
   storageUid: string,
-  data: UploadImageParams,
+  formData: FormData,
   config?: {
     onUploadProgress?: (progressEvent: {
       loaded: number;
       total?: number;
+      timeStamp?: number;
     }) => void;
     [key: string]: unknown;
   }
 ): Promise<ApiResponse<null>> => {
-  return post<null>(
-    `/api/images/system/upload/${type}/${storageUid}`,
-    data,
-    config
-  );
+  // 直接使用 request 实例发送 FormData
+  return request
+    .post(`/api/images/system/upload/${type}/${storageUid}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: config?.onUploadProgress
+        ? (progressEvent: {
+            loaded: number;
+            total?: number;
+            timeStamp?: number;
+          }) => {
+            // 添加时间戳用于速度计算
+            const progressWithTime = {
+              ...progressEvent,
+              timeStamp: Date.now(),
+            };
+            config.onUploadProgress?.(progressWithTime);
+          }
+        : undefined,
+      ...config,
+    })
+    .then(res => {
+      // 处理响应格式
+      if (res.data && typeof res.data === "object" && "code" in res.data) {
+        return res.data as ApiResponse<null>;
+      }
+      return {
+        code: 200,
+        message: "success",
+        data: null,
+      } as ApiResponse<null>;
+    });
 };
 
 // ========== 模板镜像管理 ==========

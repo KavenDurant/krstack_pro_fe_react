@@ -9,7 +9,7 @@ export interface TemplateDetailType {
   cluster_id: number;
 }
 
-// 磁盘镜像
+// 磁盘镜像基础类型
 export interface DiskImage {
   image_uid: string; // 镜像唯一标识符
   storage_uid: string; // 存储唯一标识符
@@ -39,9 +39,11 @@ export interface TemplateImage extends DiskImage {
   [key: string]: unknown;
 }
 
-// 删除镜像参数
+// 删除镜像参数 - 使用 images 数组格式
 export interface DeleteImageParams {
-  image_uids: string[];
+  images: Array<{
+    image_uid: string;
+  }>;
 }
 
 // 上传镜像参数
@@ -79,4 +81,25 @@ export interface TemplateDescriptionParams {
 export interface TemplateDescription {
   description: string;
   [key: string]: unknown;
+}
+
+// 镜像列表响应数据（与后端返回格式匹配）
+export interface ImageListResponseData<T extends SystemImage | TemplateImage> {
+  images: T[];
+  ancestor_trees?: Array<{
+    title: string;
+    value: string;
+    children?: unknown[];
+  }>;
+}
+
+// 删除镜像响应数据
+export interface DeleteImageResponseData {
+  delete_images_succeed: Array<{
+    image_uid: string;
+  }>;
+  delete_images_failed: Array<{
+    image_uid: string;
+    error?: string;
+  }>;
 }

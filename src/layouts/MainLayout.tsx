@@ -29,6 +29,7 @@ import {
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { getUserInfo, logout } from "@/utils/auth";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
+import UploadProgressBar from "@/components/UploadProgressBar";
 import type { UserInfo } from "@/api";
 
 const { Header, Sider, Content } = Layout;
@@ -371,6 +372,9 @@ const MainLayout: React.FC = () => {
         username={userInfo?.user_name || "admin"}
         onCancel={() => setChangePasswordModalOpen(false)}
       />
+
+      {/* 全局上传进度条 */}
+      <UploadProgressBar />
     </>
   );
 };

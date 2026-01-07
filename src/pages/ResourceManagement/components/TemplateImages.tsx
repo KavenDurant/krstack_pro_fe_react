@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Table, Input, Button, Modal, message, Tooltip } from "antd";
 import { useLocation } from "react-router-dom";
 import {
@@ -25,6 +25,8 @@ interface ImageType {
 
 const TemplateImages: React.FC = () => {
   const location = useLocation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [tableHeight, setTableHeight] = useState<number>(400);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [selectedRows, setSelectedRows] = useState<TemplateImage[]>([]);
   const [imageData, setImageData] = useState<ImageType[]>([]);
@@ -65,6 +67,34 @@ const TemplateImages: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const recalcHeight = () => {
+      if (!containerRef.current) return;
+      const container = containerRef.current;
+      const availableHeight = container.clientHeight;
+      const toolbarHeight = 60;
+      const infoBarHeight = 30;
+      const padding = 24;
+      const rowHeight = 54;
+      const headerHeight = 55;
+      const maxRows = 10;
+      const maxHeight = rowHeight * maxRows + headerHeight;
+      const calculatedHeight = Math.min(
+        maxHeight,
+        Math.max(300, availableHeight - toolbarHeight - infoBarHeight - padding)
+      );
+      setTableHeight(calculatedHeight);
+    };
+
+    recalcHeight();
+    const timer = setTimeout(recalcHeight, 100);
+    window.addEventListener("resize", recalcHeight);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", recalcHeight);
+    };
+  }, [imageData]);
 
   useEffect(() => {
     if (location.pathname.includes("template-image")) {
@@ -215,6 +245,7 @@ const TemplateImages: React.FC = () => {
 
   return (
     <div
+      ref={containerRef}
       style={{
         height: "100%",
         display: "flex",
@@ -275,7 +306,9 @@ const TemplateImages: React.FC = () => {
         dataSource={filteredData}
         loading={loading}
         pagination={false}
-        scroll={{ y: "calc(100vh - 350px)", x: 800 }}
+        scroll={
+          filteredData.length > 10 ? { x: 800, y: tableHeight } : { x: 800 }
+        }
         rowKey="key"
       />
 

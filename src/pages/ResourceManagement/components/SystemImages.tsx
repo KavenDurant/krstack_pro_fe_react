@@ -14,6 +14,7 @@ import type { ColumnsType } from "antd/es/table";
 import { imageApi } from "@/api";
 import type { SystemImage } from "@/api/modules/image/types";
 import { formatFileSize, formatDateTime } from "@/utils/format";
+import UploadImageModal from "./UploadImageModal";
 
 interface ImageType {
   key: string;
@@ -37,6 +38,8 @@ const SystemImages: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const pollingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const transformImageData = (data: SystemImage[]): ImageType[] => {
@@ -85,7 +88,9 @@ const SystemImages: React.FC = () => {
       clearInterval(pollingTimerRef.current);
     }
     const timer = setInterval(() => {
-      loadSystemImageList();
+      if (location.pathname.includes("system-image")) {
+        loadSystemImageList();
+      }
     }, 60000);
     pollingTimerRef.current = timer;
   };
@@ -98,12 +103,15 @@ const SystemImages: React.FC = () => {
   };
 
   useEffect(() => {
-    startPolling();
+    // 只在系统镜像页面启动定时刷新
+    if (location.pathname.includes("system-image")) {
+      startPolling();
+    }
     return () => {
       stopPolling();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.pathname]);
 
   const handleRefresh = () => {
     loadSystemImageList();
@@ -172,6 +180,11 @@ const SystemImages: React.FC = () => {
     );
   }, [imageData, searchText]);
 
+  // 搜索时重置到第1页
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, current: 1 }));
+  }, [searchText]);
+
   const onSelectChange = (
     newSelectedRowKeys: React.Key[],
     newSelectedRows: ImageType[]
@@ -210,6 +223,8 @@ const SystemImages: React.FC = () => {
       title: "名称",
       dataIndex: "name",
       key: "name",
+      width: 250,
+      fixed: "left",
       ellipsis: true,
       render: (text: string) => (
         <Tooltip title={text || "-"} placement="topLeft">
@@ -249,13 +264,14 @@ const SystemImages: React.FC = () => {
       title: "上传时间",
       dataIndex: "uploadTime",
       key: "uploadTime",
-      width: 250,
+      width: 180,
       render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
       title: "操作系统",
       dataIndex: "os",
       key: "os",
+      width: 150,
       render: (text: string) => {
         if (!text || text === "-" || text === "—" || text === "unknown") {
           return "其他";
@@ -272,6 +288,7 @@ const SystemImages: React.FC = () => {
       title: "操作",
       key: "operation",
       width: 100,
+      fixed: "right",
       align: "center" as const,
       render: (_: unknown, record: ImageType) => (
         <span
@@ -292,6 +309,7 @@ const SystemImages: React.FC = () => {
         flexDirection: "column",
         padding: "12px",
         background: "#fff",
+        overflow: "hidden",
       }}
     >
       <div
@@ -318,7 +336,9 @@ const SystemImages: React.FC = () => {
           >
             删除
           </Button>
-          <Button type="primary">上传</Button>
+          <Button type="primary" onClick={() => setUploadModalVisible(true)}>
+            上传
+          </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
@@ -329,27 +349,32 @@ const SystemImages: React.FC = () => {
 
       <div
         style={{
-          fontSize: 14,
-          color: "rgba(0, 0, 0, 0.6)",
-          marginBottom: 8,
+          flex: 1,
+          overflow: "auto",
         }}
       >
-        共&nbsp;
-        <span style={{ color: "#1890ff" }}>{imageData.length}</span>
-        &nbsp;项数据&nbsp;&nbsp;已选&nbsp;
-        <span style={{ color: "#1890ff" }}>{selectedRowKeys.length}</span>
-        &nbsp;项
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={filteredData}
+          loading={loading}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            showSizeChanger: true,
+            showTotal: (total, range) =>
+              `共 ${total} 条数据，当前显示 ${range[0]}-${range[1]} 条`,
+            pageSizeOptions: ["10", "20", "50", "100"],
+            onChange: (page, pageSize) => {
+              setPagination({ current: page, pageSize });
+            },
+          }}
+          scroll={{
+            x: 1100,
+          }}
+          rowKey="key"
+        />
       </div>
-
-      <Table
-        rowSelection={rowSelection}
-        columns={columns}
-        dataSource={filteredData}
-        loading={loading}
-        pagination={false}
-        scroll={{ y: "calc(100vh - 350px)" }}
-        rowKey="key"
-      />
 
       <Modal
         title="删除"
@@ -362,6 +387,16 @@ const SystemImages: React.FC = () => {
       >
         <p>是否要删除系统镜像？</p>
       </Modal>
+
+      <UploadImageModal
+        open={uploadModalVisible}
+        onCancel={() => setUploadModalVisible(false)}
+        onSuccess={() => {
+          setUploadModalVisible(false);
+          // 上传成功后立即刷新列表
+          loadSystemImageList();
+        }}
+      />
     </div>
   );
 };
