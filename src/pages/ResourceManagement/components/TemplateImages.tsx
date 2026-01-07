@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useTableScrollHeight } from "@/hooks";
 import { Table, Input, Button, Modal, message, Tooltip } from "antd";
 import { useLocation } from "react-router-dom";
 import {
@@ -25,8 +26,6 @@ interface ImageType {
 
 const TemplateImages: React.FC = () => {
   const location = useLocation();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [tableHeight, setTableHeight] = useState<number>(400);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [selectedRows, setSelectedRows] = useState<TemplateImage[]>([]);
   const [imageData, setImageData] = useState<ImageType[]>([]);
@@ -34,6 +33,7 @@ const TemplateImages: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const transformImageData = (data: TemplateImage[]): ImageType[] => {
     return data.map(item => ({
@@ -69,39 +69,23 @@ const TemplateImages: React.FC = () => {
   };
 
   useEffect(() => {
-    const recalcHeight = () => {
-      if (!containerRef.current) return;
-      const container = containerRef.current;
-      const availableHeight = container.clientHeight;
-      const toolbarHeight = 60;
-      const infoBarHeight = 30;
-      const padding = 24;
-      const rowHeight = 54;
-      const headerHeight = 55;
-      const maxRows = 10;
-      const maxHeight = rowHeight * maxRows + headerHeight;
-      const calculatedHeight = Math.min(
-        maxHeight,
-        Math.max(300, availableHeight - toolbarHeight - infoBarHeight - padding)
-      );
-      setTableHeight(calculatedHeight);
-    };
-
-    recalcHeight();
-    const timer = setTimeout(recalcHeight, 100);
-    window.addEventListener("resize", recalcHeight);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", recalcHeight);
-    };
-  }, [imageData]);
-
-  useEffect(() => {
     if (location.pathname.includes("template-image")) {
       loadTemplateImageList();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  // 动态计算表格滚动区域高度
+  // 模板镜像有额外的数据统计条（infoBarHeight ≈ 30px）
+  const tableScrollY = useTableScrollHeight({
+    pageSize: pagination.pageSize,
+    extraOffset: 180, // 150 + 30 (数据统计条)
+  });
+
+  // 搜索时重置到第1页
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, current: 1 }));
+  }, [searchText]);
 
   const handleRefresh = () => {
     loadTemplateImageList();
@@ -245,13 +229,13 @@ const TemplateImages: React.FC = () => {
 
   return (
     <div
-      ref={containerRef}
       style={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
         padding: "12px",
         background: "#fff",
+        overflow: "hidden",
       }}
     >
       <div
@@ -305,10 +289,21 @@ const TemplateImages: React.FC = () => {
         columns={columns}
         dataSource={filteredData}
         loading={loading}
-        pagination={false}
-        scroll={
-          filteredData.length > 10 ? { x: 800, y: tableHeight } : { x: 800 }
-        }
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          showSizeChanger: true,
+          showTotal: (total, range) =>
+            `共 ${total} 条数据，当前显示 ${range[0]}-${range[1]} 条`,
+          pageSizeOptions: ["10", "20", "50", "100"],
+          onChange: (page, pageSize) => {
+            setPagination({ current: page, pageSize });
+          },
+        }}
+        scroll={{
+          x: 800,
+          ...(tableScrollY ? { y: tableScrollY } : {}),
+        }}
         rowKey="key"
       />
 
