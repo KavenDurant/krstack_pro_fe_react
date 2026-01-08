@@ -11,7 +11,7 @@ import TableToolbar from "@/components/__design-system__/TableToolbar";
 import StandardTable from "@/components/__design-system__/StandardTable";
 import EditExternalStorageModal from "./EditExternalStorageModal";
 import { storageApi } from "@/api";
-import type { ExternalStorage } from "@/api";
+import type { ExternalStorage as ExternalStorageApi } from "@/api";
 import { calculatePercentage, formatBytesWithUnit } from "@/utils/format";
 
 interface ExternalStorageType {
@@ -48,7 +48,7 @@ const ExternalStorage: React.FC = () => {
 
   // 数据转换函数：将后端数据转换为前端格式
   const transformStorageData = (
-    data: ExternalStorage[]
+    data: ExternalStorageApi[]
   ): ExternalStorageType[] => {
     return data.map(item => {
       // 保留原始字节数据，渲染时再格式化
@@ -75,7 +75,10 @@ const ExternalStorage: React.FC = () => {
       const clusters =
         item.clusters && Array.isArray(item.clusters)
           ? item.clusters
-              .map(cluster => cluster.cluster_name)
+              .map(
+                (cluster: { cluster_name?: string }) =>
+                  cluster.cluster_name || ""
+              )
               .filter((name): name is string => Boolean(name))
           : [];
 
@@ -102,7 +105,8 @@ const ExternalStorage: React.FC = () => {
 
       const storages =
         response.data?.storages ??
-        (response as unknown as { storages?: ExternalStorage[] }).storages;
+        (response as unknown as { storages?: ExternalStorageApi[] })
+          .storages;
       if (storages && Array.isArray(storages)) {
         const transformedData = transformStorageData(storages);
         setStorageData(transformedData);
@@ -121,7 +125,7 @@ const ExternalStorage: React.FC = () => {
 
       const dataPayload =
         errorObj.data && typeof errorObj.data === "object"
-          ? (errorObj.data as { storages?: ExternalStorage[] })
+          ? (errorObj.data as { storages?: ExternalStorageApi[] })
           : undefined;
 
       const storages = dataPayload?.storages;

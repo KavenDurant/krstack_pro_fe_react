@@ -65,29 +65,30 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
       setLoading(true);
       if (import.meta.env.DEV) {
         const vms = Array.from({ length: 100 }).map((_, index) => {
-          const vmId = 100 + index;
+          const vmIdValue = 100 + index;
           const running = index % 4 === 0;
 
           return {
-            id: `qemu/${vmId}`,
-            name: `mock-vm-${vmId}`,
-            vm_uid: btoa(
+            nodeUid: node.uid,
+            id: `qemu/${vmIdValue}`,
+            name: `mock-vm-${vmIdValue}`,
+            vmId: vmIdValue,
+            vmUid: btoa(
               JSON.stringify({
                 cluster_id: 2,
                 node_name: "host237",
-                vm_id: vmId,
+                vm_id: vmIdValue,
               })
             ),
-            status: running ? "running" : "stopped",
-            cluster_id: 2,
-            cluster_name: "cluster237",
-            node_name: "host237",
-            cpu_total: [2, 4, 8][index % 3],
-            mem_total: [2147483648, 4294967296, 8589934592, 10737418240][
+            status: (running ? "Running" : "Stopped") as "Running" | "Stopped",
+            clusterId: 2,
+            nodeName: "host237",
+            cpuTotal: [2, 4, 8][index % 3],
+            memTotal: [2147483648, 4294967296, 8589934592, 10737418240][
               index % 4
             ],
             ip: running ? `192.168.1.${index + 10}` : "",
-            os_type: index % 3 === 0 ? "Windows" : "Linux",
+            osType: index % 3 === 0 ? "Windows" : "Linux",
           };
         });
 

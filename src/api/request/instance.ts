@@ -13,6 +13,7 @@ import { message } from "antd";
 import type { ApiResponse, RequestConfig } from "@/api/types";
 import {
   API_CONFIG,
+  API_PREFIX,
   HTTP_STATUS,
   BUSINESS_CODE,
   STORAGE_KEY,
@@ -38,6 +39,11 @@ const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const customConfig = config as InternalAxiosRequestConfig & RequestConfig;
+
+    // 自动添加 API 前缀（如果 URL 中没有 /api/ 前缀）
+    if (config.url && !config.url.startsWith("/api/")) {
+      config.url = `${API_PREFIX}${config.url}`;
+    }
 
     // 从 localStorage 获取 token
     const token = localStorage.getItem(STORAGE_KEY.TOKEN);

@@ -1,8 +1,7 @@
-import React from "react";
 import { Form, type FormProps } from "antd";
 import { tokens } from "@/styles/tokens";
 
-interface StandardFormProps extends FormProps {
+interface StandardFormProps extends Omit<FormProps, "children"> {
   width?: "sm" | "md" | "lg" | "full";
 }
 

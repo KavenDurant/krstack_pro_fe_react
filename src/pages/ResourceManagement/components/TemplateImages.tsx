@@ -1,15 +1,29 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTableScrollHeight } from "@/hooks";
-import { Table, Input, Button, Modal, message, Tooltip } from "antd";
+import {
+  Table,
+  Input,
+  Button,
+  Modal,
+  message,
+  Tooltip,
+  Drawer,
+  Descriptions,
+  Tag,
+} from "antd";
 import { useLocation } from "react-router-dom";
 import {
   SearchOutlined,
   ReloadOutlined,
   DeleteOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { imageApi } from "@/api";
-import type { TemplateImage } from "@/api/modules/image/types";
+import type {
+  TemplateImage,
+  TemplateImageDetail,
+} from "@/api/modules/image/types";
 import { formatFileSize } from "@/utils/format";
 
 interface ImageType {
@@ -34,6 +48,19 @@ const TemplateImages: React.FC = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+
+  // 详情抽屉相关状态
+  const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
+  const [detailData, setDetailData] = useState<TemplateImageDetail | null>(
+    null
+  );
+  const [detailLoading, setDetailLoading] = useState(false);
+  const detailLoadingRef = useRef(false);
+
+  // 备注编辑相关状态
+  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState("");
+  const [descriptionSubmitting, setDescriptionSubmitting] = useState(false);
 
   const transformImageData = (data: TemplateImage[]): ImageType[] => {
     return data.map(item => ({
@@ -148,6 +175,77 @@ const TemplateImages: React.FC = () => {
     setDeleteModalVisible(true);
   };
 
+  // 打开详情抽屉
+  const handleShowDetail = async (record: ImageType) => {
+    setDetailDrawerVisible(true);
+    setDetailLoading(true);
+
+    // 使用 ref 防止重复加载
+    if (detailLoadingRef.current) {
+      return;
+    }
+    detailLoadingRef.current = true;
+
+    try {
+      const response = await imageApi.getTemplateImageDetail(record.image_uid);
+      if (response && response.data) {
+        setDetailData(response.data);
+      } else {
+        message.error("获取镜像详情失败");
+        setDetailDrawerVisible(false);
+      }
+    } catch (error) {
+      message.error("获取镜像详情失败");
+      console.error("Failed to load template image detail:", error);
+      setDetailDrawerVisible(false);
+    } finally {
+      setDetailLoading(false);
+      detailLoadingRef.current = false;
+    }
+  };
+
+  // 关闭详情抽屉时重置 ref
+  const handleDetailDrawerClose = () => {
+    setDetailDrawerVisible(false);
+    setDetailData(null);
+    detailLoadingRef.current = false;
+  };
+
+  // 打开备注编辑弹窗
+  const handleEditDescription = () => {
+    setDescriptionValue(detailData?.description || "");
+    setDescriptionModalVisible(true);
+  };
+
+  // 提交备注修改
+  const handleSubmitDescription = async () => {
+    if (!detailData) return;
+
+    setDescriptionSubmitting(true);
+    try {
+      const response = await imageApi.setTemplateDescription(
+        detailData.image_uid,
+        { description: descriptionValue }
+      );
+
+      if (response && response.code === 200) {
+        message.success("修改模版镜像备注成功！");
+        // 更新详情数据中的备注
+        setDetailData(prev =>
+          prev ? { ...prev, description: descriptionValue } : null
+        );
+        setDescriptionModalVisible(false);
+      } else {
+        message.error(response.message || "修改备注失败");
+      }
+    } catch (error) {
+      message.error("修改备注失败");
+      console.error("Failed to update description:", error);
+    } finally {
+      setDescriptionSubmitting(false);
+    }
+  };
+
   const filteredData = useMemo(() => {
     return imageData.filter(item =>
       item.name.toLowerCase().includes(searchText.toLowerCase())
@@ -184,9 +282,14 @@ const TemplateImages: React.FC = () => {
       key: "name",
       ellipsis: true,
       width: 160,
-      render: (text: string) => (
+      render: (text: string, record: ImageType) => (
         <Tooltip title={text || "-"} placement="topLeft">
-          <span style={{ color: "#333" }}>{text || "-"}</span>
+          <span
+            style={{ color: "#1890ff", cursor: "pointer" }}
+            onClick={() => handleShowDetail(record)}
+          >
+            {text || "-"}
+          </span>
         </Tooltip>
       ),
     },
@@ -317,6 +420,102 @@ const TemplateImages: React.FC = () => {
         confirmLoading={deleteLoading}
       >
         <p>是否要删除模板镜像？</p>
+      </Modal>
+
+      {/* 详情抽屉 */}
+      <Drawer
+        title="模版镜像详情"
+        placement="right"
+        styles={{
+          wrapper: { width: 600 },
+          body: { overflowY: "auto" },
+        }}
+        open={detailDrawerVisible}
+        onClose={handleDetailDrawerClose}
+        loading={detailLoading}
+      >
+        {detailData && (
+          <Descriptions column={1} bordered size="small">
+            <Descriptions.Item label="镜像名称">
+              {detailData.name || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="格式">
+              {detailData.format || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="存储">
+              {detailData.storage || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="集群">
+              {detailData.cluster_name || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="节点">
+              {detailData.node || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="平台类型">
+              {detailData.platform_type || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="CPU">
+              {detailData.cpu_total ?? "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="内存">
+              {detailData.mem_total
+                ? formatFileSize(detailData.mem_total)
+                : "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="磁盘">
+              {detailData.disk_total
+                ? formatFileSize(detailData.disk_total)
+                : "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="MAC地址">
+              {detailData.mac || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="更新时间">
+              {detailData.updated_at || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="备注">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span style={{ flex: 1 }}>
+                  {detailData.description ? (
+                    detailData.description
+                  ) : (
+                    <Tag color="default">-</Tag>
+                  )}
+                </span>
+                <EditOutlined
+                  style={{ color: "#1890ff", cursor: "pointer" }}
+                  onClick={handleEditDescription}
+                />
+              </div>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Drawer>
+
+      {/* 备注编辑弹窗 */}
+      <Modal
+        title="修改备注"
+        open={descriptionModalVisible}
+        onOk={handleSubmitDescription}
+        onCancel={() => setDescriptionModalVisible(false)}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={descriptionSubmitting}
+      >
+        <Input.TextArea
+          value={descriptionValue}
+          onChange={e => setDescriptionValue(e.target.value)}
+          placeholder="请输入备注内容"
+          rows={4}
+          maxLength={500}
+          showCount
+        />
       </Modal>
     </div>
   );

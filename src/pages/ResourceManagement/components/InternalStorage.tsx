@@ -9,7 +9,7 @@ import type { ColumnsType } from "antd/es/table";
 import TableToolbar from "@/components/__design-system__/TableToolbar";
 import StandardTable from "@/components/__design-system__/StandardTable";
 import { storageApi } from "@/api";
-import type { InternalStorage } from "@/api";
+import type { InternalStorage as InternalStorageApi } from "@/api";
 import { formatBytesAuto } from "@/utils/format";
 
 interface InternalStorageType {
@@ -30,7 +30,7 @@ const InternalStorage: React.FC = () => {
 
   // 数据转换函数：将后端数据转换为前端格式
   const transformStorageData = (
-    data: InternalStorage[]
+    data: InternalStorageApi[]
   ): InternalStorageType[] => {
     return data.map(item => {
       // 根据 disk_used 判断状态
@@ -65,7 +65,7 @@ const InternalStorage: React.FC = () => {
       // 2. 直接格式：{ cluster_storages }
       const clusterStorages =
         response.data?.cluster_storages ??
-        (response as unknown as { cluster_storages?: InternalStorage[] })
+        (response as unknown as { cluster_storages?: InternalStorageApi[] })
           .cluster_storages;
       if (clusterStorages && Array.isArray(clusterStorages)) {
         const transformedData = transformStorageData(clusterStorages);
@@ -89,7 +89,7 @@ const InternalStorage: React.FC = () => {
       const dataPayload =
         errorObj.data && typeof errorObj.data === "object"
           ? (errorObj.data as {
-              cluster_storages?: InternalStorage[];
+              cluster_storages?: InternalStorageApi[];
             })
           : undefined;
 

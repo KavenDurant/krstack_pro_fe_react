@@ -2,12 +2,12 @@
  * @Author: KavenDurant luojiaxin888@gmail.com
  * @Date: 2025-12-19 14:30:00
  * @LastEditors: KavenDurant luojiaxin888@gmail.com
- * @LastEditTime: 2025-12-19 14:30:00
+ * @LastEditTime: 2026-01-07 15:36:35
  * @FilePath: /krstack_pro_fe_react/src/pages/ResourceManagement/components/GPUManagement.tsx
  * @Description: GPU管理页面 - 使用Mock数据
  */
 import React, { useState } from "react";
-import { Table, Tag, Card, Space } from "antd";
+import { Table, Tag, Alert } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 interface GPUDevice {
@@ -134,24 +134,12 @@ const GPUManagement: React.FC = () => {
       }}
     >
       {/* Mock 数据提示 */}
-      <Card
-        style={{
-          marginBottom: 12,
-          background: "#fff7e6",
-          borderColor: "#ffa940",
-          borderLeft: "4px solid #ffa940",
-        }}
-        bodyStyle={{ padding: "12px 16px" }}
-      >
-        <Space>
-          <Tag color="warning" style={{ margin: 0, fontSize: 14 }}>
-            MOCK 数据
-          </Tag>
-          <span style={{ color: "#d46b08", fontSize: 13 }}>
-            本页面暂时使用 Mock 数据，非真实后端数据
-          </span>
-        </Space>
-      </Card>
+      <Alert
+        type="warning"
+        showIcon
+        style={{ marginBottom: 12 }}
+        title="本页面暂时使用 Mock 数据，非真实后端数据"
+      />
 
       {/* 数据统计 */}
       <div

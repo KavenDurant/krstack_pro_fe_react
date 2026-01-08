@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Space } from "antd";
 import { tokens } from "@/styles/tokens";
 
