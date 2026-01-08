@@ -4,7 +4,7 @@
 import { get, post, put } from "@/api/request/index";
 import type { ApiResponse } from "@/api/types";
 import type {
-  DesktopListItem,
+  CloudDeskListResponse,
   OperationParams,
   DeleteCloudDeskParams,
   DetachUserParams,
@@ -19,30 +19,30 @@ import type {
 } from "./types";
 
 const URL = {
-  list: "desktops",
-  start: "vms/start",
-  stop: "vms/stop",
-  reboot: "vms/reboot",
-  delete: "desktops/delete",
-  users: "desktops/users",
-  synchronize: "desktops/user_synchronize",
-  incrementSynchronize: "desktops/user_increment",
-  attach: "desktops/user_attach",
-  detach: "desktops/user_detach",
-  importList: "desktops/can_be_imported_desktops",
-  import: "desktops/import_desktop_to_vms",
-  systemInfo: "system/info",
+  list: "/desktops",
+  start: "/vms/start",
+  stop: "/vms/stop",
+  reboot: "/vms/reboot",
+  delete: "/desktops/delete",
+  users: "/desktops/users",
+  synchronize: "/desktops/user_synchronize",
+  incrementSynchronize: "/desktops/user_increment",
+  attach: "/desktops/user_attach",
+  detach: "/desktops/user_detach",
+  importList: "/desktops/can_be_imported_desktops",
+  import: "/desktops/import_desktop_to_vms",
+  systemInfo: "/system/info",
 } as const;
 
 // ========== 云桌面基础操作 ==========
 
 /**
- * 获取云桌面列表
+ * 获取云桌面列表（包含树形结构数据）
  */
 export const getCloudDeskList = async (): Promise<
-  ApiResponse<DesktopListItem[]>
+  ApiResponse<CloudDeskListResponse>
 > => {
-  return get<DesktopListItem[]>(URL.list);
+  return get<CloudDeskListResponse>(URL.list);
 };
 
 /**
@@ -134,7 +134,7 @@ export const detachUser = async (
 export const getUsbPolicy = async (
   uuid: string
 ): Promise<ApiResponse<UsbPolicyRoot>> => {
-  return get<UsbPolicyRoot>(`desktops/policy/usb/desktop/${uuid}`);
+  return get<UsbPolicyRoot>(`/desktops/policy/usb/desktop/${uuid}`);
 };
 
 /**
@@ -144,7 +144,7 @@ export const updateUsbPolicy = async (
   uuid: string,
   data: UsbPolicyRoot
 ): Promise<ApiResponse<null>> => {
-  return put<null>(`desktops/policy/usb/desktop/${uuid}`, data);
+  return put<null>(`/desktops/policy/usb/desktop/${uuid}`, data);
 };
 
 /**
@@ -153,7 +153,7 @@ export const updateUsbPolicy = async (
 export const getGlobalUsbPolicy = async (): Promise<
   ApiResponse<UsbPolicyRoot>
 > => {
-  return get<UsbPolicyRoot>("desktops/policy/usb/global_desktop");
+  return get<UsbPolicyRoot>("/desktops/policy/usb/global_desktop");
 };
 
 /**
@@ -162,7 +162,7 @@ export const getGlobalUsbPolicy = async (): Promise<
 export const updateGlobalUsbPolicy = async (
   data: UsbPolicyRoot
 ): Promise<ApiResponse<null>> => {
-  return put<null>("desktops/policy/usb/global_desktop", data);
+  return put<null>("/desktops/policy/usb/global_desktop", data);
 };
 
 // ========== 桌面策略 - 数据访问 ==========
@@ -174,7 +174,7 @@ export const getDataAccessPolicy = async (
   uuid: string
 ): Promise<ApiResponse<DataAccessPolicyRoot>> => {
   return get<DataAccessPolicyRoot>(
-    `desktops/policy/data_access/desktop/${uuid}`
+    `/desktops/policy/data_access/desktop/${uuid}`
   );
 };
 
@@ -185,7 +185,7 @@ export const updateDataAccessPolicy = async (
   uuid: string,
   data: DataAccessPolicyRoot
 ): Promise<ApiResponse<null>> => {
-  return put<null>(`desktops/policy/data_access/desktop/${uuid}`, data);
+  return put<null>(`/desktops/policy/data_access/desktop/${uuid}`, data);
 };
 
 /**
@@ -195,7 +195,7 @@ export const getGlobalDataAccessPolicy = async (): Promise<
   ApiResponse<DataAccessPolicyRoot>
 > => {
   return get<DataAccessPolicyRoot>(
-    "desktops/policy/data_access/global_desktop"
+    "/desktops/policy/data_access/global_desktop"
   );
 };
 
@@ -205,7 +205,7 @@ export const getGlobalDataAccessPolicy = async (): Promise<
 export const updateGlobalDataAccessPolicy = async (
   data: DataAccessPolicyRoot
 ): Promise<ApiResponse<null>> => {
-  return put<null>("desktops/policy/data_access/global_desktop", data);
+  return put<null>("/desktops/policy/data_access/global_desktop", data);
 };
 
 // ========== 桌面策略 - 传输协议 ==========
@@ -217,7 +217,7 @@ export const getTransportProtocolPolicy = async (
   uuid: string
 ): Promise<ApiResponse<TransportProtocolPolicyRoot>> => {
   return get<TransportProtocolPolicyRoot>(
-    `desktops/policy/transport_protocol/desktop/${uuid}`
+    `/desktops/policy/transport_protocol/desktop/${uuid}`
   );
 };
 
@@ -228,7 +228,7 @@ export const updateTransportProtocolPolicy = async (
   uuid: string,
   data: TransportProtocolPolicyRoot
 ): Promise<ApiResponse<null>> => {
-  return put<null>(`desktops/policy/transport_protocol/desktop/${uuid}`, data);
+  return put<null>(`/desktops/policy/transport_protocol/desktop/${uuid}`, data);
 };
 
 /**
@@ -238,7 +238,7 @@ export const getGlobalTransportProtocolPolicy = async (): Promise<
   ApiResponse<TransportProtocolPolicyRoot>
 > => {
   return get<TransportProtocolPolicyRoot>(
-    "desktops/policy/transport_protocol/global_desktop"
+    "/desktops/policy/transport_protocol/global_desktop"
   );
 };
 
@@ -248,7 +248,7 @@ export const getGlobalTransportProtocolPolicy = async (): Promise<
 export const updateGlobalTransportProtocolPolicy = async (
   data: TransportProtocolPolicyRoot
 ): Promise<ApiResponse<null>> => {
-  return put<null>("desktops/policy/transport_protocol/global_desktop", data);
+  return put<null>("/desktops/policy/transport_protocol/global_desktop", data);
 };
 
 // ========== 系统服务 ==========

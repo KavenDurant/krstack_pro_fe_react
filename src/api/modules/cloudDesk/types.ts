@@ -2,7 +2,7 @@
  * 云桌面相关类型定义
  */
 
-// 云桌面响应类型
+// 云桌面响应类型（与后端保持一致）
 export interface CloudDesk {
   user_name: string; // 用户姓名
   user_login_name: string; // 用户登录名
@@ -17,6 +17,21 @@ export interface CloudDesk {
   uuid: string; // 用户的唯一标识符
   node_uid?: string; // 节点 UID
   platform_type?: string; // 平台类型
+  cluster_id?: string; // 集群 ID
+}
+
+// 云桌面列表响应（后端返回格式）
+export interface CloudDeskListResponse {
+  desktops: CloudDesk[];
+  ancestor_trees: AncestorTree[];
+}
+
+// 树形节点类型
+export interface AncestorTree {
+  label: string;
+  value: number | string;
+  key?: number | string;
+  children?: AncestorTree[];
 }
 
 // 操作参数
