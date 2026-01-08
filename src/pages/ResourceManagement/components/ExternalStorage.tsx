@@ -105,8 +105,7 @@ const ExternalStorage: React.FC = () => {
 
       const storages =
         response.data?.storages ??
-        (response as unknown as { storages?: ExternalStorageApi[] })
-          .storages;
+        (response as unknown as { storages?: ExternalStorageApi[] }).storages;
       if (storages && Array.isArray(storages)) {
         const transformedData = transformStorageData(storages);
         setStorageData(transformedData);
