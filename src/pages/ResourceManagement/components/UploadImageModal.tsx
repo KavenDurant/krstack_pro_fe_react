@@ -230,88 +230,81 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({
       centered
       closable={false}
       maskClosable={false}
+      styles={{
+        body: {
+          padding: "12px",
+        },
+      }}
     >
-      <div style={{ borderTop: "1px solid #cccccc", paddingTop: 20 }}>
-        <Form
-          form={form}
-          labelCol={{ span: 5 }}
-          wrapperCol={{ span: 19 }}
-          style={{ marginRight: 28 }}
+      <Form
+        form={form}
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 20 }}
+        labelAlign="right"
+      >
+        <Form.Item label="镜像格式" name="format" style={{ marginBottom: 20 }}>
+          <Radio.Group buttonStyle="solid" onChange={handleFormatChange}>
+            <Radio.Button value=".iso">ISO</Radio.Button>
+          </Radio.Group>
+        </Form.Item>
+
+        <Form.Item label="操作系统" name="system" style={{ marginBottom: 20 }}>
+          <Radio.Group buttonStyle="solid">
+            <Radio.Button value="windows">Microsoft Windows</Radio.Button>
+            <Radio.Button value="linux">Linux</Radio.Button>
+          </Radio.Group>
+        </Form.Item>
+
+        <Form.Item
+          label="存储方式"
+          name="storage_type"
+          style={{ marginBottom: 20 }}
         >
-          <Form.Item
-            label="镜像格式"
-            name="format"
-            style={{ marginBottom: 20 }}
+          <Radio.Group
+            buttonStyle="solid"
+            onChange={e => {
+              const value = e.target.value as "internal" | "external";
+              handleStorageTypeChange(value);
+            }}
           >
-            <Radio.Group buttonStyle="solid" onChange={handleFormatChange}>
-              <Radio.Button value=".iso">ISO</Radio.Button>
-            </Radio.Group>
-          </Form.Item>
+            <Radio.Button value="internal">内置存储</Radio.Button>
+            <Radio.Button value="external">外挂存储</Radio.Button>
+          </Radio.Group>
+        </Form.Item>
 
-          <Form.Item
-            label="操作系统"
-            name="system"
-            style={{ marginBottom: 20 }}
-          >
-            <Radio.Group buttonStyle="solid">
-              <Radio.Button value="windows">Microsoft Windows</Radio.Button>
-              <Radio.Button value="linux">Linux</Radio.Button>
-            </Radio.Group>
-          </Form.Item>
+        <Form.Item
+          label="存储路径"
+          name="storage_path"
+          rules={[{ required: true, message: "请选择存储路径！" }]}
+          style={{ marginBottom: 20 }}
+        >
+          <Select
+            placeholder="请选择存储路径"
+            disabled={loadingStorage}
+            loading={loadingStorage}
+            options={storageOptions}
+          />
+        </Form.Item>
 
-          <Form.Item
-            label="存储方式"
-            name="storage_type"
-            style={{ marginBottom: 20 }}
-          >
-            <Radio.Group
-              buttonStyle="solid"
-              onChange={e => {
-                const value = e.target.value as "internal" | "external";
-                handleStorageTypeChange(value);
-              }}
+        <Form.Item
+          label="镜像文件"
+          name="imageFire"
+          rules={[{ required: true, message: "请选择镜像文件！" }]}
+          style={{ marginBottom: 0 }}
+        >
+          <Space style={{ width: "100%", display: "flex" }}>
+            <Input disabled placeholder="请选择镜像文件" style={{ flex: 1 }} />
+            <Upload
+              fileList={fileList}
+              beforeUpload={beforeUpload}
+              accept=".iso"
+              showUploadList={false}
             >
-              <Radio.Button value="internal">内置存储</Radio.Button>
-              <Radio.Button value="external">外挂存储</Radio.Button>
-            </Radio.Group>
-          </Form.Item>
-
-          <Form.Item
-            label="存储路径"
-            name="storage_path"
-            rules={[{ required: true, message: "请选择存储路径！" }]}
-          >
-            <Select
-              placeholder="请选择存储路径"
-              disabled={loadingStorage}
-              loading={loadingStorage}
-              options={storageOptions}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="镜像文件"
-            name="imageFire"
-            rules={[{ required: true, message: "请选择镜像文件！" }]}
-          >
-            <Space>
-              <Input
-                disabled
-                placeholder="请选择镜像文件"
-                style={{ width: 295 }}
-              />
-              <Upload
-                fileList={fileList}
-                beforeUpload={beforeUpload}
-                accept=".iso"
-                showUploadList={false}
-              >
-                <Button icon={<UploadOutlined />}>选择镜像</Button>
-              </Upload>
-            </Space>
-          </Form.Item>
-        </Form>
-      </div>
+              <Button icon={<UploadOutlined />}>选择镜像</Button>
+            </Upload>
+          </Space>
+        </Form.Item>
+      </Form>
     </Modal>
   );
 };

@@ -33,9 +33,7 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
 
     setLoading(true);
     try {
-      const response = await storageApi.getExternalStorageEditList(
-        storageUid
-      );
+      const response = await storageApi.getExternalStorageEditList(storageUid);
 
       const clusters = response.data as ClusterEditList[];
 
