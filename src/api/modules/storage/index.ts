@@ -18,14 +18,14 @@ import type {
 } from "./types";
 
 const URL = {
-  outside: "/api/storages/outside",
-  inside: "/api/storages/inside",
-  mount: "/api/storages/outside/mount",
-  unmount: "/api/storages/outside/unmount",
-  alarmThreshold: "/api/storages/alarm_threshold",
-  content: "/api/storages/content",
-  clusters: "/api/clusters",
-  smbCifsPath: "/api/storages/get_smb_cifs_path",
+  outside: "/storages/outside",
+  inside: "/storages/inside",
+  mount: "/storages/outside/mount",
+  unmount: "/storages/outside/unmount",
+  alarmThreshold: "/storages/alarm_threshold",
+  content: "/storages/content",
+  clusters: "/clusters",
+  smbCifsPath: "/storages/get_smb_cifs_path",
 } as const;
 
 // ========== 外挂存储管理 ==========
@@ -45,7 +45,7 @@ export const getExternalStorageList = async (): Promise<
 export const getExternalStorageEditList = async (
   clusterId: string
 ): Promise<ApiResponse<ClusterEditList[]>> => {
-  return get<ClusterEditList[]>(`/api/storages/outside/${clusterId}`);
+  return get<ClusterEditList[]>(`/storages/outside/${clusterId}`);
 };
 
 /**

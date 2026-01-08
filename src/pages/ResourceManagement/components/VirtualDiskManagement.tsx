@@ -13,7 +13,16 @@
  * 待办：等待后端提供对应的 API 接口后，替换为真实 API 调用
  */
 import React, { useState } from "react";
-import { Table, Input, Button, Space, Dropdown, Progress, Tag } from "antd";
+import {
+  Table,
+  Input,
+  Button,
+  Space,
+  Dropdown,
+  Progress,
+  Tag,
+  Alert,
+} from "antd";
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -196,6 +205,12 @@ const VirtualDiskManagement: React.FC = () => {
         background: "#fff",
       }}
     >
+      <Alert
+        type="warning"
+        showIcon
+        style={{ marginBottom: 12 }}
+        title="本页面暂时使用 Mock 数据，非真实后端数据"
+      />
       <div
         style={{
           paddingBottom: 16,

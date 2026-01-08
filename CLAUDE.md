@@ -98,7 +98,7 @@ src/
 ### State Management
 
 - **React Hooks** for local state (useState, useCallback, useMemo)
-- **No global state library** - state lifted to parent components when needed
+- **Zustand** for global state (rarely used - prefer lifting state)
 - **useRef pattern** for preventing duplicate data loads on mount (see AGENTS.md)
 - **Selection state pattern**: Complex union types for tracking selections (e.g., cluster/host/vm)
 
@@ -160,11 +160,18 @@ useEffect(() => {
   - `bordered` → Use `variant="outlined"` (Card component)
   - `labelStyle` → Use `styles={{ label: {...} }}` (Descriptions component)
   - `contentStyle` → Use `styles={{ content: {...} }}` (Descriptions component)
+  - `message` (Alert component) → Use `title` prop instead
+  - `width` (Drawer component) → Use `styles={{ wrapper: { width: 600 } }}`
 - **Using alpha version** (6.0.0-alpha.5) - some APIs may differ from v5
 
 ### Mock Data Pattern
 
 Mock data stored in `src/api/mockData.ts` with typed interfaces. During development, components may use mock data before backend integration.
+
+**Mock Data Warning Pattern**: When a page uses mock data, display an Alert:
+```tsx
+<Alert type="warning" showIcon style={{ marginBottom: 12 }} title="本页面暂时使用 Mock 数据，非真实后端数据" />
+```
 
 ## Code Standards
 
@@ -230,6 +237,7 @@ Mock data stored in `src/api/mockData.ts` with typed interfaces. During developm
 - `ResizableTreePanel` - Tree with resizable sidebar
 - `VerticalTabs` - Left-aligned vertical tabs
 - `PageBreadcrumb` - Breadcrumb navigation
+- `useTableScrollHeight` - Hook for dynamic table scroll height calculation
 
 ### UI Spacing Standards
 
@@ -301,11 +309,12 @@ Must include:
 ## Key Dependencies
 
 - **React 19.2.0** - Latest React with new features
-- **Ant Design 6.0.0-alpha.5** - UI component library (alpha version)
+- **Ant Design 6.0.0-alpha.5** - UI component library (alpha version, many APIs changed from v5)
 - **React Router DOM 7.9.6** - Client-side routing
 - **ECharts 6.0.0** - Data visualization
+- **Zustand 5.0.9** - Global state management (use sparingly)
 - **@dnd-kit** - Drag and drop functionality (used in FormSettings)
-- **Axios** - HTTP client
+- **Axios** - HTTP client with interceptors
 - **Vitest** - Testing framework
 - **uuid** - Unique ID generation
 
@@ -315,5 +324,7 @@ Must include:
 - `src/router.tsx` - Route definitions with nested routing
 - `src/layouts/MainLayout.tsx` - Main layout with two-level navigation
 - `src/api/index.ts` - Centralized API exports
+- `src/api/request/instance.ts` - Axios instance with auth/error interceptors
 - `src/utils/format.ts` - Byte formatting, percentage calculation, date formatting
+- `src/hooks/useTableScrollHeight.ts` - Dynamic table scroll height calculation
 - `src/components/` - Reusable components (check before creating new ones)

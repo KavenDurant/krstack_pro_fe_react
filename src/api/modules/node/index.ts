@@ -21,24 +21,24 @@ import type {
 } from "./types";
 
 const URL = {
-  list: "/api/nodes",
-  detail: (uid: string) => `/api/nodes/detail/${uid}`,
-  vms: (uid: string) => `/api/nodes/vms/${uid}`,
-  network: (uid: string) => `/api/nodes/network/${uid}`,
-  usb: (uid: string) => `/api/nodes/usb/${uid}`,
-  gpu: (uid: string) => `/api/nodes/gpu/${uid}`,
-  storage: (nodeUid: string) => `/api/nodes/cluster/node/${nodeUid}/storage`,
-  networkSettings: (uid: string) => `/api/nodes/network/settings/${uid}`,
+  list: "/nodes",
+  detail: (uid: string) => `/nodes/detail/${uid}`,
+  vms: (uid: string) => `/nodes/vms/${uid}`,
+  network: (uid: string) => `/nodes/network/${uid}`,
+  usb: (uid: string) => `/nodes/usb/${uid}`,
+  gpu: (uid: string) => `/nodes/gpu/${uid}`,
+  storage: (nodeUid: string) => `/nodes/cluster/node/${nodeUid}/storage`,
+  networkSettings: (uid: string) => `/nodes/network/settings/${uid}`,
   monitorCpu: (nodeUid: string, timeFrame: string) =>
-    `/api/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/cpu`,
+    `/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/cpu`,
   monitorMem: (nodeUid: string, timeFrame: string) =>
-    `/api/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/mem`,
+    `/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/mem`,
   monitorNet: (nodeUid: string, timeFrame: string) =>
-    `/api/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/net`,
+    `/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/net`,
   monitorLoadavg: (nodeUid: string, timeFrame: string) =>
-    `/api/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/loadavg`,
-  reboot: (uid: string) => `/api/nodes/reboot/${uid}`,
-  shutdown: (uid: string) => `/api/nodes/shutdown/${uid}`,
+    `/nodes/cluster/node/${nodeUid}/monitor/${timeFrame}/loadavg`,
+  reboot: (uid: string) => `/nodes/reboot/${uid}`,
+  shutdown: (uid: string) => `/nodes/shutdown/${uid}`,
 } as const;
 
 /**

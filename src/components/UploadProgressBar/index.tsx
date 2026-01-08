@@ -7,7 +7,6 @@ import {
   CloseOutlined,
   MinusOutlined,
   UpOutlined,
-  DownOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   LoadingOutlined,

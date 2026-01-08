@@ -68,6 +68,7 @@ export interface TemplateImageDetail {
   platform_type: string;
   mac: string;
   updated_at: string;
+  description: string | null;
   [key: string]: unknown;
 }
 

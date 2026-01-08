@@ -33,11 +33,11 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
 
     setLoading(true);
     try {
-      const response = await storageApi.getExternalStorageEditList(storageUid);
+      const response = await storageApi.getExternalStorageEditList(
+        storageUid
+      );
 
-      const clusters =
-        response.data?.clusters ??
-        (response as unknown as { clusters?: ClusterEditList[] }).clusters;
+      const clusters = response.data as ClusterEditList[];
 
       if (Array.isArray(clusters)) {
         // 过滤掉没有名称的集群，并添加 loading 字段
@@ -84,14 +84,14 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
       if (mount_status) {
         // 卸载
         await storageApi.unmountStorage({
-          storage_uid,
+          storage_uid: storageUid,
           cluster_uid,
         });
         message.success("卸载成功");
       } else {
         // 挂载
         await storageApi.mountStorage({
-          storage_uid,
+          storage_uid: storageUid,
           cluster_uid,
         });
         message.success("挂载成功");
@@ -223,7 +223,7 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
         style={{
           marginBottom: 16,
           padding: 12,
-          backgroundColor: "#e6f7ff",
+          background: "#e6f7ff",
           border: "1px solid #91d5ff",
           borderRadius: 4,
           fontSize: 13,
@@ -244,13 +244,6 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
         rowKey="cluster_uid"
         size="middle"
         tableLayout="auto"
-        styles={{
-          header: {
-            backgroundColor: "#fafafa",
-            fontSize: 14,
-            fontWeight: 600,
-          },
-        }}
       />
     </Modal>
   );

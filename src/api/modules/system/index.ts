@@ -6,7 +6,6 @@ import type { ApiResponse } from "@/api/types";
 import type {
   SystemInfo,
   DiagnosisLogFile,
-  FeatureFlag,
   AutomaticSnapshotConfig,
 } from "./types";
 

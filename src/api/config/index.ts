@@ -24,6 +24,11 @@ export const API_CONFIG = {
 } as const;
 
 /**
+ * API 路径前缀（统一管理，各模块无需重复添加 /api/）
+ */
+export const API_PREFIX = "/api";
+
+/**
  * HTTP 状态码
  */
 export const HTTP_STATUS = {
@@ -67,21 +72,6 @@ export const STORAGE_KEY = {
  * Token 存储键名（向后兼容）
  */
 export const TOKEN_KEY = STORAGE_KEY.TOKEN;
-
-/**
- * API 路径前缀
- */
-export const API_PREFIX = {
-  AUTH: "/api/auth",
-  USER: "/api/users",
-  VM: "/api/vms",
-  CLUSTER: "/api/clusters",
-  NODE: "/api/nodes",
-  STORAGE: "/api/storages",
-  UPLOAD: "/api/upload",
-  DOWNLOAD: "/api/download",
-  MAINTENANCE: "/api/maintenance",
-} as const;
 
 /**
  * 请求头配置

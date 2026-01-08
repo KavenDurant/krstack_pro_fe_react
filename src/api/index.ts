@@ -60,13 +60,7 @@ export type {
   UserListParams,
   CreateUserParams,
 } from "@/api/modules/user/types";
-export type {
-  VM,
-  VMStatus,
-  VMListParams,
-  CreateVMParams,
-  AncestorNode,
-} from "@/api/modules/vm/types";
+export type { VM, VMStatus, AncestorNode } from "@/api/modules/vm/types";
 export type {
   Cluster,
   ClusterDetail,
@@ -89,7 +83,6 @@ export type {
   PerformanceData,
 } from "@/api/modules/node/types";
 export type {
-  CloudDesk,
   DesktopListItem,
   OperationParams,
   DeleteCloudDeskParams,
@@ -120,7 +113,6 @@ export type {
   SystemImage,
   TemplateImage,
   DeleteImageParams,
-  UploadImageParams,
   TemplateImageDetail,
   TemplateDescriptionParams,
   TemplateDescription,
@@ -146,7 +138,6 @@ export type {
 export type {
   SystemInfo,
   DiagnosisLogFile,
-  FeatureFlag,
   AutomaticSnapshotConfig,
 } from "@/api/modules/system/types";
 export type {

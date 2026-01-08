@@ -4,7 +4,6 @@
 import { get, post, put } from "@/api/request/index";
 import type { ApiResponse } from "@/api/types";
 import type {
-  CloudDesk,
   DesktopListItem,
   OperationParams,
   DeleteCloudDeskParams,

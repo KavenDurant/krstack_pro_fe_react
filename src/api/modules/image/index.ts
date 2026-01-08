@@ -8,7 +8,6 @@ import type {
   SystemImage,
   TemplateImage,
   DeleteImageParams,
-  UploadImageParams,
   TemplateImageDetail,
   TemplateDescriptionParams,
   TemplateDescription,
@@ -17,12 +16,12 @@ import type {
 } from "./types";
 
 const URL = {
-  system: "/api/images/system",
-  systemDelete: "/api/images/system/delete_images",
-  template: "/api/images/template",
-  templateDelete: "/api/images/template/delete_images",
-  templateDetail: "/api/images/template/detail",
-  templateDescription: "/api/images/template/description",
+  system: "/images/system",
+  systemDelete: "/images/system/delete_images",
+  template: "/images/template",
+  templateDelete: "/images/template/delete_images",
+  templateDetail: "/images/template/detail",
+  templateDescription: "/images/template/description",
 } as const;
 
 // ========== 系统镜像管理 ==========
@@ -70,7 +69,7 @@ export const uploadImage = async (
 ): Promise<ApiResponse<null>> => {
   // 直接使用 request 实例发送 FormData
   return request
-    .post(`/api/images/system/upload/${type}/${storageUid}`, formData, {
+    .post(`/images/system/upload/${type}/${storageUid}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -155,5 +154,5 @@ export const setTemplateDescription = async (
   uid: string,
   data: TemplateDescriptionParams
 ): Promise<ApiResponse<null>> => {
-  return post<null>(`/api/images/template/description/${uid}`, data);
+  return post<null>(`/images/template/description/${uid}`, data);
 };

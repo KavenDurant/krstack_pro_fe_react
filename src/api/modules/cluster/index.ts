@@ -19,11 +19,11 @@ import type {
 } from "./types";
 
 const URL = {
-  list: "/api/clusters",
-  detail: (uid: string) => `/api/clusters/${uid}`,
-  nodes: (uid: string) => `/api/clusters/${uid}/nodes`,
-  sync: (uid: string) => `/api/clusters/${uid}/sync`,
-  content: "/api/storages/content",
+  list: "/clusters",
+  detail: (uid: string) => `/clusters/${uid}`,
+  nodes: (uid: string) => `/clusters/${uid}/nodes`,
+  sync: (uid: string) => `/clusters/${uid}/sync`,
+  content: "/storages/content",
 } as const;
 
 /**

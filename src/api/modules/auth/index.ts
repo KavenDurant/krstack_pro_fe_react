@@ -22,13 +22,13 @@ import type {
 } from "./types";
 
 const URL = {
-  login: "/api/login",
-  logout: "/api/logout",
-  refresh: "/api/refresh",
-  taskQueue: "/api/maintenance/operation_log/current",
-  historyTask: "/api/maintenance/operation_log/historical",
-  alarmLog: "/api/maintenance/alarm_log/historical",
-  changePassword: (username: string) => `/api/users/${username}/password`,
+  login: "/login",
+  logout: "/logout",
+  refresh: "/refresh",
+  taskQueue: "/maintenance/operation_log/current",
+  historyTask: "/maintenance/operation_log/historical",
+  alarmLog: "/maintenance/alarm_log/historical",
+  changePassword: (username: string) => `/users/${username}/password`,
 } as const;
 
 /**
