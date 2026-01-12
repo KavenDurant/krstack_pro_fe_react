@@ -9,29 +9,37 @@ import {
   Dropdown,
   Badge,
   message,
+  Modal,
+  Alert,
 } from "antd";
 import type { ColumnsType, TableProps } from "antd/es/table";
 import type { BadgeProps, MenuProps } from "antd";
 import {
   SearchOutlined,
-  PlusOutlined,
   ReloadOutlined,
-  ExportOutlined,
   PoweroffOutlined,
   DownOutlined,
-  SyncOutlined,
   DeleteOutlined,
   UserAddOutlined,
-  LinkOutlined,
+  ImportOutlined,
 } from "@ant-design/icons";
 import { useTableScrollHeight } from "@/hooks/useTableScrollHeight";
+import TableToolbar from "@/components/__design-system__/TableToolbar";
+import BindUserModal from "./BindUserModal";
 import type { CloudDesk } from "@/api/modules/cloudDesk/types";
 import {
   startCloudDeskList,
   stopCloudDeskList,
   rebootCloudDeskList,
   deleteCloudDeskList,
+  importCloudDesk,
+  getImportCloudList,
+  detachUser,
 } from "@/api/modules/cloudDesk";
+import type {
+  ImportListResponse,
+  ImportCloudDeskType,
+} from "@/api/modules/cloudDesk/types";
 
 interface TreeSelectNode {
   title: string;
@@ -51,17 +59,28 @@ interface DesktopTableProps {
   onRefresh: () => void;
 }
 
-// 状态映射
+// 状态映射 - 兼容后端返回的大写状态值（如 SHUTOFF、ACTIVE、RUNNING 等）
 const statusMap: Record<
   string,
   { status: BadgeProps["status"]; text: string }
 > = {
+  // 小写状态（兼容）
   running: { status: "success", text: "运行中" },
   stopped: { status: "default", text: "已关机" },
   starting: { status: "processing", text: "启动中" },
   stopping: { status: "processing", text: "关机中" },
   rebooting: { status: "processing", text: "重启中" },
   error: { status: "error", text: "错误" },
+  // 大写状态（后端实际返回）
+  RUNNING: { status: "success", text: "运行中" },
+  SHUTOFF: { status: "default", text: "已关机" },
+  ACTIVE: { status: "success", text: "运行中" },
+  STARTING: { status: "processing", text: "启动中" },
+  STOPPING: { status: "processing", text: "关机中" },
+  REBOOTING: { status: "processing", text: "重启中" },
+  ERROR: { status: "error", text: "错误" },
+  PAUSED: { status: "warning", text: "已暂停" },
+  SUSPENDED: { status: "warning", text: "已挂起" },
 };
 
 // 会话状态映射
@@ -84,6 +103,14 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
   onRefresh,
 }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importList, setImportList] = useState<ImportCloudDeskType[]>([]);
+  const [importLoading, setImportLoading] = useState(false);
+  const [selectedImportIds, setSelectedImportIds] = useState<string[]>([]);
+  const [importSearchText, setImportSearchText] = useState("");
+  // 关联用户弹窗状态
+  const [bindUserModalVisible, setBindUserModalVisible] = useState(false);
+  const [currentDesktop, setCurrentDesktop] = useState<CloudDesk | null>(null);
 
   // 计算表格滚动高度
   const scrollY = useTableScrollHeight({ pageSize: 10 });
@@ -93,66 +120,151 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
     return desktops.filter(d => selectedRowKeys.includes(d.vm_uid));
   }, [desktops, selectedRowKeys]);
 
-  // 判断所有选中项的状态
+  // 判断所有选中项的状态（兼容大小写状态值）
   const selectedStatus = useMemo(() => {
     if (selectedRows.length === 0) return null;
 
-    const allRunning = selectedRows.every(d => d.status === "running");
-    const allStopped = selectedRows.every(d => d.status === "stopped");
+    const isRunning = (status: string) =>
+      status === "running" || status === "RUNNING" || status === "ACTIVE";
+    const isStopped = (status: string) =>
+      status === "stopped" || status === "SHUTOFF";
+
+    const allRunning = selectedRows.every(d => isRunning(d.status));
+    const allStopped = selectedRows.every(d => isStopped(d.status));
 
     if (allRunning) return "allRunning";
     if (allStopped) return "allStopped";
     return "mixed";
   }, [selectedRows]);
 
+  // 是否有选中行
+  const hasSelected = selectedRowKeys.length > 0;
+
   // 开机操作
-  const handleStart = useCallback(async () => {
-    const params = selectedRows.map(d => ({
-      cluster_id: String(d.cluster_id ?? ""),
-      node_name: d.node_name,
-      vm_uid: d.vm_uid,
-    }));
-    try {
-      await startCloudDeskList(params);
-      message.success("开机成功");
-      onRefresh();
-    } catch {
-      message.error("开机失败");
-    }
-  }, [selectedRows, onRefresh]);
+  const handleStart = useCallback(
+    async (rows?: CloudDesk[]) => {
+      const targetRows = rows || selectedRows;
+      if (targetRows.length === 0 && !rows) {
+        message.warning("请先选择要开机的云桌面");
+        return;
+      }
+
+      const content =
+        targetRows.length === 1
+          ? `确定要开机云桌面 "${targetRows[0].vm_name}" 吗？`
+          : `确定要开机选中的 ${targetRows.length} 个云桌面吗？`;
+
+      Modal.confirm({
+        title: "确认开机",
+        content,
+        okText: "确定",
+        cancelText: "取消",
+        onOk: async () => {
+          const params = targetRows.map(d => ({
+            cluster_id: String(d.cluster_id ?? ""),
+            node_name: d.node_name,
+            vm_uid: d.vm_uid,
+          }));
+          try {
+            const res = (await startCloudDeskList(params)) as unknown as {
+              data: { message: string };
+            };
+            message.success(res.data.message || "开机成功");
+            if (!rows) {
+              setSelectedRowKeys([]);
+            }
+            onRefresh();
+          } catch {
+            message.error("开机失败");
+          }
+        },
+      });
+    },
+    [selectedRows, onRefresh]
+  );
 
   // 关机操作
-  const handleStop = useCallback(async () => {
-    const params = selectedRows.map(d => ({
-      cluster_id: String(d.cluster_id ?? ""),
-      node_name: d.node_name,
-      vm_uid: d.vm_uid,
-    }));
-    try {
-      await stopCloudDeskList(params);
-      message.success("关机成功");
-      onRefresh();
-    } catch {
-      message.error("关机失败");
-    }
-  }, [selectedRows, onRefresh]);
+  const handleStop = useCallback(
+    async (rows?: CloudDesk[]) => {
+      const targetRows = rows || selectedRows;
+      if (targetRows.length === 0 && !rows) {
+        message.warning("请先选择要关机的云桌面");
+        return;
+      }
+
+      const content =
+        targetRows.length === 1
+          ? `确定要关机云桌面 "${targetRows[0].vm_name}" 吗？`
+          : `确定要关机选中的 ${targetRows.length} 个云桌面吗？`;
+
+      Modal.confirm({
+        title: "确认关机",
+        content,
+        okText: "确定",
+        cancelText: "取消",
+        onOk: async () => {
+          const params = targetRows.map(d => ({
+            cluster_id: String(d.cluster_id ?? ""),
+            node_name: d.node_name,
+            vm_uid: d.vm_uid,
+          }));
+          try {
+            const res = (await stopCloudDeskList(params)) as unknown as {
+              data: { message: string };
+            };
+            message.success(res.data.message || "关机成功");
+            if (!rows) {
+              setSelectedRowKeys([]);
+            }
+            onRefresh();
+          } catch {
+            message.error("关机失败");
+          }
+        },
+      });
+    },
+    [selectedRows, onRefresh]
+  );
 
   // 重启操作
   const handleReboot = useCallback(
     async (rows?: CloudDesk[]) => {
       const targetRows = rows || selectedRows;
-      const params = targetRows.map(d => ({
-        cluster_id: String(d.cluster_id ?? ""),
-        node_name: d.node_name,
-        vm_uid: d.vm_uid,
-      }));
-      try {
-        await rebootCloudDeskList(params);
-        message.success("重启成功");
-        onRefresh();
-      } catch {
-        message.error("重启失败");
+      if (targetRows.length === 0 && !rows) {
+        message.warning("请先选择要重启的云桌面");
+        return;
       }
+
+      const content =
+        targetRows.length === 1
+          ? `确定要重启云桌面 "${targetRows[0].vm_name}" 吗？`
+          : `确定要重启选中的 ${targetRows.length} 个云桌面吗？`;
+
+      Modal.confirm({
+        title: "确认重启",
+        content,
+        okText: "确定",
+        cancelText: "取消",
+        onOk: async () => {
+          const params = targetRows.map(d => ({
+            cluster_id: String(d.cluster_id ?? ""),
+            node_name: d.node_name,
+            vm_uid: d.vm_uid,
+          }));
+          try {
+            const res = (await rebootCloudDeskList(params)) as unknown as {
+              data: { message: string };
+            };
+            message.success(res.data.message || "重启成功");
+            if (!rows) {
+              setSelectedRowKeys([]);
+            }
+            onRefresh();
+          } catch {
+            message.error("重启失败");
+          }
+        },
+      });
     },
     [selectedRows, onRefresh]
   );
@@ -161,25 +273,138 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
   const handleDelete = useCallback(
     async (rows?: CloudDesk[]) => {
       const targetRows = rows || selectedRows;
-      const params = {
-        delete_desktops: targetRows.map(d => ({
-          cluster_id: String(d.cluster_id ?? ""),
-          node_name: d.node_name,
-          vm_uid: d.vm_uid,
-        })),
-        delete_vm_model: false,
-      };
-      try {
-        await deleteCloudDeskList(params);
-        message.success("删除成功");
-        setSelectedRowKeys([]);
-        onRefresh();
-      } catch {
-        message.error("删除失败");
+      if (targetRows.length === 0 && !rows) {
+        message.warning("请先选择要删除的云桌面");
+        return;
       }
+
+      Modal.confirm({
+        title: "确认删除",
+        content: `确定要删除选中的 ${targetRows.length} 个云桌面吗？`,
+        okText: "确定",
+        cancelText: "取消",
+        onOk: async () => {
+          const params = {
+            delete_desktops: targetRows.map(d => ({
+              cluster_id: String(d.cluster_id ?? ""),
+              node_name: d.node_name,
+              vm_uid: d.vm_uid,
+            })),
+            delete_vm_model: false,
+          };
+          try {
+            await deleteCloudDeskList(params);
+            message.success("删除成功");
+            if (!rows) {
+              setSelectedRowKeys([]);
+            }
+            onRefresh();
+          } catch {
+            message.error("删除失败");
+          }
+        },
+      });
     },
     [selectedRows, onRefresh]
   );
+
+  // 导入桌面操作
+  const handleImport = useCallback(async () => {
+    setImportModalVisible(true);
+    setImportLoading(true);
+    setSelectedImportIds([]);
+    try {
+      // 后端直接返回 { vms: [...] } 结构
+      const res = await getImportCloudList();
+      setImportList(res.vms || []);
+    } catch {
+      message.error("获取可导入桌面列表失败");
+    } finally {
+      setImportLoading(false);
+    }
+  }, []);
+
+  // 过滤后的导入列表
+  const filteredImportList = useMemo(() => {
+    if (!importSearchText) return importList;
+    const searchLower = importSearchText.toLowerCase();
+    return importList.filter(item => {
+      return (
+        item.vm_name.toLowerCase().includes(searchLower) ||
+        item.cluster_name.toLowerCase().includes(searchLower) ||
+        item.node_name.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [importList, importSearchText]);
+
+  // 确认导入桌面
+  const handleConfirmImport = useCallback(async () => {
+    if (selectedImportIds.length === 0) {
+      message.warning("请选择要导入的桌面");
+      return;
+    }
+
+    const importData: ImportListResponse = {
+      import_list: selectedImportIds.map(vmUid => {
+        const item = importList.find(i => i.vm_uid === vmUid);
+        return {
+          vm_uid: item?.vm_uid ?? "",
+          vm_name: item?.vm_name ?? "",
+          cluster_name: item?.cluster_name ?? "",
+          node_name: item?.node_name ?? "",
+          ip: item?.ip ?? "",
+          status: item?.status ?? "",
+          platform_type: item?.platform_type ?? "",
+        };
+      }),
+    };
+
+    try {
+      await importCloudDesk(importData);
+      message.success("导入成功");
+      setImportModalVisible(false);
+      setImportList([]);
+      setSelectedImportIds([]);
+      onRefresh();
+    } catch {
+      message.error("导入失败");
+    }
+  }, [importList, selectedImportIds, onRefresh]);
+
+  // 打开关联用户弹窗
+  const handleBindUser = useCallback((record: CloudDesk) => {
+    setCurrentDesktop(record);
+    setBindUserModalVisible(true);
+  }, []);
+
+  // 解绑用户
+  const handleUnbindUser = useCallback(
+    async (record: CloudDesk) => {
+      Modal.confirm({
+        title: "确认解绑",
+        content: `确定要解绑用户 "${record.user_name || record.user_login_name}" 吗？`,
+        okText: "确定",
+        cancelText: "取消",
+        onOk: async () => {
+          try {
+            await detachUser({ desktop: record.uuid });
+            message.success("解绑成功");
+            onRefresh();
+          } catch {
+            message.error("解绑失败");
+          }
+        },
+      });
+    },
+    [onRefresh]
+  );
+
+  // 关联用户成功回调
+  const handleBindUserSuccess = useCallback(() => {
+    setBindUserModalVisible(false);
+    setCurrentDesktop(null);
+    onRefresh();
+  }, [onRefresh]);
 
   // 表格列定义
   const columns: ColumnsType<CloudDesk> = [
@@ -188,6 +413,7 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
       dataIndex: "vm_name",
       key: "vm_name",
       width: 180,
+      fixed: "left",
       sorter: (a, b) => (a.vm_name || "").localeCompare(b.vm_name || ""),
       render: text => text || <Tag color="default">暂未提供</Tag>,
     },
@@ -243,14 +469,14 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
       width: 120,
       sorter: (a, b) =>
         (a.platform_type || "").localeCompare(b.platform_type || ""),
-      render: text => text || <Tag color="default">暂未提供</Tag>,
+      render: text => text || <Tag color="default">-</Tag>,
     },
     {
       title: "IP 地址",
       dataIndex: "ip",
       key: "ip",
       width: 130,
-      render: text => text || <Tag color="default">暂未提供</Tag>,
+      render: text => text || <Tag color="default">-</Tag>,
     },
     {
       title: "位置",
@@ -261,33 +487,35 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
     {
       title: "操作",
       key: "action",
-      width: 120,
+      width: 160,
       fixed: "right",
       render: (_, record) => {
+        const isRunning =
+          record.status === "running" ||
+          record.status === "RUNNING" ||
+          record.status === "ACTIVE";
+
+        const hasUser = Boolean(record.user_name || record.user_login_name);
+
         const items: MenuProps["items"] = [
-          {
-            key: "connect",
-            label: "连接",
-            icon: <LinkOutlined />,
-            disabled: record.status !== "running",
-          },
           {
             key: "reboot",
             label: "重启",
             icon: <ReloadOutlined />,
-            disabled: record.status !== "running",
+            disabled: !isRunning,
           },
           { type: "divider" },
           {
             key: "bindUser",
             label: "关联用户",
             icon: <UserAddOutlined />,
+            disabled: hasUser,
           },
           {
             key: "unbindUser",
             label: "解绑用户",
             icon: <UserAddOutlined />,
-            disabled: !record.uuid,
+            disabled: !hasUser,
           },
           { type: "divider" },
           {
@@ -300,17 +528,14 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
 
         const handleMenuClick: MenuProps["onClick"] = e => {
           switch (e.key) {
-            case "connect":
-              message.info("连接云桌面: " + record.vm_name);
-              break;
             case "reboot":
               handleReboot([record]);
               break;
             case "bindUser":
-              message.info("关联用户: " + record.vm_name);
+              handleBindUser(record);
               break;
             case "unbindUser":
-              message.info("解绑用户: " + record.vm_name);
+              handleUnbindUser(record);
               break;
             case "delete":
               handleDelete([record]);
@@ -319,14 +544,22 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
         };
 
         return (
-          <Space size="small">
+          <Space size={4}>
             <Button
               type="link"
               size="small"
-              disabled={record.status !== "running"}
-              onClick={() => message.info("连接云桌面: " + record.vm_name)}
+              disabled={isRunning}
+              onClick={() => handleStart([record])}
             >
-              连接
+              开机
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              disabled={!isRunning}
+              onClick={() => handleStop([record])}
+            >
+              关机
             </Button>
             <Dropdown menu={{ items, onClick: handleMenuClick }}>
               <Button type="link" size="small">
@@ -338,49 +571,6 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
       },
     },
   ];
-
-  // 批量操作菜单
-  const batchOperationItems: MenuProps["items"] = [
-    {
-      key: "start",
-      label: "开机",
-      disabled: selectedStatus !== "allStopped" && selectedStatus !== null,
-    },
-    {
-      key: "stop",
-      label: "关机",
-      disabled: selectedStatus !== "allRunning" && selectedStatus !== null,
-    },
-    {
-      key: "reboot",
-      label: "重启",
-      disabled: selectedStatus !== "allRunning" && selectedStatus !== null,
-    },
-    { type: "divider" },
-    {
-      key: "delete",
-      label: "删除",
-      danger: true,
-      disabled: selectedRowKeys.length === 0,
-    },
-  ];
-
-  const handleBatchOperation: MenuProps["onClick"] = e => {
-    switch (e.key) {
-      case "start":
-        handleStart();
-        break;
-      case "stop":
-        handleStop();
-        break;
-      case "reboot":
-        handleReboot();
-        break;
-      case "delete":
-        handleDelete();
-        break;
-    }
-  };
 
   // 行选择配置
   const rowSelection: TableProps<CloudDesk>["rowSelection"] = {
@@ -397,18 +587,17 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
         flexDirection: "column",
       }}
     >
-      {/* 搜索栏 */}
-      <div style={{ marginBottom: 12 }}>
-        <Space direction="vertical" style={{ width: "100%" }} size="middle">
-          {/* 第一行：搜索和筛选 */}
-          <Space wrap>
+      {/* 搜索和操作工具栏 */}
+      <TableToolbar
+        left={
+          <Space size="small">
             <Input
-              placeholder="搜索云桌面名称或用户"
-              prefix={<SearchOutlined />}
+              placeholder="请输入内容"
+              prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
               allowClear
               value={searchText}
               onChange={e => onSearchChange(e.target.value)}
-              style={{ width: 200 }}
+              style={{ width: 240 }}
             />
             <TreeSelect
               placeholder="全部云桌面"
@@ -418,53 +607,52 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
               treeDefaultExpandAll
               showSearch
               allowClear
-              filterTreeNode={(input, treeNode) =>
-                String(treeNode.title)
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              style={{ width: 200 }}
+              treeNodeFilterProp="title"
+              style={{ width: 240 }}
             />
           </Space>
-
-          {/* 第二行：操作按钮 */}
-          <Space wrap>
-            <Dropdown
-              menu={{
-                items: batchOperationItems,
-                onClick: handleBatchOperation,
-              }}
-            >
-              <Button>
-                批量操作 <DownOutlined />
-              </Button>
-            </Dropdown>
-            <Button icon={<ExportOutlined />}>导出</Button>
+        }
+        right={
+          <Space>
             <Button
-              icon={<SyncOutlined />}
-              onClick={onRefresh}
-              loading={loading}
+              icon={<DeleteOutlined />}
+              disabled={!hasSelected}
+              onClick={() => handleDelete()}
             >
-              刷新
+              删除
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              disabled={!hasSelected || selectedStatus !== "allRunning"}
+              onClick={() => handleReboot()}
+            >
+              重启
             </Button>
             <Button
               icon={<PoweroffOutlined />}
-              disabled={selectedStatus !== "allRunning"}
+              disabled={!hasSelected || selectedStatus !== "allStopped"}
+              onClick={() => handleStart()}
+            >
+              开机
+            </Button>
+            <Button
+              icon={<PoweroffOutlined />}
+              disabled={!hasSelected || selectedStatus !== "allRunning"}
+              onClick={() => handleStop()}
             >
               关机
             </Button>
             <Button
-              icon={<ReloadOutlined />}
-              disabled={selectedStatus !== "allStopped"}
+              type="primary"
+              icon={<ImportOutlined />}
+              onClick={handleImport}
             >
-              开机
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />}>
-              新建云桌面
+              导入桌面
             </Button>
           </Space>
-        </Space>
-      </div>
+        }
+        padding={0}
+      />
 
       {/* 数据统计 */}
       <div style={{ marginBottom: 8, fontSize: 14, color: "rgba(0,0,0,0.65)" }}>
@@ -487,6 +675,141 @@ const DesktopTable: React.FC<DesktopTableProps> = ({
           showSizeChanger: true,
           pageSizeOptions: ["10", "20", "50", "100"],
         }}
+      />
+
+      {/* 导入桌面模态框 */}
+      <Modal
+        title="导入桌面"
+        open={importModalVisible}
+        onCancel={() => {
+          setImportModalVisible(false);
+          setImportList([]);
+          setSelectedImportIds([]);
+          setImportSearchText("");
+        }}
+        footer={null}
+        width={800}
+        destroyOnHidden
+      >
+        {/* 提示信息区 */}
+        <Alert
+          title="当前只允许关机状态的云主机导入到桌面，如果有其他需要导入的桌面请到云主机模块进行关机操作！"
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+
+        {/* 搜索栏 */}
+        <Input
+          placeholder="请输入内容"
+          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+          allowClear
+          value={importSearchText}
+          onChange={e => setImportSearchText(e.target.value)}
+          style={{ marginBottom: 12 }}
+        />
+
+        {/* 统计信息 */}
+        <div
+          style={{ marginBottom: 8, fontSize: 14, color: "rgba(0,0,0,0.65)" }}
+        >
+          共 {filteredImportList.length} 项数据 已选 {selectedImportIds.length}{" "}
+          项
+        </div>
+
+        {/* 数据表格 */}
+        <Table
+          rowKey="vm_uid"
+          columns={[
+            {
+              title: "名称",
+              dataIndex: "vm_name",
+              key: "vm_name",
+              width: 180,
+              ellipsis: true,
+            },
+            {
+              title: "IP 地址",
+              dataIndex: "ip",
+              key: "ip",
+              width: 120,
+              render: text => text || "-",
+            },
+            {
+              title: "所属",
+              key: "location",
+              width: 200,
+              render: (_, record) =>
+                `${record.cluster_name}/${record.node_name}`,
+            },
+            {
+              title: "所属平台",
+              dataIndex: "platform_type",
+              key: "platform_type",
+              width: 100,
+            },
+            {
+              title: "状态",
+              dataIndex: "status",
+              key: "status",
+              width: 100,
+              render: text => text || "-",
+            },
+          ]}
+          dataSource={filteredImportList}
+          loading={importLoading}
+          rowSelection={{
+            selectedRowKeys: selectedImportIds,
+            onChange: keys => setSelectedImportIds(keys as string[]),
+          }}
+          pagination={{
+            total: filteredImportList.length,
+            defaultPageSize: 10,
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "20", "50"],
+            showTotal: total => `共 ${total} 条`,
+          }}
+          scroll={{ y: 300 }}
+        />
+
+        {/* 底部按钮 */}
+        <div style={{ marginTop: 16, textAlign: "right" }}>
+          <Space>
+            <Button
+              onClick={() => {
+                setImportModalVisible(false);
+                setImportList([]);
+                setSelectedImportIds([]);
+                setImportSearchText("");
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleConfirmImport}
+              disabled={selectedImportIds.length === 0}
+              loading={importLoading}
+            >
+              导入
+            </Button>
+          </Space>
+        </div>
+      </Modal>
+
+      {/* 关联用户弹窗 */}
+      <BindUserModal
+        open={bindUserModalVisible}
+        desktopUid={currentDesktop?.uuid ?? ""}
+        desktopName={currentDesktop?.vm_name ?? ""}
+        currentUser={
+          currentDesktop?.user_name || currentDesktop?.user_login_name
+        }
+        onCancel={() => {
+          setBindUserModalVisible(false);
+          setCurrentDesktop(null);
+        }}
+        onSuccess={handleBindUserSuccess}
       />
     </div>
   );

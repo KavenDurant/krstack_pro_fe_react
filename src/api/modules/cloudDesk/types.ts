@@ -100,12 +100,20 @@ export interface ImportListResponse {
   import_list: ImportCloudDeskType[];
 }
 
-// 可导入的云桌面类型
+// 可导入的云桌面列表响应（后端实际返回）
+export interface ImportCloudListResponse {
+  vms: ImportCloudDeskType[];
+}
+
+// 可导入的云桌面类型（后端实际返回）
 export interface ImportCloudDeskType {
-  id: number;
-  name: string;
-  cluster_id: number;
+  vm_uid: string;
+  vm_name: string;
+  cluster_name: string;
   node_name: string;
+  ip: string;
+  status: string;
+  platform_type: string;
 }
 
 // USB 策略

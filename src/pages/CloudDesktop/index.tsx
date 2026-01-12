@@ -1,17 +1,15 @@
-import React, {
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Layout, Tabs, message } from "antd";
 import { DesktopOutlined, SettingOutlined } from "@ant-design/icons";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import DesktopTable from "./components/DesktopTable";
 import DesktopPolicy from "./components/DesktopPolicy";
 import { getCloudDeskList } from "@/api/modules/cloudDesk";
-import type { CloudDesk, AncestorTree } from "@/api/modules/cloudDesk/types";
+import type {
+  CloudDesk,
+  AncestorTree,
+  CloudDeskListResponse,
+} from "@/api/modules/cloudDesk/types";
 
 const { Content } = Layout;
 
@@ -33,38 +31,35 @@ const CloudDesktop: React.FC = () => {
     string | number | undefined
   >();
 
-  const hasLoadedRef = useRef(false);
-
   // 加载云桌面数据
   const loadCloudDeskData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getCloudDeskList();
-      if (res.code === 200 && res.data) {
-        setDesktops(res.data.desktops || []);
+      const data =
+        (await getCloudDeskList()) as unknown as CloudDeskListResponse;
+      setDesktops(data.desktops || []);
 
-        // 构建树形选择器数据
-        const treeNodes: TreeSelectNode[] = [
-          {
-            title: "全部云桌面",
-            value: "all",
-            key: "all",
-            children: (res.data.ancestor_trees || []).map(
-              (cluster: AncestorTree) => ({
-                title: cluster.label,
-                value: cluster.value,
-                key: String(cluster.value),
-                children: cluster.children?.map((node: AncestorTree) => ({
-                  title: node.label,
-                  value: node.label,
-                  key: `${cluster.value}-${node.label}`,
-                })),
-              })
-            ),
-          },
-        ];
-        setTreeData(treeNodes);
-      }
+      // 构建树形选择器数据
+      const treeNodes: TreeSelectNode[] = [
+        {
+          title: "全部云桌面",
+          value: "all",
+          key: "all",
+          children: (data.ancestor_trees || []).map(
+            (cluster: AncestorTree) => ({
+              title: cluster.label,
+              value: cluster.value,
+              key: String(cluster.value),
+              children: cluster.children?.map((node: AncestorTree) => ({
+                title: node.label,
+                value: node.label,
+                key: `${cluster.value}-${node.label}`,
+              })),
+            })
+          ),
+        },
+      ];
+      setTreeData(treeNodes);
     } catch {
       message.error("加载云桌面数据失败");
     } finally {
@@ -72,13 +67,12 @@ const CloudDesktop: React.FC = () => {
     }
   }, []);
 
-  // 初始化加载数据
+  // tab 激活时加载数据 - 每次切换都重新加载
   useEffect(() => {
-    if (!hasLoadedRef.current) {
-      hasLoadedRef.current = true;
+    if (activeTab === "desktop") {
       loadCloudDeskData();
     }
-  }, [loadCloudDeskData]);
+  }, [activeTab, loadCloudDeskData]);
 
   // 过滤后的数据
   const filteredDesktops = useMemo(() => {
@@ -133,7 +127,6 @@ const CloudDesktop: React.FC = () => {
   );
 
   const handleRefresh = useCallback(() => {
-    hasLoadedRef.current = false;
     loadCloudDeskData();
   }, [loadCloudDeskData]);
 
@@ -226,7 +219,7 @@ const CloudDesktop: React.FC = () => {
                     <span>桌面策略</span>
                   </span>
                 ),
-                children: <DesktopPolicy />,
+                children: <DesktopPolicy active={activeTab === "policy"} />,
               },
             ]}
           />
