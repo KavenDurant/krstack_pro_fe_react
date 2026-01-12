@@ -11,10 +11,13 @@ import type {
   RelatedUserParams,
   SynchronousUser,
   ImportListResponse,
-  ImportCloudDeskType,
+  ImportCloudListResponse,
   UsbPolicyRoot,
+  UsbPolicy,
   DataAccessPolicyRoot,
+  DataAccessPolicy,
   TransportProtocolPolicyRoot,
+  TransportProtocolPolicy,
   SystemServerInfo,
 } from "./types";
 
@@ -133,8 +136,8 @@ export const detachUser = async (
  */
 export const getUsbPolicy = async (
   uuid: string
-): Promise<ApiResponse<UsbPolicyRoot>> => {
-  return get<UsbPolicyRoot>(`/desktops/policy/usb/desktop/${uuid}`);
+): Promise<ApiResponse<UsbPolicy>> => {
+  return get<UsbPolicy>(`/desktops/policy/usb/desktop/${uuid}`);
 };
 
 /**
@@ -150,10 +153,8 @@ export const updateUsbPolicy = async (
 /**
  * 获取全局 USB 策略
  */
-export const getGlobalUsbPolicy = async (): Promise<
-  ApiResponse<UsbPolicyRoot>
-> => {
-  return get<UsbPolicyRoot>("/desktops/policy/usb/global_desktop");
+export const getGlobalUsbPolicy = async (): Promise<ApiResponse<UsbPolicy>> => {
+  return get<UsbPolicy>("/desktops/policy/usb/global_desktop");
 };
 
 /**
@@ -172,10 +173,8 @@ export const updateGlobalUsbPolicy = async (
  */
 export const getDataAccessPolicy = async (
   uuid: string
-): Promise<ApiResponse<DataAccessPolicyRoot>> => {
-  return get<DataAccessPolicyRoot>(
-    `/desktops/policy/data_access/desktop/${uuid}`
-  );
+): Promise<ApiResponse<DataAccessPolicy>> => {
+  return get<DataAccessPolicy>(`/desktops/policy/data_access/desktop/${uuid}`);
 };
 
 /**
@@ -192,11 +191,9 @@ export const updateDataAccessPolicy = async (
  * 获取全局数据访问策略
  */
 export const getGlobalDataAccessPolicy = async (): Promise<
-  ApiResponse<DataAccessPolicyRoot>
+  ApiResponse<DataAccessPolicy>
 > => {
-  return get<DataAccessPolicyRoot>(
-    "/desktops/policy/data_access/global_desktop"
-  );
+  return get<DataAccessPolicy>("/desktops/policy/data_access/global_desktop");
 };
 
 /**
@@ -215,8 +212,8 @@ export const updateGlobalDataAccessPolicy = async (
  */
 export const getTransportProtocolPolicy = async (
   uuid: string
-): Promise<ApiResponse<TransportProtocolPolicyRoot>> => {
-  return get<TransportProtocolPolicyRoot>(
+): Promise<ApiResponse<TransportProtocolPolicy>> => {
+  return get<TransportProtocolPolicy>(
     `/desktops/policy/transport_protocol/desktop/${uuid}`
   );
 };
@@ -235,9 +232,9 @@ export const updateTransportProtocolPolicy = async (
  * 获取全局传输协议策略
  */
 export const getGlobalTransportProtocolPolicy = async (): Promise<
-  ApiResponse<TransportProtocolPolicyRoot>
+  ApiResponse<TransportProtocolPolicy>
 > => {
-  return get<TransportProtocolPolicyRoot>(
+  return get<TransportProtocolPolicy>(
     "/desktops/policy/transport_protocol/global_desktop"
   );
 };
@@ -267,11 +264,12 @@ export const getCloudDeskServer = async (): Promise<
 /**
  * 获取可导入的云桌面列表
  */
-export const getImportCloudList = async (): Promise<
-  ApiResponse<ImportCloudDeskType[]>
-> => {
-  return get<ImportCloudDeskType[]>(URL.importList);
-};
+export const getImportCloudList =
+  async (): Promise<ImportCloudListResponse> => {
+    const response = await get<ImportCloudListResponse>(URL.importList);
+    // 后端直接返回 { vms: [...] } 结构
+    return response as unknown as ImportCloudListResponse;
+  };
 
 /**
  * 导入云桌面

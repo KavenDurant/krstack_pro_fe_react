@@ -123,6 +123,50 @@ useEffect(() => {
 }, []); // Empty deps for mount-only
 ```
 
+### Tab Lazy Loading Pattern (CRITICAL)
+
+**For pages with tabs, each tab content should load data only when activated:**
+
+```typescript
+// Tab content component receives `active` prop
+interface TabContentProps {
+  active?: boolean;
+}
+
+const TabContent: React.FC<TabContentProps> = ({ active = false }) => {
+  const [data, setData] = useState();
+
+  const loadData = async () => {
+    // ... fetch logic
+  };
+
+  // Load data whenever tab becomes active
+  useEffect(() => {
+    if (active) {
+      loadData();
+    }
+  }, [active]);
+
+  return <div>{/* content */}</div>;
+};
+
+// Parent page passes active state
+<Tabs
+  items={[
+    { key: "tab1", children: <TabContent1 active={activeTab === "tab1"} /> },
+    { key: "tab2", children: <TabContent2 active={activeTab === "tab2"} /> },
+  ]}
+/>
+```
+
+**Key requirements:**
+- Each tab component receives an `active` prop from parent
+- Data fetching only happens when `active === true`
+- Every tab switch triggers a fresh data fetch (no `hasLoadedRef` for tabs)
+- This ensures data freshness and avoids unnecessary API calls for inactive tabs
+
+**Example implementation:** `src/pages/CloudDesktop/index.tsx` and `DesktopPolicy.tsx`
+
 ### API Architecture
 
 **Modular API structure** organized by feature:
@@ -160,6 +204,7 @@ useEffect(() => {
   - `bordered` → Use `variant="outlined"` (Card component)
   - `labelStyle` → Use `styles={{ label: {...} }}` (Descriptions component)
   - `contentStyle` → Use `styles={{ content: {...} }}` (Descriptions component)
+  - `destroyOnClose` (Modal component) → Use `destroyOnHidden` instead
   - `message` (Alert component) → Use `title` prop instead
   - `width` (Drawer component) → Use `styles={{ wrapper: { width: 600 } }}`
 - **Using alpha version** (6.0.0-alpha.5) - some APIs may differ from v5

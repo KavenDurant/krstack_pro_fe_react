@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Table, Button, Tag, message, Space, Tooltip } from "antd";
+import {
+  Modal,
+  Table,
+  Button,
+  Tag,
+  message,
+  Space,
+  Tooltip,
+  Alert,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { storageApi } from "@/api";
@@ -212,27 +221,17 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
       footer={null}
       centered
       width={800}
-      destroyOnClose
+      destroyOnHidden
       styles={{
         body: { paddingTop: 16 },
       }}
     >
-      <div
-        style={{
-          marginBottom: 16,
-          padding: 12,
-          background: "#e6f7ff",
-          border: "1px solid #91d5ff",
-          borderRadius: 4,
-          fontSize: 13,
-          color: "#0050b3",
-        }}
-      >
-        <InfoCircleOutlined style={{ marginRight: 8 }} />
-        <span>
-          外挂存储挂载对应的集群后，集群下所有物理机都会挂载该外挂存储；卸载和删除同理。
-        </span>
-      </div>
+      <Alert
+        title="外挂存储挂载对应的集群后，集群下所有物理机都会挂载该外挂存储；卸载和删除同理。"
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
 
       <Table
         columns={columns}
