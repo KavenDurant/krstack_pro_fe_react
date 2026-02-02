@@ -9,6 +9,8 @@ import {
   message,
   Space,
   Modal,
+  Spin,
+  Progress,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -22,6 +24,7 @@ import type { Node, NodeDetail as NodeDetailType, VMInfo } from "@/api";
 import { formatBytesAuto } from "@/utils/format";
 import PerformanceMonitor from "./PerformanceMonitor";
 import VMCard from "./VMCard";
+import DeviceManagement from "./DeviceManagement";
 
 interface NodeDetailProps {
   node: Node;
@@ -31,18 +34,14 @@ interface NodeDetailProps {
 const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
   const [nodeDetail, setNodeDetail] = useState<NodeDetailType | null>(null);
   const [vmList, setVmList] = useState<VMInfo[]>([]);
-  const [usbList, setUsbList] = useState<unknown[]>([]);
-  const [gpuList, setGpuList] = useState<unknown[]>([]);
   const [storageList, setStorageList] = useState<unknown[]>([]);
   const [networkSettings, setNetworkSettings] = useState<unknown[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [vmLoading, setVmLoading] = useState(false);
+  const [storageLoading, setStorageLoading] = useState(false);
+  const [networkLoading, setNetworkLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("basic");
-  const hasLoadedDetailRef = useRef(false);
-  const hasLoadedVMsRef = useRef(false);
-  const hasLoadedDevicesRef = useRef(false);
-  const hasLoadedStorageRef = useRef(false);
-  const hasLoadedNetworkSettingsRef = useRef(false);
-  const hasLoadedPerformanceRef = useRef(false);
+
+  const networkLoadingRef = useRef(false);
 
   // 加载物理机详情
   const loadNodeDetail = async () => {
@@ -62,39 +61,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
   // 加载虚拟机列表
   const loadVMList = async () => {
     try {
-      setLoading(true);
-      if (import.meta.env.DEV) {
-        const vms = Array.from({ length: 100 }).map((_, index) => {
-          const vmIdValue = 100 + index;
-          const running = index % 4 === 0;
-
-          return {
-            nodeUid: node.uid,
-            id: `qemu/${vmIdValue}`,
-            name: `mock-vm-${vmIdValue}`,
-            vmId: vmIdValue,
-            vmUid: btoa(
-              JSON.stringify({
-                cluster_id: 2,
-                node_name: "host237",
-                vm_id: vmIdValue,
-              })
-            ),
-            status: (running ? "Running" : "Stopped") as "Running" | "Stopped",
-            clusterId: 2,
-            nodeName: "host237",
-            cpuTotal: [2, 4, 8][index % 3],
-            memTotal: [2147483648, 4294967296, 8589934592, 10737418240][
-              index % 4
-            ],
-            ip: running ? `192.168.1.${index + 10}` : "",
-            osType: index % 3 === 0 ? "Windows" : "Linux",
-          };
-        });
-
-        setVmList(vms);
-        return;
-      }
+      setVmLoading(true);
       const response = await nodeApi.getNodeVMs(node.uid);
       if (response.code === 200) {
         setVmList(response.data);
@@ -105,37 +72,14 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
       message.error("获取虚拟机列表失败");
       console.error("Failed to load VM list:", error);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  // 加载关联设备（USB + GPU）
-  const loadDevices = async () => {
-    try {
-      setLoading(true);
-      const [usbResponse, gpuResponse] = await Promise.all([
-        nodeApi.getUSBList(node.uid),
-        nodeApi.getGPUList(node.uid),
-      ]);
-
-      if (usbResponse.code === 200) {
-        setUsbList(usbResponse.data);
-      }
-      if (gpuResponse.code === 200) {
-        setGpuList(gpuResponse.data);
-      }
-    } catch (error) {
-      message.error("获取设备信息失败");
-      console.error("Failed to load devices:", error);
-    } finally {
-      setLoading(false);
+      setVmLoading(false);
     }
   };
 
   // 加载存储列表
   const loadStorageList = async () => {
     try {
-      setLoading(true);
+      setStorageLoading(true);
       const response = await nodeApi.getStorageList(node.uid);
       if (response.code === 200) {
         setStorageList(response.data);
@@ -146,14 +90,17 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
       message.error("获取存储信息失败");
       console.error("Failed to load storage list:", error);
     } finally {
-      setLoading(false);
+      setStorageLoading(false);
     }
   };
 
   // 加载网络设置
   const loadNetworkSettings = async () => {
+    if (networkLoadingRef.current) return;
+
     try {
-      setLoading(true);
+      networkLoadingRef.current = true;
+      setNetworkLoading(true);
       const response = await nodeApi.getNetworkSettings(node.uid);
       if (response.code === 200) {
         setNetworkSettings(response.data);
@@ -164,43 +111,29 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
       message.error("获取网络设置失败");
       console.error("Failed to load network settings:", error);
     } finally {
-      setLoading(false);
+      setNetworkLoading(false);
+      networkLoadingRef.current = false;
     }
   };
 
-  // 初始加载基本信息
+  // Tab 切换时按需加载数据 - 每次切换都重新加载
   useEffect(() => {
-    if (!hasLoadedDetailRef.current) {
-      hasLoadedDetailRef.current = true;
+    if (activeTab === "basic") {
       loadNodeDetail();
+    } else if (activeTab === "vms") {
+      loadVMList();
+    } else if (activeTab === "storage") {
+      loadStorageList();
+    } else if (activeTab === "network-settings") {
+      loadNetworkSettings();
     }
+    // devices, performance 和 shell tab 不需要在这里加载数据
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeTab, node.uid]);
 
-  // Tab 切换时加载数据
+  // Tab 切换处理
   const handleTabChange = (key: string) => {
     setActiveTab(key);
-
-    if (key === "basic") {
-      loadNodeDetail();
-    } else if (key === "vms" && !hasLoadedVMsRef.current) {
-      hasLoadedVMsRef.current = true;
-      loadVMList();
-    } else if (key === "devices" && !hasLoadedDevicesRef.current) {
-      hasLoadedDevicesRef.current = true;
-      loadDevices();
-    } else if (key === "storage" && !hasLoadedStorageRef.current) {
-      hasLoadedStorageRef.current = true;
-      loadStorageList();
-    } else if (
-      key === "network-settings" &&
-      !hasLoadedNetworkSettingsRef.current
-    ) {
-      hasLoadedNetworkSettingsRef.current = true;
-      loadNetworkSettings();
-    } else if (key === "performance" && !hasLoadedPerformanceRef.current) {
-      hasLoadedPerformanceRef.current = true;
-    }
   };
 
   // 处理重启
@@ -283,61 +216,51 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
     return <Tag color={color}>{text}</Tag>;
   };
 
-  // USB 设备列定义
-  const usbColumns: ColumnsType<unknown> = [
-    {
-      title: "设备名称",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "制造商",
-      dataIndex: "manufacturer",
-      key: "manufacturer",
-      render: (value: string) => value || <Tag color="default">暂未提供</Tag>,
-    },
-    {
-      title: "产品",
-      dataIndex: "product",
-      key: "product",
-      render: (value: string) => value || <Tag color="default">暂未提供</Tag>,
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: (value: string) => (
-        <Tag color={value === "normal" ? "success" : "default"}>
-          {value === "normal" ? "正常" : value === "occupied" ? "占用" : value}
-        </Tag>
-      ),
-    },
-  ];
+  // 存储使用进度条渲染（参考：已用/总容量、剩余、进度条+百分比）
+  const renderStorageUsage = (record: {
+    diskTotal?: number;
+    diskUsed?: number;
+    diskLeft?: number;
+  }) => {
+    const total = record.diskTotal;
+    const used = record.diskUsed;
+    const left = record.diskLeft;
 
-  // GPU 设备列定义
-  const gpuColumns: ColumnsType<unknown> = [
-    {
-      title: "设备名称",
-      dataIndex: "deviceName",
-      key: "deviceName",
-    },
-    {
-      title: "制造商",
-      dataIndex: "manufacturer",
-      key: "manufacturer",
-      render: (value: string) => value || <Tag color="default">暂未提供</Tag>,
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: (value: string) => (
-        <Tag color={value === "normal" ? "success" : "default"}>
-          {value === "normal" ? "正常" : value === "occupied" ? "占用" : value}
-        </Tag>
-      ),
-    },
-  ];
+    if (total === undefined || total === 0 || used === undefined) {
+      return <Tag color="default">暂未提供</Tag>;
+    }
+
+    const percent = Math.round((used / total) * 100);
+    const leftDisplay = left !== undefined ? left : Math.max(0, total - used);
+
+    return (
+      <div style={{ minWidth: 160 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 12,
+            marginBottom: 4,
+          }}
+        >
+          <span>
+            {formatBytesAuto(used)}/{formatBytesAuto(total)}
+          </span>
+          <span>剩余: {formatBytesAuto(leftDisplay)}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Progress
+            percent={percent}
+            showInfo={false}
+            strokeColor="#52c41a"
+            size="small"
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: 12 }}>{percent}%</span>
+        </div>
+      </div>
+    );
+  };
 
   // 存储列定义
   const storageColumns: ColumnsType<unknown> = [
@@ -352,47 +275,30 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
       key: "type",
     },
     {
-      title: "总容量",
-      dataIndex: "diskTotal",
-      key: "diskTotal",
-      render: (value: number) =>
-        value !== undefined ? (
-          `${formatBytesAuto(value)}`
-        ) : (
-          <Tag color="default">暂未提供</Tag>
-        ),
-    },
-    {
-      title: "已使用",
-      dataIndex: "diskUsed",
-      key: "diskUsed",
-      render: (value: number) =>
-        value !== undefined ? (
-          `${formatBytesAuto(value)}`
-        ) : (
-          <Tag color="default">暂未提供</Tag>
-        ),
-    },
-    {
-      title: "剩余",
-      dataIndex: "diskLeft",
-      key: "diskLeft",
-      render: (value: number) =>
-        value !== undefined ? (
-          `${formatBytesAuto(value)}`
-        ) : (
-          <Tag color="default">暂未提供</Tag>
-        ),
+      title: "存储使用",
+      key: "storageUsage",
+      render: (_: unknown, record: unknown) => {
+        const r = record as Record<string, unknown>;
+        return renderStorageUsage({
+          diskTotal: r.diskTotal as number | undefined,
+          diskUsed: r.diskUsed as number | undefined,
+          diskLeft: r.diskLeft as number | undefined,
+        });
+      },
     },
     {
       title: "状态",
       dataIndex: "status",
       key: "status",
-      render: (value: string) => (
-        <Tag color={value === "available" ? "success" : "default"}>
-          {value === "available" ? "可用" : value}
-        </Tag>
-      ),
+      render: (value: string) => {
+        if (value === "available") {
+          return <Tag color="success">可用</Tag>;
+        }
+        if (value === "enabled" || value === "active") {
+          return <Tag color="processing">启用</Tag>;
+        }
+        return <Tag color="default">不可用</Tag>;
+      },
     },
     {
       title: "共享",
@@ -574,7 +480,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
           >
             共计 {vmList.length} 条数据
           </div>
-          {loading ? (
+          {vmLoading ? (
             <div
               style={{
                 display: "flex",
@@ -582,7 +488,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
                 padding: "40px 0",
               }}
             >
-              加载中...
+              <Spin size="large" />
             </div>
           ) : vmList.length === 0 ? (
             <div
@@ -614,59 +520,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
     {
       key: "devices",
       label: "关联设备",
-      children: (
-        <div style={{ padding: "0 0" }}>
-          <Card
-            title="USB 设备"
-            variant="outlined"
-            style={{ marginBottom: 16 }}
-            className="node-detail-card"
-          >
-            <div
-              style={{
-                fontSize: 12,
-                color: "#666",
-                margin: "0 0 8px 0",
-                lineHeight: 1.4,
-              }}
-            >
-              共计 {usbList.length} 条数据
-            </div>
-            <Table
-              columns={usbColumns}
-              dataSource={usbList}
-              rowKey="uid"
-              pagination={false}
-              size="small"
-              loading={loading}
-            />
-          </Card>
-          <Card
-            title="GPU 设备"
-            variant="outlined"
-            className="node-detail-card"
-          >
-            <div
-              style={{
-                fontSize: 12,
-                color: "#666",
-                margin: "0 0 8px 0",
-                lineHeight: 1.4,
-              }}
-            >
-              共计 {gpuList.length} 条数据
-            </div>
-            <Table
-              columns={gpuColumns}
-              dataSource={gpuList}
-              rowKey="id"
-              pagination={false}
-              size="small"
-              loading={loading}
-            />
-          </Card>
-        </div>
-      ),
+      children: <DeviceManagement nodeUid={node.uid} />,
     },
     {
       key: "storage",
@@ -689,7 +543,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
             rowKey="storageUid"
             pagination={false}
             size="small"
-            loading={loading}
+            loading={storageLoading}
           />
         </div>
       ),
@@ -715,7 +569,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
             rowKey="name"
             pagination={false}
             size="small"
-            loading={loading}
+            loading={networkLoading}
           />
         </div>
       ),
@@ -802,7 +656,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
           .node-detail-tabs > .ant-tabs-content-holder {
             flex: 1;
             overflow: hidden;
-            padding: 8px 0 0 0;
+            padding: 8px 0 30px 0;
             min-height: 0;
           }
           .node-detail-tabs .ant-tabs-content {
@@ -823,6 +677,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
         className="node-detail-tabs"
         activeKey={activeTab}
         onChange={handleTabChange}
+        destroyInactiveTabPane
       />
     </div>
   );

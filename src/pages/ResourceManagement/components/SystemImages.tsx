@@ -176,8 +176,9 @@ const SystemImages: React.FC = () => {
   };
 
   const filteredData = useMemo(() => {
-    return imageData.filter(item =>
-      item.name.toLowerCase().includes(searchText.toLowerCase())
+    return imageData.filter(
+      item =>
+        item.name?.toLowerCase().includes(searchText.toLowerCase()) ?? false
     );
   }, [imageData, searchText]);
 
