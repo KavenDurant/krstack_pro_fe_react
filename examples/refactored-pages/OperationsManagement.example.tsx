@@ -49,10 +49,7 @@ const OperationsManagementExample: React.FC = () => {
       dataIndex: "result",
       key: "result",
       render: (result: string) => (
-        <Badge
-          status={result === "成功" ? "success" : "error"}
-          text={result}
-        />
+        <Badge status={result === "成功" ? "success" : "error"} text={result} />
       ),
     },
     {
@@ -94,7 +91,9 @@ const OperationsManagementExample: React.FC = () => {
       {/* 面包屑区域 - 使用现有的 PageBreadcrumb 组件 */}
       {/* <PageBreadcrumb fullWidth /> */}
 
-      <Content style={{ padding: tokens.spacing.md, overflow: "auto", flex: 1 }}>
+      <Content
+        style={{ padding: tokens.spacing.md, overflow: "auto", flex: 1 }}
+      >
         {/* 搜索和筛选工具栏 */}
         <div
           style={{
@@ -165,7 +164,7 @@ const OperationsManagementExample: React.FC = () => {
             pagination={{
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total) => `共计 ${total} 条日志`,
+              showTotal: total => `共计 ${total} 条日志`,
             }}
           />
         </div>

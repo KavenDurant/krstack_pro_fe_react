@@ -123,8 +123,9 @@ const InternalStorage: React.FC = () => {
 
   // 过滤数据
   const filteredData = useMemo(() => {
-    return storageData.filter(item =>
-      item.name.toLowerCase().includes(searchText.toLowerCase())
+    return storageData.filter(
+      item =>
+        item.name?.toLowerCase().includes(searchText.toLowerCase()) ?? false
     );
   }, [storageData, searchText]);
 

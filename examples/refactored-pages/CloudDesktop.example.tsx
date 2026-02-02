@@ -64,7 +64,9 @@ const CloudDesktopExample: React.FC = () => {
       {/* 面包屑区域 - 使用现有的 PageBreadcrumb 组件 */}
       {/* <PageBreadcrumb fullWidth /> */}
 
-      <Content style={{ padding: tokens.spacing.md, overflow: "auto", flex: 1 }}>
+      <Content
+        style={{ padding: tokens.spacing.md, overflow: "auto", flex: 1 }}
+      >
         {/* 工具栏：搜索 + 筛选 + 操作按钮 */}
         <div
           style={{
@@ -124,7 +126,7 @@ const CloudDesktopExample: React.FC = () => {
             pagination={{
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total) => `共计 ${total} 条云桌面`,
+              showTotal: total => `共计 ${total} 条云桌面`,
             }}
           />
         </div>

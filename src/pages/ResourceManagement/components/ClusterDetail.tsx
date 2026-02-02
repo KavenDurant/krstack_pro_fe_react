@@ -9,6 +9,7 @@ import {
   Input,
   Space,
   message,
+  Spin,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -155,8 +156,9 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
   };
 
   // 过滤物理机数据
-  const filteredMachines = physicalMachines.filter(machine =>
-    machine.name.toLowerCase().includes(searchValue.toLowerCase())
+  const filteredMachines = physicalMachines.filter(
+    machine =>
+      machine.name?.toLowerCase().includes(searchValue.toLowerCase()) ?? false
   );
   const items = [
     {
@@ -262,7 +264,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       </div>
                     </>
                   ) : (
-                    <span>加载中...</span>
+                    <Spin size="small" />
                   )}
                 </div>
               </Descriptions.Item>
@@ -304,7 +306,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       </div>
                     </>
                   ) : (
-                    <span>加载中...</span>
+                    <Spin size="small" />
                   )}
                 </div>
               </Descriptions.Item>
@@ -358,7 +360,7 @@ const ClusterDetail: React.FC<ClusterDetailProps> = ({ cluster, onBack }) => {
                       </div>
                     </>
                   ) : (
-                    <span>加载中...</span>
+                    <Spin size="small" />
                   )}
                 </div>
               </Descriptions.Item>

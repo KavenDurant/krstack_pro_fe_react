@@ -152,8 +152,10 @@ const ResourceManagement: React.FC = () => {
   // 过滤集群数据
   const filteredData = useMemo(
     () =>
-      clusterData.filter(cluster =>
-        cluster.name.toLowerCase().includes(searchValue.toLowerCase())
+      clusterData.filter(
+        cluster =>
+          cluster.name?.toLowerCase().includes(searchValue.toLowerCase()) ??
+          false
       ),
     [clusterData, searchValue]
   );

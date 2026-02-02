@@ -314,8 +314,9 @@ const PhysicalMachine: React.FC = () => {
   const filteredData = useMemo(() => {
     return nodeData.filter(node => {
       const matchSearch =
-        node.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        node.ip.toLowerCase().includes(searchValue.toLowerCase());
+        (node.name?.toLowerCase().includes(searchValue.toLowerCase()) ??
+          false) ||
+        (node.ip?.toLowerCase().includes(searchValue.toLowerCase()) ?? false);
 
       // 根据树选择过滤
       if (selectedTreeKey === "all") {
@@ -428,6 +429,9 @@ const PhysicalMachine: React.FC = () => {
       treeData={treeData}
       selectedKey={selectedTreeKey}
       onSelect={keys => setSelectedTreeKey(keys[0])}
+      treeWidth={180}
+      treeMinWidth={160}
+      treeMaxWidth={260}
     >
       <div
         style={{

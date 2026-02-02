@@ -92,12 +92,12 @@ export interface NodeDetail {
  * 虚拟机信息
  */
 export interface VMInfo {
-  nodeUid: string;
   id: string;
   name: string;
-  vmId: number;
-  status: "Running" | "Stopped";
+  vmUid: string;
+  status: string;
   clusterId: number;
+  clusterName: string;
   nodeName: string;
   cpuTotal: number;
   memTotal: number;
@@ -110,12 +110,12 @@ export interface VMInfo {
  */
 export interface VMListResponse {
   vms: {
-    node_uid: string;
     id: string;
     name: string;
-    vm_id: number;
+    vm_uid: string;
     status: string;
     cluster_id: number;
+    cluster_name: string;
     node_name: string;
     cpu_total: number;
     mem_total: number;
@@ -142,10 +142,43 @@ export interface NetworkInterface {
 export interface USBDevice {
   uid: string;
   id: string;
+  name: string | null;
+  host: string | null;
+  manufacturer: string | null;
+  product: string | null;
+  status: string;
+  vmUse: USBVmUse[];
+}
+
+/**
+ * USB 设备信息（后端格式）
+ */
+export interface USBDeviceBackend {
+  uid: string;
+  id: string;
+  name: string | null;
+  host: string | null;
+  manufacturer: string | null;
+  product: string | null;
+  status: string;
+  vm_use: USBVmUseBackend[];
+}
+
+export interface USBVmUseBackend {
   name: string;
-  host: string;
-  manufacturer: string;
-  product: string;
+  vm_uid: string;
+  usb_id: string;
+  usb_uid: string;
+  usb_name: string | null;
+  status: string;
+}
+
+export interface USBVmUse {
+  name: string;
+  vmUid: string;
+  usbId: string;
+  usbUid: string;
+  usbName: string | null;
   status: string;
 }
 
@@ -153,17 +186,42 @@ export interface USBDevice {
  * GPU 设备信息
  */
 export interface GPUDevice {
+  uid: string;
   id: string;
   status: string;
-  deviceName: string;
-  manufacturer: string;
-  vmUse: {
-    name: string;
-    vmUid: string;
-    gpuId: string;
-    gpuName: string;
-    status: string;
-  }[];
+  deviceName: string | null;
+  manufacturer: string | null;
+  vmUse: GPUVmUse[];
+}
+
+export interface GPUVmUse {
+  name: string;
+  vmUid: string;
+  gpuId: string;
+  gpuUid: string;
+  gpuName: string | null;
+  status: string;
+}
+
+/**
+ * GPU 设备信息（后端格式）
+ */
+export interface GPUDeviceBackend {
+  uid: string;
+  id: string;
+  status: string;
+  device_name: string | null;
+  manufacturer: string | null;
+  vm_use: GPUVmUseBackend[];
+}
+
+export interface GPUVmUseBackend {
+  name: string;
+  vm_uid: string;
+  gpu_id: string;
+  gpu_uid: string;
+  gpu_name: string | null;
+  status: string;
 }
 
 /**
@@ -181,6 +239,18 @@ export interface StorageInfo {
   clusterId?: number;
 }
 
+export interface StorageInfoBackend {
+  name: string;
+  storage_uid: string;
+  disk_total: number;
+  disk_used: number;
+  disk_left: number;
+  type: string;
+  status: string;
+  shared: boolean;
+  cluster_id?: number;
+}
+
 /**
  * 网络设置信息
  */
@@ -192,6 +262,22 @@ export interface NetworkSetting {
   vlanAware: boolean | null;
   port: string | null;
   bondMode: string | null;
+  cidr: string | null;
+  gateway: string | null;
+  comments: string | null;
+}
+
+/**
+ * 网络设置信息（后端 snake_case）
+ */
+export interface NetworkSettingBackend {
+  name: string;
+  type: string;
+  active: boolean;
+  autostart: boolean | null;
+  vlan_aware: boolean | null;
+  port: string | null;
+  bond_mode: string | null;
   cidr: string | null;
   gateway: string | null;
   comments: string | null;

@@ -210,12 +210,10 @@ const ExternalStorage: React.FC = () => {
   // 过滤数据
   const filteredData = useMemo(() => {
     return storageData.filter(item => {
-      const matchName = item.name
-        .toLowerCase()
-        .includes(searchText.toLowerCase());
-      const matchPath = item.path
-        .toLowerCase()
-        .includes(searchText.toLowerCase());
+      const matchName =
+        item.name?.toLowerCase().includes(searchText.toLowerCase()) ?? false;
+      const matchPath =
+        item.path?.toLowerCase().includes(searchText.toLowerCase()) ?? false;
       return matchName || matchPath;
     });
   }, [storageData, searchText]);
