@@ -151,12 +151,17 @@ const ResourceManagement: React.FC = () => {
 
   // 过滤集群数据
   const filteredData = useMemo(
-    () =>
-      clusterData.filter(
+    () => {
+      // 搜索框为空时显示所有数据
+      if (!searchValue.trim()) {
+        return clusterData;
+      }
+      // 搜索框有值时，只过滤有名称的集群
+      return clusterData.filter(
         cluster =>
-          cluster.name?.toLowerCase().includes(searchValue.toLowerCase()) ??
-          false
-      ),
+          cluster.name?.toLowerCase().includes(searchValue.toLowerCase()) ?? false
+      );
+    },
     [clusterData, searchValue]
   );
 

@@ -40,7 +40,6 @@ const columns: ColumnsType<PhysicalMachineType> = [
     title: "名称",
     dataIndex: "name",
     key: "name",
-    render: text => <a style={{ color: "#1890ff" }}>{text}</a>,
   },
   {
     title: "状态",
