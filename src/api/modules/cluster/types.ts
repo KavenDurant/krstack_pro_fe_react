@@ -3,15 +3,15 @@
  */
 
 // 集群状态
-export type ClusterStatus = "online" | "offline" | "syncing" | "error";
+export type ClusterStatus = "online" | "offline" | "syncing" | "synchronizing" | "error";
 
 // 后端返回的集群数据结构
 export interface ClusterBackend {
   cluster_id: number;
   cluster_uid: string;
-  name: string;
+  name: string | null;
   status: ClusterStatus;
-  nodes_num: number;
+  nodes_num: number | null;
   platform_type: string;
   ip: string;
   vt_type: string;
@@ -22,9 +22,9 @@ export interface ClusterBackend {
 export interface Cluster {
   id: string;
   uid: string;
-  name: string;
+  name: string | null;
   status: ClusterStatus;
-  nodesNum: number;
+  nodesNum: number | null;
   platformType: string;
   ip: string;
   vtType: string;

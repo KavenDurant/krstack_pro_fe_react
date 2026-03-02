@@ -45,6 +45,11 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
       text: "同步中",
       color: "processing",
     },
+    synchronizing: {
+      icon: <SyncOutlined spin />,
+      text: "同步中",
+      color: "processing",
+    },
     error: {
       icon: <ExclamationCircleOutlined />,
       text: "错误",
@@ -56,7 +61,7 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
     Modal.confirm({
       title: "确认删除",
       icon: <ExclamationCircleOutlined />,
-      content: `确定要删除集群 "${record.name}" 吗？`,
+      content: `确定要删除集群 "${record.name ?? "未命名"}" 吗？`,
       okText: "确认",
       cancelText: "取消",
       onOk: () => {
@@ -70,12 +75,15 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
       title: "名称",
       dataIndex: "name",
       key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      render: (text: string, record: Cluster) => (
-        <a style={{ color: "#1890ff" }} onClick={() => onRowClick?.(record)}>
-          {text}
-        </a>
-      ),
+      sorter: (a, b) => (a.name ?? "").localeCompare(b.name ?? ""),
+      render: (text: string | null, record: Cluster) =>
+        text ? (
+          <a style={{ color: "#1890ff" }} onClick={() => onRowClick?.(record)}>
+            {text}
+          </a>
+        ) : (
+          <Tag color="default">暂未提供</Tag>
+        ),
     },
     {
       title: "状态",
@@ -84,6 +92,9 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
       sorter: (a, b) => a.status.localeCompare(b.status),
       render: (status: ClusterStatus) => {
         const config = statusConfig[status];
+        if (!config) {
+          return <Tag color="default">{status}</Tag>;
+        }
         return (
           <Tag icon={config.icon} color={config.color}>
             {config.text}
@@ -113,7 +124,9 @@ const ClusterTable: React.FC<ClusterTableProps> = ({
       title: "节点数量",
       dataIndex: "nodesNum",
       key: "nodesNum",
-      sorter: (a, b) => a.nodesNum - b.nodesNum,
+      sorter: (a, b) => (a.nodesNum ?? 0) - (b.nodesNum ?? 0),
+      render: (nodesNum: number | null) =>
+        nodesNum !== null ? nodesNum : <Tag color="default">暂未提供</Tag>,
     },
     {
       title: "创建时间",
