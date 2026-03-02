@@ -139,8 +139,14 @@ instance.interceptors.response.use(
           break;
 
         case HTTP_STATUS.NOT_FOUND:
-          message.error("请求的资源不存在");
+        case HTTP_STATUS.NOT_FOUND: {
+          const errorMsg =
+            (data as { detail?: string; message?: string })?.detail ||
+            (data as { detail?: string; message?: string })?.message ||
+            "请求的资源不存在";
+          message.error(errorMsg);
           break;
+        }
 
         case HTTP_STATUS.INTERNAL_SERVER_ERROR:
           message.error("服务器内部错误");

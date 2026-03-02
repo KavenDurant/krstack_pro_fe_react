@@ -81,6 +81,7 @@ export type {
   StorageInfo,
   NetworkSetting,
   PerformanceData,
+  NetworkPerformanceData,
 } from "@/api/modules/node/types";
 export type {
   DesktopListItem,
