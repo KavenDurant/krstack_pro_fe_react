@@ -290,3 +290,9 @@ export interface PerformanceData {
   timestamp: number;
   value: number;
 }
+
+export interface NetworkPerformanceData {
+  timestamp: number;
+  rx: number; // Received (In), bytes/s
+  tx: number; // Transmitted (Out), bytes/s
+}

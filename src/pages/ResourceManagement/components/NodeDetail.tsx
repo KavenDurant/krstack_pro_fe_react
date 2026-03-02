@@ -42,10 +42,15 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
   const [activeTab, setActiveTab] = useState<string>("basic");
 
   const networkLoadingRef = useRef(false);
+  const nodeDetailLoadingRef = useRef(false);
 
   // 加载物理机详情
+  // 加载物理机详情
   const loadNodeDetail = async () => {
+    if (nodeDetailLoadingRef.current) return;
+
     try {
+      nodeDetailLoadingRef.current = true;
       const response = await nodeApi.getNodeDetail(node.uid);
       if (response.code === 200) {
         setNodeDetail(response.data);
@@ -53,8 +58,9 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ node, onBack }) => {
         message.error(response.message || "获取物理机详情失败");
       }
     } catch (error) {
-      message.error("获取物理机详情失败");
       console.error("Failed to load node detail:", error);
+    } finally {
+      nodeDetailLoadingRef.current = false;
     }
   };
 

@@ -22,6 +22,7 @@ import type {
   NetworkSetting,
   NetworkSettingBackend,
   PerformanceData,
+  NetworkPerformanceData, // Add this
   NodeStatus,
 } from "./types";
 
@@ -463,8 +464,35 @@ export const getNetworkSettings = async (
 
 const normalizePerformanceItem = (item: unknown): PerformanceData | null => {
   if (!isRecord(item)) return null;
-  const ts = item.timestamp;
-  const val = item.value;
+
+  // Use bracket notation to safely access properties on Record<string, unknown>
+  const record = item as Record<string, unknown>;
+  let ts = record["timestamp"] ?? record["time"];
+  let val = record["value"] ?? record["val"] ?? record["usage"];
+
+  // 处理时间戳可能是字符串的情况
+  if (typeof ts === "string") {
+    // 尝试直接转换数字
+    const parsed = Number(ts);
+    if (!isNaN(parsed)) {
+      ts = parsed;
+    } else {
+      // 尝试解析日期字符串
+      const date = new Date(ts);
+      if (!isNaN(date.getTime())) {
+        ts = Math.floor(date.getTime() / 1000); // 转换为秒级时间戳
+      }
+    }
+  }
+
+  // 处理值可能是字符串的情况
+  if (typeof val === "string") {
+    const parsed = parseFloat(val);
+    if (!isNaN(parsed)) {
+      val = parsed;
+    }
+  }
+
   if (typeof ts !== "number" || typeof val !== "number") return null;
   return { timestamp: ts, value: val };
 };
@@ -473,6 +501,70 @@ const extractPerformanceResponse = (
   response: unknown,
   key: string
 ): ApiResponse<PerformanceData[]> => {
+  // 1. 尝试处理 "Parallel Arrays" 格式 (time: [], value: [])
+  if (isRecord(response)) {
+    const data = response as Record<string, unknown>;
+    // Check for nested structure which might happen depending on axios/backend response wrapping
+    // Backend often returns { code: 200, data: { time: [], ... } }
+    const innerData = (isRecord(data.data) ? data.data : data) as Record<
+      string,
+      unknown
+    >;
+
+    // 获取时间数组
+    const timeArray = innerData["time"];
+
+    // 如果存在 time 数组，说明是并行数组结构
+    if (Array.isArray(timeArray)) {
+      const timestamps = timeArray.map(t => {
+        if (typeof t === "number") return t;
+        const date = new Date(t);
+        return !isNaN(date.getTime()) ? Math.floor(date.getTime() / 1000) : 0;
+      });
+
+      let values: number[] = [];
+
+      // 根据不同的 Key 提取值并转换
+      if (key === "cpu") {
+        const usage = innerData["cpu_usage"];
+        if (Array.isArray(usage)) {
+          values = usage.map(v => Number(v) || 0);
+        }
+      } else if (key === "mem") {
+        const used = innerData["mem_used"];
+        const total = innerData["mem_total"];
+        if (Array.isArray(used) && Array.isArray(total)) {
+          values = used.map((u, i) => {
+            const t = Number(total[i]) || 1;
+            return ((Number(u) || 0) / t) * 100;
+          });
+        }
+      } else if (key === "loadavg") {
+        const load = innerData["loadavg"];
+        if (Array.isArray(load)) {
+          values = load.map(v => Number(v) || 0);
+        }
+      }
+
+      // 如果成功提取了值，组装数据
+      if (values.length > 0 && timestamps.length === values.length) {
+        const result = timestamps.map((ts, i) => ({
+          timestamp: ts,
+          value: values[i],
+        }));
+        // Filter out bad timestamps
+        const validResult = result.filter(r => r.timestamp > 0);
+
+        return {
+          code: 200,
+          message: "success",
+          data: validResult,
+        };
+      }
+    }
+  }
+
+  // 2. 如果不是并行数组，尝试之前的处理逻辑 (Array of Objects)
   let normalized = extractListByKey(response, key);
   if (normalized.code !== 200 && isRecord(response)) {
     normalized = extractListByKey(response, "data");
@@ -525,12 +617,63 @@ export const getPerformanceMem = async (
  * @param nodeUid - 物理机 UID
  * @param timeFrame - 时间范围 (hour/day/week/month)
  */
+/**
+ * 获取网络性能监控数据 (包含上行和下行)
+ * @param nodeUid - 物理机 UID
+ * @param timeFrame - 时间范围 (hour/day/week/month)
+ */
 export const getPerformanceNet = async (
   nodeUid: string,
   timeFrame: string
-): Promise<ApiResponse<PerformanceData[]>> => {
+): Promise<ApiResponse<NetworkPerformanceData[]>> => {
   const response = await get<unknown>(URL.monitorNet(nodeUid, timeFrame));
-  return extractPerformanceResponse(response, "net");
+
+  if (isRecord(response)) {
+    const data = response as Record<string, unknown>;
+    // Check for nested structure which might happen depending on axios/backend response wrapping
+    const innerData = (isRecord(data.data) ? data.data : data) as Record<
+      string,
+      unknown
+    >;
+
+    const timeArray = innerData["time"];
+
+    if (Array.isArray(timeArray)) {
+      const timestamps = timeArray.map(t => {
+        if (typeof t === "number") return t;
+        const date = new Date(t);
+        return !isNaN(date.getTime()) ? Math.floor(date.getTime() / 1000) : 0;
+      });
+
+      const netIn = innerData["net_in"];
+      const netOut = innerData["net_out"];
+
+      if (Array.isArray(netIn) && Array.isArray(netOut)) {
+        const result = timestamps.map((ts, i) => ({
+          timestamp: ts,
+          rx: Number(netIn[i]) || 0, // Keep as Bytes/s, formatting handles unit
+          tx: Number(netOut[i]) || 0, // Keep as Bytes/s
+        }));
+
+        // Filter out any where timestamp parsing failed (0)
+        const validResult = result.filter(r => r.timestamp > 0);
+
+        return {
+          code: 200,
+          message: "success",
+          data: validResult,
+        };
+      }
+    }
+  }
+
+  // Fallback if structure doesn't match expected parallel arrays
+  // Just return empty array for safety as we can't map object-list to Rx/Tx easily without knowing structure
+  return {
+    code: 200,
+    message: "success",
+    data: [],
+  };
 };
 
 /**

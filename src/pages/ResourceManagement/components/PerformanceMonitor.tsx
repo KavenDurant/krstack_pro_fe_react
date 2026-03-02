@@ -3,7 +3,7 @@ import { Card, Select, Spin, message, Empty } from "antd";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
 import { nodeApi } from "@/api";
-import type { PerformanceData } from "@/api";
+import type { PerformanceData, NetworkPerformanceData } from "@/api";
 
 interface PerformanceMonitorProps {
   nodeUid: string;
@@ -43,19 +43,21 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       chartInstanceRef.current = echarts.init(chartRef.current);
     }
 
-    const formatTimestamp = (timestamp: number): string => {
+    const formatTooltipTimestamp = (timestamp: number): string => {
       const date = new Date(timestamp * 1000);
+      const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
-      return `${month}-${day} ${hours}:${minutes}`;
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     };
 
     const option: EChartsOption = {
       grid: {
         left: "3%",
-        right: "4%",
+        right: "6%", // Adjusted for better label visibility
         bottom: "3%",
         top: "10%",
         containLabel: true,
@@ -63,10 +65,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       xAxis: {
         type: "category",
         boundaryGap: false,
-        data: data.map(item => formatTimestamp(item.timestamp)),
+        data: data.map(item => formatTooltipTimestamp(item.timestamp)),
         axisLabel: {
           rotate: 45,
           fontSize: 10,
+          formatter: (value: string) => value.substring(5, 16),
         },
       },
       yAxis: {
@@ -101,16 +104,28 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       tooltip: {
         trigger: "axis",
         formatter: (params: unknown) => {
-          const param = (params as Array<{ value: number; name: string }>)[0];
+          const paramArr = params as Array<{
+            value: number;
+            name: string;
+            dataIndex: number;
+            marker: string;
+            seriesName: string;
+          }>;
+          if (!paramArr || paramArr.length === 0) return "";
+
+          const param = paramArr[0];
+          // param.name is now the full date string from xAxis data
+          const dateStr = param.name;
+
           const value = formatter
             ? formatter(param.value)
             : `${param.value.toFixed(2)} ${unit}`;
-          return `${param.name}<br/>${title}: ${value}`;
+          return `${dateStr}<br/>${title}: ${value}`;
         },
       },
     };
 
-    chartInstanceRef.current.setOption(option);
+    chartInstanceRef.current.setOption(option, true);
 
     const handleResize = () => {
       chartInstanceRef.current?.resize();
@@ -136,14 +151,243 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   return <div ref={chartRef} style={{ width: "100%", height: 300 }} />;
 };
 
+const useNetworkChart = (data: NetworkPerformanceData[]) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInstanceRef = useRef<echarts.ECharts | null>(null);
+  const [visibleSeries, setVisibleSeries] = useState<{
+    rx: boolean;
+    tx: boolean;
+  }>({
+    rx: true,
+    tx: true,
+  });
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    if (!chartInstanceRef.current) {
+      chartInstanceRef.current = echarts.init(chartRef.current);
+    }
+
+    // Early return if no data
+    if (!data || data.length === 0) {
+      return;
+    }
+
+    const formatTooltipTimestamp = (timestamp: number): string => {
+      const date = new Date(timestamp * 1000);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    // Auto-calculate appropriate unit based on max value
+    const maxVal = Math.max(
+      ...data.map(d => Math.max(d.rx, d.tx)),
+      0 // Ensure at least 0 to avoid -Infinity
+    );
+
+    console.log("NetworkChartComponent maxVal:", maxVal);
+
+    // Helper to get raw transformed value for axis
+    const getValueInUnit = (bytes: number) => {
+      if (maxVal >= 1024 * 1024 * 1024) return bytes / 1024 / 1024 / 1024; // GB/s
+      if (maxVal >= 1024 * 1024) return bytes / 1024 / 1024; // MB/s
+      if (maxVal >= 1024) return bytes / 1024; // KB/s
+      return bytes; // B/s
+    };
+
+    const getUnitLabel = () => {
+      if (maxVal >= 1024 * 1024 * 1024) return "GB/s";
+      if (maxVal >= 1024 * 1024) return "MB/s";
+      if (maxVal >= 1024) return "KB/s";
+      return "B/s";
+    };
+
+    const unitLabel = getUnitLabel();
+
+    const option: EChartsOption = {
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        top: "3%", // Minimal top margin
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        boundaryGap: false,
+        data: data.map(item => formatTooltipTimestamp(item.timestamp)),
+        axisLabel: {
+          rotate: 45,
+          fontSize: 10,
+          formatter: (value: string) => value.substring(5, 16),
+        },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: {
+          formatter: (value: number) => `${value.toFixed(2)} ${unitLabel}`,
+        },
+      },
+      series: [
+        {
+          name: "接收 (In)",
+          type: "line",
+          smooth: true,
+          symbol: "none",
+          itemStyle: { color: "#faad14" },
+          lineStyle: { width: 2 },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: "#faad1440" },
+              { offset: 1, color: "#faad1410" },
+            ]),
+          },
+          data: visibleSeries.rx
+            ? data.map(item => getValueInUnit(item.rx))
+            : [],
+        },
+        {
+          name: "发送 (Out)",
+          type: "line",
+          smooth: true,
+          symbol: "none",
+          itemStyle: { color: "#52c41a" },
+          lineStyle: { width: 2 },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: "#52c41a40" },
+              { offset: 1, color: "#52c41a10" },
+            ]),
+          },
+          data: visibleSeries.tx
+            ? data.map(item => getValueInUnit(item.tx))
+            : [],
+        },
+      ],
+      tooltip: {
+        trigger: "axis",
+        formatter: (params: any) => {
+          if (!Array.isArray(params) || params.length === 0) return "";
+          const firstParam = params[0];
+
+          // firstParam.name is now the full date string from xAxis data
+          const dateStr = firstParam.name;
+
+          let html = `${dateStr}<br/>`;
+          params.forEach((p: any) => {
+            if (p.value !== undefined) {
+              html += `${p.marker} ${p.seriesName}: ${p.value.toFixed(2)} ${unitLabel}<br/>`;
+            }
+          });
+          return html;
+        },
+      },
+    };
+
+    chartInstanceRef.current.setOption(option, true);
+
+    const handleResize = () => {
+      chartInstanceRef.current?.resize();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [data, visibleSeries]); // Re-render when data or visibility changes
+
+  useEffect(() => {
+    return () => {
+      chartInstanceRef.current?.dispose();
+    };
+  }, []);
+
+  const toggleSeries = (series: "rx" | "tx") => {
+    setVisibleSeries(prev => ({
+      ...prev,
+      [series]: !prev[series],
+    }));
+  };
+
+  const legend = (
+    <div style={{ display: "flex", gap: 16, fontSize: 12 }}>
+      <span
+        onClick={() => toggleSeries("rx")}
+        style={{
+          cursor: "pointer",
+          opacity: visibleSeries.rx ? 1 : 0.4,
+          textDecoration: visibleSeries.rx ? "none" : "line-through",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            width: 10,
+            height: 10,
+            backgroundColor: "#faad14",
+            marginRight: 4,
+            borderRadius: "50%",
+          }}
+        />
+        接收 (In)
+      </span>
+      <span
+        onClick={() => toggleSeries("tx")}
+        style={{
+          cursor: "pointer",
+          opacity: visibleSeries.tx ? 1 : 0.4,
+          textDecoration: visibleSeries.tx ? "none" : "line-through",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            width: 10,
+            height: 10,
+            backgroundColor: "#52c41a",
+            marginRight: 4,
+            borderRadius: "50%",
+          }}
+        />
+        发送 (Out)
+      </span>
+    </div>
+  );
+
+  if (data.length === 0) {
+    return {
+      chart: <Empty description="暂无数据" />,
+      legend: legend,
+    };
+  }
+
+  return {
+    chart: <div ref={chartRef} style={{ width: "100%", height: 300 }} />,
+    legend: legend,
+  };
+};
+
 const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ nodeUid }) => {
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("hour");
   const [cpuData, setCpuData] = useState<PerformanceData[]>([]);
   const [memData, setMemData] = useState<PerformanceData[]>([]);
-  const [netData, setNetData] = useState<PerformanceData[]>([]);
+  const [netData, setNetData] = useState<NetworkPerformanceData[]>([]);
   const [loadavgData, setLoadavgData] = useState<PerformanceData[]>([]);
   const [loading, setLoading] = useState(false);
   const hasLoadedRef = useRef(false);
+
+  // Use network chart hook to get both chart and legend
+  const networkChartResult = useNetworkChart(netData);
 
   const loadPerformanceData = async () => {
     try {
@@ -244,14 +488,9 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ nodeUid }) => {
             title="网络流量"
             variant="outlined"
             styles={{ body: { padding: 16 } }}
+            extra={networkChartResult.legend}
           >
-            <ChartComponent
-              data={netData}
-              title="网络流量"
-              color="#faad14"
-              unit="MB/s"
-              formatter={v => `${v.toFixed(2)} MB/s`}
-            />
+            {networkChartResult.chart}
           </Card>
 
           <Card
