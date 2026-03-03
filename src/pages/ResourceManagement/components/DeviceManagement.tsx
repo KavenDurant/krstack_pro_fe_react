@@ -13,6 +13,7 @@ import VerticalTabs from "@/components/VerticalTabs";
 import type { TabItem } from "@/components/VerticalTabs";
 import { nodeApi } from "@/api";
 import type { NetworkInterface, USBDevice, GPUDevice } from "@/api";
+import DeviceMoreDoModal from "./DeviceMoreDoModal";
 
 interface DeviceManagementProps {
   nodeUid: string;
@@ -27,7 +28,13 @@ interface GPUDeviceRow {
   deviceName: string;
   manufacturer: string;
   status: string;
-  vmUse: { name: string; status: string }[];
+  vmUse: Array<{
+    name: string;
+    status: string;
+    vmUid: string;
+    gpuUid: string;
+    gpuId: string;
+  }>;
 }
 
 // USB 设备类型
@@ -39,7 +46,13 @@ interface USBDeviceRow {
   manufacturer: string;
   product: string;
   status: string;
-  vmUse: { name: string; status: string }[];
+  vmUse: Array<{
+    name: string;
+    status: string;
+    vmUid: string;
+    usbUid: string;
+    usbId: string;
+  }>;
 }
 
 // 网卡设备类型
@@ -54,6 +67,23 @@ interface NetworkDeviceRow {
 
 type DeviceRow = GPUDeviceRow | USBDeviceRow | NetworkDeviceRow;
 
+// 模态框设备数据类型
+interface ModalDeviceData {
+  uid: string;
+  id: string;
+  deviceName?: string;
+  name?: string;
+  manufacturer?: string;
+  status: string;
+  vmUse: Array<{
+    name: string;
+    status: string;
+    vmUid: string;
+    gpuUid?: string;
+    usbUid?: string;
+  }>;
+}
+
 const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
   const [activeTab, setActiveTab] = useState<DeviceTabKey>("gpu");
   const [searchValue, setSearchValue] = useState("");
@@ -63,6 +93,13 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // 模态框状态
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalDeviceType, setModalDeviceType] = useState<"gpu" | "usb">("gpu");
+  const [modalDeviceData, setModalDeviceData] =
+    useState<ModalDeviceData | null>(null);
+
   const requestIdRef = useRef<Record<DeviceTabKey, number>>({
     gpu: 0,
     usb: 0,
@@ -75,6 +112,59 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
     const isLatest = () =>
       requestIdRef.current[tabKey] === currentId && activeTab === tabKey;
     return { isLatest };
+  };
+
+  // 打开更多操作模态框
+  const openMoreDoModal = (
+    device: GPUDeviceRow | USBDeviceRow,
+    type: "gpu" | "usb"
+  ) => {
+    const modalData: ModalDeviceData = {
+      uid: device.uid,
+      id: device.id,
+      status: device.status,
+      vmUse: device.vmUse.map(item => ({
+        name: item.name,
+        status: item.status,
+        vmUid: item.vmUid,
+        gpuUid:
+          type === "gpu"
+            ? (item as GPUDeviceRow["vmUse"][0]).gpuUid
+            : undefined,
+        usbUid:
+          type === "usb"
+            ? (item as USBDeviceRow["vmUse"][0]).usbUid
+            : undefined,
+      })),
+    };
+
+    if (type === "gpu") {
+      modalData.deviceName = (device as GPUDeviceRow).deviceName;
+      modalData.manufacturer = (device as GPUDeviceRow).manufacturer;
+    } else {
+      modalData.name = (device as USBDeviceRow).name;
+      modalData.manufacturer = (device as USBDeviceRow).manufacturer;
+    }
+
+    setModalDeviceType(type);
+    setModalDeviceData(modalData);
+    setModalOpen(true);
+  };
+
+  // 关闭模态框
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalDeviceData(null);
+  };
+
+  // 卸载成功后刷新列表
+  const handleUnmountSuccess = () => {
+    closeModal();
+    if (modalDeviceType === "gpu") {
+      loadGPUList();
+    } else {
+      loadUSBList();
+    }
   };
 
   // 加载 GPU 设备
@@ -95,6 +185,9 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
             vmUse: (gpu.vmUse || []).map(item => ({
               name: item.name,
               status: item.status,
+              vmUid: item.vmUid,
+              gpuUid: item.gpuUid,
+              gpuId: item.gpuId,
             })),
           })
         );
@@ -134,6 +227,9 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
             vmUse: (usb.vmUse || []).map(item => ({
               name: item.name,
               status: item.status,
+              vmUid: item.vmUid,
+              usbUid: item.usbUid,
+              usbId: item.usbId,
             })),
           })
         );
@@ -210,6 +306,33 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
     }
   };
 
+  // 渲染状态标签
+  const renderStatusTag = (status: string) => {
+    let color = "default";
+    let text = status;
+
+    switch (status) {
+      case "normal":
+        color = "success";
+        text = "正常";
+        break;
+      case "occupied":
+        color = "processing";
+        text = "占用";
+        break;
+      case "pending":
+        color = "warning";
+        text = "待处理";
+        break;
+      case "deleting":
+        color = "error";
+        text = "删除中";
+        break;
+    }
+
+    return <Tag color={color}>{text}</Tag>;
+  };
+
   // GPU 设备列定义
   const gpuColumns: ColumnsType<GPUDeviceRow> = [
     {
@@ -235,17 +358,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
       title: "状态",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Tag color={status === "normal" ? "success" : "default"}>
-          {status === "normal"
-            ? "正常"
-            : status === "occupied"
-              ? "占用"
-              : status === "pending"
-                ? "待处理"
-                : status}
-        </Tag>
-      ),
+      render: renderStatusTag,
     },
     {
       title: "关联虚拟机",
@@ -263,7 +376,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
               .slice(0, 2)
               .map(item => (
                 <Tag
-                  key={item.name}
+                  key={item.vmUid}
                   color={item.status === "normal" ? "success" : "default"}
                 >
                   {item.name}
@@ -274,6 +387,29 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
         ) : (
           <Tag color="default">未使用</Tag>
         ),
+    },
+    {
+      title: "操作",
+      key: "action",
+      width: 100,
+      render: (_: unknown, record: GPUDeviceRow) => {
+        // pending 或 deleting 状态显示提示
+        if (record.status === "pending") {
+          return <Tag color="warning">已加载，请重启后生效</Tag>;
+        }
+        if (record.status === "deleting") {
+          return <Tag color="error">已卸载，请重启后生效</Tag>;
+        }
+        return (
+          <Button
+            type="link"
+            size="small"
+            onClick={() => openMoreDoModal(record, "gpu")}
+          >
+            更多操作
+          </Button>
+        );
+      },
     },
   ];
 
@@ -314,17 +450,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
       title: "状态",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Tag color={status === "normal" ? "success" : "default"}>
-          {status === "normal"
-            ? "正常"
-            : status === "occupied"
-              ? "占用"
-              : status === "pending"
-                ? "待处理"
-                : status}
-        </Tag>
-      ),
+      render: renderStatusTag,
     },
     {
       title: "关联虚拟机",
@@ -342,7 +468,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
               .slice(0, 2)
               .map(item => (
                 <Tag
-                  key={item.name}
+                  key={item.vmUid}
                   color={item.status === "normal" ? "success" : "default"}
                 >
                   {item.name}
@@ -353,6 +479,29 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
         ) : (
           <Tag color="default">未使用</Tag>
         ),
+    },
+    {
+      title: "操作",
+      key: "action",
+      width: 100,
+      render: (_: unknown, record: USBDeviceRow) => {
+        // pending 或 deleting 状态显示提示
+        if (record.status === "pending") {
+          return <Tag color="warning">已加载，请重启后生效</Tag>;
+        }
+        if (record.status === "deleting") {
+          return <Tag color="error">已卸载，请重启后生效</Tag>;
+        }
+        return (
+          <Button
+            type="link"
+            size="small"
+            onClick={() => openMoreDoModal(record, "usb")}
+          >
+            更多操作
+          </Button>
+        );
+      },
     },
   ];
 
@@ -374,17 +523,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
       title: "状态",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Tag color={status === "normal" ? "success" : "default"}>
-          {status === "normal"
-            ? "正常"
-            : status === "occupied"
-              ? "占用"
-              : status === "pending"
-                ? "待处理"
-                : status}
-        </Tag>
-      ),
+      render: renderStatusTag,
     },
     {
       title: "从属",
@@ -448,6 +587,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
     }
   };
 
+
   // 渲染表格内容（公共部分）
   const renderTableContent = () => (
     <div style={{ padding: "0 0" }}>
@@ -460,7 +600,7 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
         }}
       >
         <Input
-          placeholder="Q 名称"
+          placeholder="搜索名称"
           prefix={<SearchOutlined />}
           value={searchValue}
           onChange={e => {
@@ -555,6 +695,15 @@ const DeviceManagement: React.FC<DeviceManagementProps> = ({ nodeUid }) => {
           setCurrentPage(1);
         }}
         tabWidth={160}
+      />
+
+      {/* 更多操作模态框 */}
+      <DeviceMoreDoModal
+        open={modalOpen}
+        deviceType={modalDeviceType}
+        deviceData={modalDeviceData}
+        onClose={closeModal}
+        onSuccess={handleUnmountSuccess}
       />
     </div>
   );

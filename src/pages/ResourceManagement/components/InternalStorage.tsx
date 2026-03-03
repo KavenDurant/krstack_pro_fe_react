@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Input, Button, Space, Tag, message } from "antd";
+import { Input, Button, Space, Tag, message, Progress } from "antd";
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -10,15 +10,19 @@ import TableToolbar from "@/components/__design-system__/TableToolbar";
 import StandardTable from "@/components/__design-system__/StandardTable";
 import { storageApi } from "@/api";
 import type { InternalStorage as InternalStorageApi } from "@/api";
-import { formatBytesAuto } from "@/utils/format";
+import { calculatePercentage, formatBytesWithUnit } from "@/utils/format";
 
 interface InternalStorageType {
   key: string;
   name: string;
-  status: "available" | "in_use";
-  size: string;
-  host: string;
+  clusterName: string;
   type: string;
+  capacity: {
+    usedBytes: number;
+    totalBytes: number;
+    remainingBytes: number;
+    percent: number;
+  } | null;
 }
 
 const InternalStorage: React.FC = () => {
@@ -33,23 +37,32 @@ const InternalStorage: React.FC = () => {
     data: InternalStorageApi[]
   ): InternalStorageType[] => {
     return data.map(item => {
-      // 根据 disk_used 判断状态
-      const status: "available" | "in_use" =
-        item.disk_used > 0 ? "in_use" : "available";
+      // 保留原始字节数据，渲染时再格式化
+      let capacity: InternalStorageType["capacity"] = null;
+      if (
+        item.disk_total !== null &&
+        item.disk_total !== undefined &&
+        item.disk_used !== null &&
+        item.disk_used !== undefined &&
+        item.disk_left !== null &&
+        item.disk_left !== undefined
+      ) {
+        const percent = calculatePercentage(item.disk_used, item.disk_total);
 
-      // 格式化容量
-      const size =
-        item.disk_total !== null && item.disk_total !== undefined
-          ? formatBytesAuto(item.disk_total)
-          : "—";
+        capacity = {
+          usedBytes: item.disk_used,
+          totalBytes: item.disk_total,
+          remainingBytes: item.disk_left,
+          percent,
+        };
+      }
 
       return {
         key: item.storage_uid,
         name: item.name || "-",
-        status,
-        size,
-        host: item.node_name || "—",
-        type: item.platform_type || "—",
+        clusterName: item.cluster_name || "-",
+        type: item.platform_type || "-",
+        capacity,
       };
     });
   };
@@ -146,25 +159,9 @@ const InternalStorage: React.FC = () => {
       render: text => <a style={{ color: "#1890ff" }}>{text}</a>,
     },
     {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: status => (
-        <Tag color={status === "available" ? "green" : "blue"}>
-          {status === "available" ? "可用" : "使用中"}
-        </Tag>
-      ),
-    },
-    {
-      title: "容量",
-      dataIndex: "size",
-      key: "size",
-      render: (text: string) => (text && text !== "-" ? text : "—"),
-    },
-    {
-      title: "所属主机",
-      dataIndex: "host",
-      key: "host",
+      title: "所属集群",
+      dataIndex: "clusterName",
+      key: "clusterName",
       render: (text: string) => (text && text !== "-" ? text : "—"),
     },
     {
@@ -172,6 +169,55 @@ const InternalStorage: React.FC = () => {
       dataIndex: "type",
       key: "type",
       render: (text: string) => (text && text !== "-" ? text : "—"),
+    },
+    {
+      title: "存储容量",
+      key: "capacity",
+      width: 300,
+      render: (_, record) => {
+        if (!record.capacity) {
+          return <Tag color="default">暂未提供</Tag>;
+        }
+
+        return (
+          <div style={{ width: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 12,
+                color: "#666",
+                marginBottom: 4,
+              }}
+            >
+              <span>
+                {formatBytesWithUnit(
+                  record.capacity.remainingBytes,
+                  record.capacity.totalBytes
+                )}
+                /
+                {formatBytesWithUnit(
+                  record.capacity.totalBytes,
+                  record.capacity.totalBytes
+                )}
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Progress
+                percent={record.capacity.percent}
+                showInfo={false}
+                strokeColor="#52c41a"
+                trailColor="#f0f0f0"
+                size="small"
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: 12, minWidth: 24, textAlign: "right" }}>
+                {record.capacity.percent}%
+              </span>
+            </div>
+          </div>
+        );
+      },
     },
   ];
 
