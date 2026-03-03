@@ -43,8 +43,13 @@ const EditExternalStorageModal: React.FC<EditExternalStorageModalProps> = ({
     setLoading(true);
     try {
       const response = await storageApi.getExternalStorageEditList(storageUid);
-
-      const clusters = response.data as ClusterEditList[];
+      // 接口直接返回 { clusters: ClusterEditList[] }，response 已经是 res.data 的结果
+      // 需要处理两种情况：response.data.clusters 或直接 response.clusters
+      const responseData = response as unknown as {
+        clusters?: ClusterEditList[];
+        data?: { clusters?: ClusterEditList[] };
+      };
+      const clusters = responseData.clusters ?? responseData.data?.clusters ?? [];
 
       if (Array.isArray(clusters)) {
         // 过滤掉没有名称的集群，并添加 loading 字段

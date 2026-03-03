@@ -40,6 +40,13 @@ export interface DeleteStoragePayload {
   }[];
 }
 
+
+// 删除存储响应
+export interface DeleteStorageResponse {
+  failed_list: string[]; // 删除失败的存储 uid 列表
+  success_list: string[]; // 删除成功的存储 uid 列表
+}
+
 // 存储挂载/卸载载荷
 export interface StorageMountPayload {
   storage_uid: string; // 存储唯一标识符

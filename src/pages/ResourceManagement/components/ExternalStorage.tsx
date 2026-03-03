@@ -41,6 +41,9 @@ const ExternalStorage: React.FC = () => {
     useState<ExternalStorageType | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // 批量删除状态
+  const [isBatchDelete, setIsBatchDelete] = useState(false);
+
   // 编辑相关状态
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] =
@@ -177,20 +180,65 @@ const ExternalStorage: React.FC = () => {
     setDeleteModalVisible(true);
   };
 
-  // 确认删除
+
+  // 批量删除 - 打开确认弹窗
+  const handleBatchDeleteClick = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning("请先选择要删除的存储");
+      return;
+    }
+    setIsBatchDelete(true);
+    setDeleteModalVisible(true);
+  };
+
+  // 处理删除响应结果
+  const handleDeleteResult = (
+    response: { data?: { failed_list?: string[]; success_list?: string[] } },
+    totalToDelete: number
+  ) => {
+    const failedList = response.data?.failed_list || [];
+    const successList = response.data?.success_list || [];
+
+    if (successList.length === totalToDelete) {
+      message.success("全部外挂存储删除成功！");
+    } else if (failedList.length === totalToDelete) {
+      message.error("全部外挂存储删除失败！");
+    } else {
+      message.warning("部分外挂存储删除失败，请查找具体原因！");
+    }
+  };
+
+  // 确认删除 (支持单个和批量)
   const handleDeleteConfirm = async () => {
-    if (!deletingRecord) {
+    // 构建删除参数
+    let storagesToDelete: { storage_uid: string }[] = [];
+
+    if (isBatchDelete) {
+      // 批量删除：使用选中的行
+      storagesToDelete = selectedRowKeys.map(key => ({
+        storage_uid: key as string,
+      }));
+    } else if (deletingRecord) {
+      // 单个删除
+      storagesToDelete = [{ storage_uid: deletingRecord.key }];
+    }
+
+    if (storagesToDelete.length === 0) {
       message.error("删除记录不能为空");
       return;
     }
 
     setDeleteLoading(true);
     try {
-      await storageApi.deleteExternalStorage({
-        storages: [{ storage_uid: deletingRecord.key }],
+      const response = await storageApi.deleteExternalStorage({
+        storages: storagesToDelete,
       });
-      message.success("外挂存储删除成功");
+
+      // 处理删除结果
+      handleDeleteResult(response, storagesToDelete.length);
+
       setDeleteModalVisible(false);
+      setSelectedRowKeys([]); // 清空选中
       loadExternalStorageList();
     } catch (error) {
       const errorObj = error as { detail?: string; message?: string };
@@ -201,10 +249,12 @@ const ExternalStorage: React.FC = () => {
     }
   };
 
+
   // 取消删除
   const handleDeleteCancel = () => {
     setDeleteModalVisible(false);
     setDeletingRecord(null);
+    setIsBatchDelete(false);
   };
 
   // 过滤数据
@@ -370,6 +420,13 @@ const ExternalStorage: React.FC = () => {
         }
         right={
           <Space>
+            <Button
+              danger
+              disabled={selectedRowKeys.length < 1}
+              onClick={handleBatchDeleteClick}
+            >
+              删除
+            </Button>
             <Button type="primary" icon={<PlusOutlined />}>
               添加
             </Button>
@@ -411,7 +468,10 @@ const ExternalStorage: React.FC = () => {
         cancelText="取消"
         centered
       >
-        <p>是否删除存储？</p>
+        <p>
+          是否删除{" "}
+          {isBatchDelete ? `${selectedRowKeys.length} 个` : "该"}存储？
+        </p>
       </Modal>
 
       {/* 编辑弹窗 */}

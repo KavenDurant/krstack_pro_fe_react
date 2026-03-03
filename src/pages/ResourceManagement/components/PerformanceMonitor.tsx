@@ -1,9 +1,26 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Card, Select, Spin, message, Empty } from "antd";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
 import { nodeApi } from "@/api";
 import type { PerformanceData, NetworkPerformanceData } from "@/api";
+
+// 限制图表数据点数量为最多 12 个
+const MAX_DATA_POINTS = 12;
+
+// 对数据进行采样，保留最多 MAX_DATA_POINTS 个数据点
+const sampleData = <T extends { timestamp: number }>(data: T[]): T[] => {
+  if (data.length <= MAX_DATA_POINTS) {
+    return data;
+  }
+  const result: T[] = [];
+  const step = (data.length - 1) / (MAX_DATA_POINTS - 1);
+  for (let i = 0; i < MAX_DATA_POINTS; i++) {
+    const index = Math.round(i * step);
+    result.push(data[index]);
+  }
+  return result;
+};
 
 interface PerformanceMonitorProps {
   nodeUid: string;
@@ -35,6 +52,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstanceRef = useRef<echarts.ECharts | null>(null);
+  // 对数据进行采样，限制最多显示 MAX_DATA_POINTS 个数据点
+  const sampledData = useMemo(() => sampleData(data), [data]);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -65,7 +84,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       xAxis: {
         type: "category",
         boundaryGap: false,
-        data: data.map(item => formatTooltipTimestamp(item.timestamp)),
+        data: sampledData.map(item => formatTooltipTimestamp(item.timestamp)),
         axisLabel: {
           rotate: 45,
           fontSize: 10,
@@ -98,7 +117,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               { offset: 1, color: color + "10" },
             ]),
           },
-          data: data.map(item => item.value),
+          data: sampledData.map(item => item.value),
         },
       ],
       tooltip: {
@@ -144,8 +163,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     };
   }, []);
 
-  if (data.length === 0) {
-    return <Empty description="暂无数据" />;
+  if (sampledData.length === 0) {
+    return (
+      <div
+        style={{
+          height: 300,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Empty description="暂无数据" />
+      </div>
+    );
   }
 
   return <div ref={chartRef} style={{ width: "100%", height: 300 }} />;

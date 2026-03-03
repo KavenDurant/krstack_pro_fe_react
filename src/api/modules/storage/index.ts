@@ -1,7 +1,8 @@
 /**
  * 存储管理相关 API
  */
-import { get, post, put, del } from "@/api/request/index";
+import { get, post, put } from "@/api/request/index";
+import request from "@/api/request/instance";
 import type { ApiResponse } from "@/api/types";
 import type {
   ExternalStorage,
@@ -15,8 +16,8 @@ import type {
   SmbCifsPathOption,
   StorageContentQuery,
   StorageContentResponse,
+  DeleteStorageResponse,
 } from "./types";
-
 const URL = {
   outside: "/storages/outside",
   inside: "/storages/inside",
@@ -44,8 +45,8 @@ export const getExternalStorageList = async (): Promise<
  */
 export const getExternalStorageEditList = async (
   clusterId: string
-): Promise<ApiResponse<ClusterEditList[]>> => {
-  return get<ClusterEditList[]>(`/storages/outside/${clusterId}`);
+): Promise<ApiResponse<{ clusters: ClusterEditList[] }>> => {
+  return get<{ clusters: ClusterEditList[] }>(`/storages/outside/${clusterId}`);
 };
 
 /**
@@ -58,12 +59,18 @@ export const addExternalStorage = async (
 };
 
 /**
- * 删除外挂存储
+ * 删除外挂存储 (支持批量)
+ * 注意：DELETE 请求需要使用 data 字段传递请求体
  */
 export const deleteExternalStorage = async (
   data: DeleteStoragePayload
-): Promise<ApiResponse<null>> => {
-  return del<null>(URL.outside, data as unknown as Record<string, unknown>);
+): Promise<ApiResponse<DeleteStorageResponse>> => {
+  // 使用 axios 实例直接调用，通过 data 字段传递请求体
+  const response = await request.delete<ApiResponse<DeleteStorageResponse>>(
+    URL.outside,
+    { data }
+  );
+  return response.data;
 };
 
 /**
